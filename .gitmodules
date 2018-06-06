@@ -1,0 +1,4 @@
+[submodule "external_apps/labelImg"]
+	path = external_apps/labelImg
+  url = https://github.com/yskim041/labelImg.git
+  branch = foods
