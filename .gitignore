@@ -103,6 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# vim
+*.swp
+
 # local_configs
 config/
-
