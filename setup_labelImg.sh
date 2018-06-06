@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -d "./config" ]; then
+  rm -rf ./config
+fi
+
 if [ "$1" == "python3" ]; then
   echo "installing labelImg with Python3 + Qt5"
   git submodule update --init --recursive
