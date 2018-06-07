@@ -5,7 +5,7 @@ print_usage() {
   echo "    ./run_skewering_position_sampler.sh <option>"
   echo ""
   echo "available options:"
-  echo "    all       running both generating cropped images"
+  echo "    all       running both cropping and sampling"
   echo "    crop      generating cropped images"
   echo "    sample    sampling skewering positions"
   exit

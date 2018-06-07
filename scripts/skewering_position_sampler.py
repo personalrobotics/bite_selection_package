@@ -249,7 +249,7 @@ def print_usage():
     print('usage:')
     print('    python {} <option>\n'.format(sys.argv[0]))
     print('available options:')
-    print('    all       running both generating cropped images')
+    print('    all       running both cropping and sampling')
     print('    crop      generating cropped images')
     print('    sample    sampling skewering positions')
 
