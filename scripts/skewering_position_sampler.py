@@ -27,6 +27,14 @@ class SPSampler(object):
         self.cur_img_name = None
         self.is_clicked = False
 
+        samplable_objs = [
+            'apple', 'apricot', 'banana', 'bell pepper', 'blackberry',
+            'cantalope', 'carrot', 'celery', 'cherry tomato', 'egg',
+            'grape', 'melon', 'strawberry']
+        self.samplable = dict()
+        for obj_name in samplable_objs:
+            self.samplable[obj_name] = True
+
         self.check_dirs()
 
     def check_dirs(self):
@@ -43,6 +51,8 @@ class SPSampler(object):
         print('-- generate_cropped_images ---------------------------------\n')
         xml_filenames = sorted(os.listdir(self.bbox_ann_dir))
         for xidx, xml_filename in enumerate(xml_filenames):
+            if not xml_filename.endswith('.xml'):
+                continue
             xml_file_path = os.path.join(self.bbox_ann_dir, xml_filename)
             img_file_path = os.path.join(
                 self.bbox_img_dir, xml_filename[:-4] + '.jpg')
@@ -93,6 +103,8 @@ class SPSampler(object):
             if not img_filename.endswith('.jpg'):
                 continue
             self.cur_img_name = img_filename[:-4]
+            if self.cur_img_name.split('_')[2] not in self.samplable:
+                continue
 
             self.outfile_path = os.path.join(
                 self.ann_dir, self.cur_img_name + '.out')
