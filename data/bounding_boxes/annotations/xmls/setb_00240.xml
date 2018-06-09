@@ -1,7 +1,7 @@
 <annotation>
 	<folder>images</folder>
 	<filename>setb_00240.jpg</filename>
-	<path>/home/yskim/external/Data/foods/data/images/setb_00240.jpg</path>
+	<path>/home/yskim/GitHub/bite_selection_package/data/bounding_boxes/images/setb_00240.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -261,6 +261,30 @@
 			<ymin>656</ymin>
 			<xmax>958</xmax>
 			<ymax>714</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>plate</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>656</xmin>
+			<ymin>498</ymin>
+			<xmax>1004</xmax>
+			<ymax>802</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>plate</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>1079</xmin>
+			<ymin>529</ymin>
+			<xmax>1464</xmax>
+			<ymax>871</ymax>
 		</bndbox>
 	</object>
 </annotation>

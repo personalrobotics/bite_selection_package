@@ -1,7 +1,7 @@
-<annotation verified="yes">
+<annotation>
 	<folder>images</folder>
 	<filename>apricot_0044.jpg</filename>
-	<path>/home/yskim/external/Data/foods/data/images/apricot_0044.jpg</path>
+	<path>/home/yskim/GitHub/bite_selection_package/data/bounding_boxes/images/apricot_0044.jpg</path>
 	<source>
 		<database>Unknown</database>
 	</source>
@@ -81,6 +81,30 @@
 			<ymin>625</ymin>
 			<xmax>871</xmax>
 			<ymax>719</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>plate</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>593</xmin>
+			<ymin>205</ymin>
+			<xmax>1256</xmax>
+			<ymax>720</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>apricot</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>976</xmin>
+			<ymin>657</ymin>
+			<xmax>1069</xmax>
+			<ymax>720</ymax>
 		</bndbox>
 	</object>
 </annotation>
