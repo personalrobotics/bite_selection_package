@@ -28,8 +28,8 @@ class SPSampler(object):
         self.is_clicked = False
 
         samplable_objs = [
-            'apple', 'apricot', 'banana', 'bell pepper', 'blackberry',
-            'cantalope', 'carrot', 'celery', 'cherry tomato', 'egg',
+            'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
+            'cantalope', 'carrot', 'celery', 'cherry_tomato', 'egg',
             'grape', 'melon', 'strawberry']
         self.samplable = dict()
         for obj_name in samplable_objs:
