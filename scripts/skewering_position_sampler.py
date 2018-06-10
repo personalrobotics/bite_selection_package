@@ -102,7 +102,8 @@ class SPSampler(object):
         self.cur_idx = 0
         while self.cur_idx < len(img_filename_list):
             img_filename = img_filename_list[self.cur_idx]
-            print('[{}] {}'.format(self.cur_idx, img_filename))
+            print('[{}/{}] {}'.format(
+                self.cur_idx, len(img_filename_list), img_filename))
 
             if not img_filename.endswith('.jpg'):
                 self.cur_idx += 1
@@ -302,19 +303,37 @@ class SPSampler(object):
             else:
                 plt.close(self.cur_fig)
 
+        elif event.key == 'A':
+            print('Go to the previous image (+100)')
+            self.plot_guide.set_visible(False)
+            self.cur_idx -= 100
+            if self.cur_idx < 0:
+                self.cur_idx = 0
+            plt.close(self.cur_fig)
+
         elif event.key == 'd':
             print('Go to the next image')
             self.plot_guide.set_visible(False)
             plt.close(self.cur_fig)
             self.cur_idx += 1
 
+        elif event.key == 'D':
+            print('Go to the next image (-100)')
+            self.plot_guide.set_visible(False)
+            plt.close(self.cur_fig)
+            self.cur_idx += 100
+
+        elif event.key == 'shift':
+            # skip
+            self.cur_idx = self.cur_idx
+
         else:
-            print('\"{}\" key pressed.')
+            print('\"{}\" key pressed.'.format(event.key))
             print('Available actions keys:')
-            print('  (1) Save : \'y\', \'enter\', \'space\'')
+            print('  (1) Save  : \'y\', \'enter\', \'space\'')
             print('  (2) Reset : \'n\', \'escape\', \'backspace\'')
-            print('  (3) Next : \'d\'')
-            print('  (4) Prev : \'a\'\n')
+            print('  (3) Next  : \'d\', \'right\'')
+            print('  (4) Prev  : \'a\', \'left\'\n')
 
 
 options = dict()
