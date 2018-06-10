@@ -8,6 +8,7 @@ print_usage() {
   echo "    all       running both cropping and sampling"
   echo "    crop      generating cropped images"
   echo "    sample    sampling skewering positions"
+  echo "    view      checking saved skewering positions"
   exit
 }
 
