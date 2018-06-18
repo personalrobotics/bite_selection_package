@@ -35,7 +35,7 @@ item {
 
 item {
   id: 8
-  name: 'bell pepper'
+  name: 'bell_pepper'
 }
 
 item {
@@ -85,7 +85,7 @@ item {
 
 item {
   id: 18
-  name: 'cherry tomato'
+  name: 'cherry_tomato'
 }
 
 item {
@@ -95,7 +95,7 @@ item {
 
 item {
   id: 20
-  name: 'cottage cheese'
+  name: 'cottage_cheese'
 }
 
 item {
@@ -125,7 +125,7 @@ item {
 
 item {
   id: 26
-  name: 'mashed potato'
+  name: 'mashed_potato'
 }
 
 item {
@@ -140,7 +140,7 @@ item {
 
 item {
   id: 29
-  name: 'noodle soup'
+  name: 'noodle_soup'
 }
 
 item {
