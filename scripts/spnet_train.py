@@ -24,16 +24,16 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 def train_spnet():
     print('train_spnet')
 
-    img_base_dir = '../data/skewering_positions/cropped_images/'
+    img_base_dir = '../data/processed/cropped_images/'
 
-    train_list = '../data/skewering_positions/sp_train.txt'
-    test_list = '../data/skewering_positions/sp_test.txt'
+    train_list = '../data/processed/sp_train.txt'
+    test_list = '../data/processed/sp_test.txt'
 
     checkpoint_path = '../checkpoints/spnet_ckpt.pth'
 
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        transforms.Normalize((0.5, 0.5, 0.5), (0.25, 0.25, 0.25))])
 
     trainset = SPDataset(
         root=img_base_dir,
@@ -47,7 +47,7 @@ def train_spnet():
     testset = SPDataset(
         root=img_base_dir,
         list_file=test_list,
-        train=False, traansform=transform, input_size=600)
+        train=False, transform=transform, input_size=600)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=4,
         shuffle=False, num_workers=8,
