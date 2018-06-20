@@ -10,16 +10,22 @@ class SPNetLoss(nn.Module):
     def __init__(self):
         super(SPNetLoss, self).__init__()
 
+        self.smooth_l1_loss = nn.SmoothL1Loss()
+
+        self.softmax = nn.Softmax()
+        self.nll_loss = nn.NLLLoss()
+
+        self.cel = nn.CrossEntropyLoss()
+
     def forward(self, pred_positions, gt_positions, pred_angles, gt_angles):
-        position_loss = F.smooth_l1_loss(pred_positions, gt_positions)
+        position_loss = self.smooth_l1_loss(pred_positions, gt_positions)
 
-        I = torch.eye(180).cuda()
+        # pred_angles = self.softmax(pred_angles)
+        # angle_loss = self.nll_loss(
+        #     pred_angles, gt_angles.round().long().view(-1))
 
-        pa_onehot = I[pred_angles.round().long().view(-1)]
-        ga_onehot = I[gt_angles.round().long().view(-1)]
-
-        import IPython; IPython.embed()
-        angle_loss = F.cross_entropy(pa_onehot, ga_onehot)
+        angle_loss = self.cel(
+            pred_angles, gt_angles.round().long().view(-1))
 
         loss = position_loss + angle_loss
-        return loss
+        return loss, position_loss, angle_loss

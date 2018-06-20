@@ -74,7 +74,7 @@ def train_spnet():
     optimizer = optim.SGD(spnet.parameters(), lr=1e-3,
                           momentum=0.9, weight_decay=1e-4)
 
-    for epoch in range(start_epoch, start_epoch + 10):
+    for epoch in range(start_epoch, start_epoch + 100):
         # training
         print('\nEpoch: {}'.format(epoch))
         spnet.train()
@@ -90,15 +90,18 @@ def train_spnet():
 
             optimizer.zero_grad()
             pred_positions, pred_angles = spnet(imgs)
-            loss = criterion(
+            loss, ploss, rloss = criterion(
                 pred_positions, gt_positions, pred_angles, gt_angles)
             loss.backward()
             optimizer.step()
 
             train_loss += loss.data
-            print('[{0}| {1}/{2}] train_loss: {3:.3f} | avg_loss: {4:.3f}'.format(
-                epoch, batch_idx, total_batches,
-                loss.data, train_loss / (batch_idx + 1)))
+
+            if batch_idx % 20 == 0:
+                print('[{0}| {1}/{2}] train_loss: {3:.3f} ({5:.3f}, {6:.3f}) | avg_loss: {4:.3f}'.format(
+                    epoch, batch_idx, total_batches,
+                    loss.data, train_loss / (batch_idx + 1),
+                    ploss, rloss))
 
         # testing
         print('\nTest')
@@ -114,13 +117,16 @@ def train_spnet():
             gt_angles = angles.cuda()
 
             pred_positions, pred_angles = spnet(imgs)
-            loss = criterion(
+            loss, ploss, rloss = criterion(
                 pred_positions, gt_positions, pred_angles, gt_angles)
 
             test_loss += loss.data
-            print('[{0}| {1}/{2}] test_loss: {3:.3f} | avg_loss: {4:.3f}'.format(
-                epoch, batch_idx, total_batches,
-                loss.data, test_loss / (batch_idx + 1)))
+
+            if batch_idx % 10 == 0:
+                print('[{0}| {1}/{2}] test_loss: {3:.3f} ({5:.3f}, {6:.3f}) | avg_loss: {4:.3f}'.format(
+                    epoch, batch_idx, total_batches,
+                    loss.data, test_loss / (batch_idx + 1),
+                    ploss, rloss))
 
         # save checkpoint
         test_loss /= len(testloader)
