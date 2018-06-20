@@ -1,3 +1,4 @@
+setc_01545_bell_pepper_1.jpg 27.00 39.00 131.19
 setc_01200_strawberry_0.jpg 16.00 26.00 0.00
 setc_00705_grape_0.jpg 29.00 25.00 123.69
 setc_00150_carrot_0.jpg 24.00 39.00 68.96
@@ -14,7 +15,7 @@ setc_01020_grape_2.jpg 28.00 25.00 108.43
 setc_00300_grape_0.jpg 30.00 25.00 45.00
 setc_01770_cherry_tomato_1.jpg 17.00 37.00 29.74
 setc_00300_cherry_tomato_2.jpg 27.00 31.00 150.26
-setc_02700_bell pepper_0.jpg 14.00 23.00 154.98
+setc_02445_cherry_tomato_1.jpg 26.00 28.00 81.87
 setc_00015_cantalope_0.jpg 21.00 28.00 123.69
 seta_00090_banana_0.jpg 29.00 27.00 61.93
 setc_00150_strawberry_0.jpg 29.00 28.00 144.78
@@ -25,7 +26,6 @@ setc_00015_blackberry_1.jpg 30.00 25.00 140.71
 setc_03030_blackberry_0.jpg 27.00 25.00 56.31
 setc_02490_apple_1.jpg 17.00 18.00 105.26
 setc_01380_cantalope_2.jpg 17.00 28.00 29.05
-setc_02445_bell pepper_2.jpg 34.00 33.00 143.13
 apricot_0060_apricot_6.jpg 28.00 27.00 129.47
 apricot_0014_apricot_0.jpg 26.00 27.00 64.13
 setc_02940_blackberry_0.jpg 25.00 20.00 51.34
@@ -35,9 +35,9 @@ seta_00060_grape_2.jpg 30.00 27.00 130.91
 setc_01665_melon_1.jpg 38.00 29.00 157.38
 setc_02190_grape_1.jpg 28.00 22.00 50.19
 setc_02085_cherry_tomato_0.jpg 25.00 27.00 110.56
-setc_02490_bell pepper_1.jpg 12.00 26.00 0.00
 setc_01830_grape_2.jpg 27.00 24.00 63.43
 apricot_0019_apricot_5.jpg 28.00 28.00 107.35
+setc_02790_bell_pepper_1.jpg 24.00 23.00 153.43
 setb_00240_melon_0.jpg 19.00 33.00 32.01
 setc_01245_cherry_tomato_2.jpg 26.00 28.00 113.20
 setc_00690_egg_2.jpg 31.00 29.00 8.75
@@ -46,8 +46,9 @@ setc_01980_cantalope_0.jpg 24.00 14.00 90.00
 setc_00885_cantalope_2.jpg 31.00 15.00 104.04
 setc_01830_celery_2.jpg 25.00 38.00 72.90
 setc_02370_egg_1.jpg 21.00 35.00 135.00
-setc_02295_cherry tomato_1.jpg 26.00 27.00 84.29
+setc_03045_bell_pepper_1.jpg 23.00 20.00 135.00
 setc_00945_apple_0.jpg 28.00 28.00 28.30
+setc_02820_bell_pepper_0.jpg 36.00 34.00 130.60
 setc_01410_egg_0.jpg 28.00 29.00 139.40
 setb_00405_banana_0.jpg 28.00 29.00 176.19
 setc_01125_melon_1.jpg 41.00 28.00 170.54
@@ -60,7 +61,6 @@ setc_01410_blackberry_1.jpg 27.00 25.00 63.43
 setc_01575_plate_0.jpg 28.00 32.00 74.93
 setc_02415_melon_0.jpg 32.00 29.00 143.13
 apricot_0005_apricot_2.jpg 27.00 26.00 49.09
-setc_02220_cherry tomato_3.jpg 23.00 26.00 0.00
 setc_00195_egg_2.jpg 26.00 24.00 80.13
 seta_00135_apple_1.jpg 44.00 22.00 41.19
 seta_00030_grape_1.jpg 29.00 24.00 55.01
@@ -69,7 +69,6 @@ setc_00360_celery_1.jpg 38.00 39.00 137.73
 setc_00885_melon_0.jpg 40.00 25.00 14.04
 apricot_0057_apricot_0.jpg 25.00 27.00 91.74
 setc_01410_melon_1.jpg 29.00 29.00 130.60
-setc_02295_cherry tomato_0.jpg 30.00 25.00 74.05
 setb_00030_melon_1.jpg 36.00 20.00 45.00
 setc_01605_cherry_tomato_1.jpg 31.00 26.00 98.13
 setc_02760_apple_0.jpg 12.00 24.00 175.24
@@ -83,11 +82,11 @@ setc_02700_egg_1.jpg 37.00 33.00 45.00
 apricot_0017_apricot_4.jpg 28.00 28.00 67.01
 setc_01170_grape_1.jpg 27.00 29.00 51.34
 setc_01245_egg_3.jpg 43.00 26.00 83.66
-setc_02700_bell pepper_1.jpg 26.00 18.00 53.13
 apricot_0013_apricot_6.jpg 27.00 27.00 60.95
 setc_01830_blackberry_2.jpg 36.00 19.00 36.87
 setc_02490_celery_1.jpg 26.00 26.00 90.00
 setc_01170_cantalope_1.jpg 28.00 28.00 65.56
+setc_03045_bell_pepper_3.jpg 23.00 14.00 90.00
 setb_00525_melon_1.jpg 37.00 18.00 31.43
 seta_00030_cherry_tomato_0.jpg 29.00 25.00 56.31
 setc_02760_plate_0.jpg 30.00 30.00 104.42
@@ -138,6 +137,7 @@ apricot_0049_apricot_6.jpg 30.00 27.00 71.57
 setc_00765_egg_1.jpg 34.00 26.00 50.19
 apricot_0038_apricot_4.jpg 28.00 27.00 57.72
 apricot_0004_apricot_3.jpg 27.00 28.00 169.70
+setc_02535_bell_pepper_0.jpg 13.00 28.00 0.00
 setb_00405_cantalope_1.jpg 39.00 25.00 30.26
 setb_00390_cherry_tomato_0.jpg 29.00 21.00 22.62
 setc_00840_apple_1.jpg 43.00 25.00 49.09
@@ -157,7 +157,7 @@ setc_00705_melon_1.jpg 28.00 37.00 93.58
 setc_02535_strawberry_0.jpg 25.00 27.00 39.81
 setc_01065_banana_0.jpg 27.00 27.00 39.81
 setc_01065_cherry_tomato_3.jpg 28.00 29.00 50.19
-setc_02790_cherry tomato_1.jpg 25.00 27.00 0.00
+setc_02445_bell_pepper_1.jpg 13.00 22.00 150.26
 setc_01170_celery_2.jpg 18.00 38.00 45.00
 setc_00525_cantalope_1.jpg 33.00 37.00 118.61
 setc_01245_melon_1.jpg 27.00 28.00 131.19
@@ -169,7 +169,6 @@ seta_00240_carrot_0.jpg 43.00 25.00 3.81
 setc_02985_apple_1.jpg 19.00 12.00 149.04
 setb_00390_strawberry_3.jpg 30.00 28.00 169.38
 apricot_0024_apricot_0.jpg 27.00 30.00 90.00
-setc_02760_bell pepper_2.jpg 21.00 23.00 144.46
 setc_02655_banana_2.jpg 27.00 26.00 90.00
 setb_00525_bell_pepper_3.jpg 17.00 35.00 28.07
 setc_01830_melon_2.jpg 39.00 26.00 0.00
@@ -182,6 +181,7 @@ setc_02085_celery_1.jpg 21.00 39.00 90.00
 setc_02370_banana_1.jpg 25.00 26.00 0.00
 setc_00600_egg_3.jpg 21.00 36.00 137.12
 setc_02790_melon_1.jpg 27.00 30.00 135.00
+setc_02415_cherry_tomato_0.jpg 30.00 27.00 71.57
 setc_02220_egg_3.jpg 17.00 28.00 106.70
 setc_00495_melon_0.jpg 40.00 27.00 0.00
 apricot_0055_apricot_2.jpg 27.00 27.00 29.31
@@ -209,7 +209,6 @@ setc_02865_blackberry_0.jpg 24.00 26.00 59.04
 seta_00240_apple_0.jpg 14.00 26.00 153.43
 setc_01830_carrot_0.jpg 34.00 43.00 116.57
 apricot_0037_apricot_6.jpg 26.00 27.00 87.14
-setc_02325_bell pepper_0.jpg 16.00 29.00 15.95
 setc_01020_melon_0.jpg 39.00 21.00 24.78
 seta_00225_grape_0.jpg 29.00 23.00 63.43
 setc_00120_blackberry_0.jpg 29.00 26.00 37.87
@@ -241,6 +240,8 @@ seta_00135_apple_2.jpg 41.00 29.00 149.04
 setc_01665_celery_2.jpg 23.00 28.00 39.29
 setc_02790_apple_0.jpg 28.00 37.00 29.05
 setb_00525_blackberry_0.jpg 30.00 27.00 23.96
+setc_02265_bell_pepper_0.jpg 21.00 35.00 57.53
+setc_02865_cherry_tomato_1.jpg 26.00 25.00 90.00
 setc_02085_apple_0.jpg 37.00 29.00 153.43
 apricot_0024_apricot_2.jpg 29.00 27.00 76.84
 setc_00630_cantalope_2.jpg 27.00 24.00 135.00
@@ -282,7 +283,6 @@ apricot_0039_apricot_5.jpg 27.00 26.00 22.83
 setc_00075_cantalope_1.jpg 37.00 24.00 29.74
 setc_02535_strawberry_1.jpg 26.00 28.00 80.54
 setc_00705_cherry_tomato_1.jpg 25.00 28.00 86.19
-setc_02490_cherry tomato_1.jpg 26.00 27.00 116.57
 setc_02370_melon_2.jpg 25.00 29.00 0.00
 setc_00300_grape_1.jpg 30.00 27.00 159.44
 apricot_0049_apricot_1.jpg 28.00 27.00 34.51
@@ -294,6 +294,7 @@ setc_00495_egg_2.jpg 30.00 28.00 48.37
 setc_02085_banana_0.jpg 27.00 28.00 54.46
 apricot_0002_apricot_1.jpg 30.00 29.00 106.22
 setc_02415_banana_1.jpg 26.00 31.00 0.00
+setc_02700_cherry_tomato_0.jpg 28.00 27.00 0.00
 setc_01830_plate_1.jpg 29.00 26.00 101.31
 setc_00990_banana_2.jpg 30.00 27.00 26.57
 setc_00660_strawberry_3.jpg 31.00 28.00 124.51
@@ -301,7 +302,6 @@ apricot_0002_apricot_0.jpg 26.00 26.00 164.74
 setc_02535_strawberry_3.jpg 24.00 20.00 33.69
 setc_00765_bell_pepper_1.jpg 17.00 23.00 135.00
 setc_01710_strawberry_0.jpg 27.00 25.00 59.04
-setc_02535_bell pepper_1.jpg 11.00 29.00 23.20
 apricot_0035_apricot_4.jpg 28.00 29.00 119.05
 setc_01020_apple_0.jpg 42.00 18.00 62.24
 seta_00225_celery_0.jpg 41.00 23.00 19.89

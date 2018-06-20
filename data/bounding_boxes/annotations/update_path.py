@@ -15,7 +15,7 @@ def update_xml(filepath, filename, is_edit=False):
     for node in root:
         if node.tag == 'object':
             name_node = node.find('name')
-            # name_node.text = name_node.text.replace(' ', '_')
+            name_node.text = name_node.text.replace(' ', '_')
             print('{} -> {}'.format(
                 name_node.text,
                 name_node.text.replace(' ', '_')))
