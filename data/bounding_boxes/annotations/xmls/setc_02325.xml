@@ -48,7 +48,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -132,7 +132,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -165,18 +165,6 @@
 			<ymin>691</ymin>
 			<xmax>1348</xmax>
 			<ymax>737</ymax>
-		</bndbox>
-	</object>
-	<object>
-		<name>carrot</name>
-		<pose>Unspecified</pose>
-		<truncated>0</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>1334</xmin>
-			<ymin>649</ymin>
-			<xmax>1362</xmax>
-			<ymax>719</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -216,7 +204,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -317,10 +305,10 @@
 		<truncated>0</truncated>
 		<difficult>0</difficult>
 		<bndbox>
-			<xmin>919</xmin>
-			<ymin>751</ymin>
+			<xmin>935</xmin>
+			<ymin>735</ymin>
 			<xmax>966</xmax>
-			<ymax>798</ymax>
+			<ymax>784</ymax>
 		</bndbox>
 	</object>
 	<object>
@@ -348,7 +336,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>cherry_tomato</name>
+		<name>cherry tomato</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -360,7 +348,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -408,7 +396,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>cherry_tomato</name>
+		<name>cherry tomato</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>

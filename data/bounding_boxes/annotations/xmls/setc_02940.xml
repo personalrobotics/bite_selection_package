@@ -84,7 +84,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>cherry_tomato</name>
+		<name>cherry tomato</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -180,7 +180,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>cherry_tomato</name>
+		<name>cherry tomato</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -252,7 +252,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -312,7 +312,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -420,7 +420,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>bell_pepper</name>
+		<name>bell pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
