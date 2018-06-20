@@ -16,7 +16,7 @@ if [ -z $1 ]; then
   print_usage
 fi
 
-if [[ $1 == 'all' || $1 == 'crop' || $1 == 'sample' ]]; then
+if [[ $1 == 'all' || $1 == 'crop' || $1 == 'sample' || $1 == 'view' ]]; then
   echo 'option:' $1
 else
   print_usage
