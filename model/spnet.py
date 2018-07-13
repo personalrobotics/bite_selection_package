@@ -23,7 +23,7 @@ class SPNet(nn.Module):
         self.fc_pos2 = nn.Linear(512, 2)
 
         self.fc_rot1 = nn.Linear(1024, 512)
-        self.fc_rot2 = nn.Linear(512, 180)
+        self.fc_rot2 = nn.Linear(512, 18)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
