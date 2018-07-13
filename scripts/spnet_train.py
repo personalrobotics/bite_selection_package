@@ -74,6 +74,10 @@ def train_spnet():
     optimizer = optim.SGD(spnet.parameters(), lr=1e-3,
                           momentum=0.9, weight_decay=1e-4)
 
+    print(trainloader.dataset.num_samples)
+    print(testloader.dataset.num_samples)
+
+    return
     for epoch in range(start_epoch, start_epoch + 100):
         # training
         print('\nEpoch: {}'.format(epoch))

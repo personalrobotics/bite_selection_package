@@ -109,7 +109,8 @@ class SPSampler(object):
                 self.cur_idx += 1
                 continue
             self.cur_img_name = img_filename[:-4]
-            if self.cur_img_name.split('_')[2] not in self.samplable:
+            if (not self.cur_img_name.startswith('test_') and
+                    self.cur_img_name.split('_')[2] not in self.samplable):
                 self.cur_idx += 1
                 continue
 
@@ -124,11 +125,19 @@ class SPSampler(object):
                 f = open(self.outfile_path, 'r')
                 content = f.read().split()
                 f.close()
-                saved_values = map(float, content)
+
+                x = float(content[0])
+                y = float(content[1])
+                ang = float(content[2])
+                saved_values = np.array([x, y, ang])
 
             img_filepath = os.path.join(self.img_dir, img_filename)
             self.plot_img = cv2.imread(img_filepath)
             self.plot_img = cv2.cvtColor(self.plot_img, cv2.COLOR_BGR2RGB)
+
+            if saved_values is not None and saved_values[0] < 1:
+                saved_values[0] *= self.plot_img.shape[0]
+                saved_values[1] *= self.plot_img.shape[1]
 
             self.cur_start_point = [-1, -1]
             self.cur_end_point = [-1, -1]
@@ -365,6 +374,12 @@ if __name__ == '__main__':
             spsampler.sampling_skewering_positions()
         if sys.argv[1] == 'view':
             spsampler.sampling_skewering_positions(skip=False)
+
+    elif (len(sys.argv) == 3 and
+            (sys.argv[1] == 'view') and
+            (os.path.exists(sys.argv[2]))):
+        spsampler = SPSampler(base_dir=sys.argv[2])
+        spsampler.sampling_skewering_positions(skip=False)
 
     else:
         print_usage()
