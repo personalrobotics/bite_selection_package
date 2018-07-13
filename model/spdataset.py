@@ -1,6 +1,8 @@
+from __future__ import division
 from __future__ import print_function
 
 import os
+import numpy as np
 
 import torch
 import torch.utils.data as data
@@ -9,11 +11,11 @@ from PIL import Image
 
 
 class SPDataset(data.Dataset):
-    def __init__(self, root, list_file, train, transform, input_size):
+    def __init__(self, root, list_file, train, transform, img_size):
         self.root = root
         self.train = train
         self.transform = transform
-        self.input_size = input_size
+        self.img_size = img_size
 
         self.img_filenames = list()
         self.gt_positions = list()
@@ -27,8 +29,15 @@ class SPDataset(data.Dataset):
                 items = line.split()
 
                 self.img_filenames.append(items[0])
-                self.gt_positions.append(list(map(float, items[1:3])))
-                self.gt_angles.append(float(items[3]))
+
+                x = float(items[1]) / img_size
+                y = float(items[2]) / img_size
+                self.gt_positions.append([x, y])
+
+                ang = np.round(float(items[3]) / 10)
+                if ang >= 18:
+                    ang = 0
+                self.gt_angles.append(ang)
 
     def __getitem__(self, idx):
         img_filename = self.img_filenames[idx]
@@ -38,7 +47,7 @@ class SPDataset(data.Dataset):
 
         gt_position = self.gt_positions[idx]
         gt_angle = self.gt_angles[idx]
-        size = self.input_size
+        size = self.img_size
 
         # TODO: resize and pad img
 

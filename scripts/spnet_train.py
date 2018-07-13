@@ -3,13 +3,16 @@
 from __future__ import division
 from __future__ import print_function
 
+import numpy as np
 import os
+import shutil
 import sys
 import math
 
 import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
+import torchvision.utils as utils
 
 sys.path.append('../')
 
@@ -18,7 +21,7 @@ from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 
 def train_spnet():
@@ -29,16 +32,22 @@ def train_spnet():
     train_list = '../data/processed/sp_train.txt'
     test_list = '../data/processed/sp_test.txt'
 
-    checkpoint_path = '../checkpoints/spnet_ckpt.pth'
+    checkpoint_dir = '../checkpoints/'
+    checkpoint_path = os.path.join(checkpoint_dir, 'spnet_ckpt.pth')
+
+    sample_dir = '../samples/'
+    if os.path.exists(sample_dir):
+        shutil.rmtree(sample_dir)
+    os.makedirs(sample_dir)
 
     transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.25, 0.25, 0.25))])
+        transforms.ToTensor()])
+        # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
     trainset = SPDataset(
         root=img_base_dir,
         list_file=train_list,
-        train=True, transform=transform, input_size=600)
+        train=True, transform=transform, img_size=56)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=8,
         shuffle=True, num_workers=8,
@@ -47,7 +56,7 @@ def train_spnet():
     testset = SPDataset(
         root=img_base_dir,
         list_file=test_list,
-        train=False, transform=transform, input_size=600)
+        train=False, transform=transform, img_size=56)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=4,
         shuffle=False, num_workers=8,
@@ -77,8 +86,7 @@ def train_spnet():
     print(trainloader.dataset.num_samples)
     print(testloader.dataset.num_samples)
 
-    return
-    for epoch in range(start_epoch, start_epoch + 100):
+    for epoch in range(start_epoch, start_epoch + 1000):
         # training
         print('\nEpoch: {}'.format(epoch))
         spnet.train()
@@ -102,7 +110,8 @@ def train_spnet():
             train_loss += loss.data
 
             if batch_idx % 20 == 0:
-                print('[{0}| {1}/{2}] train_loss: {3:.3f} ({5:.3f}, {6:.3f}) | avg_loss: {4:.3f}'.format(
+                print('[{0}| {1:3d}/{2:3d}] train_loss: {3:6.3f} '
+                      '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
                     epoch, batch_idx, total_batches,
                     loss.data, train_loss / (batch_idx + 1),
                     ploss, rloss))
@@ -127,10 +136,29 @@ def train_spnet():
             test_loss += loss.data
 
             if batch_idx % 10 == 0:
-                print('[{0}| {1}/{2}] test_loss: {3:.3f} ({5:.3f}, {6:.3f}) | avg_loss: {4:.3f}'.format(
+                print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
+                      '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
                     epoch, batch_idx, total_batches,
                     loss.data, test_loss / (batch_idx + 1),
                     ploss, rloss))
+
+                # save a sample prediction
+                sample_path_base = os.path.join(
+                    sample_dir, 'test_{0:04d}_{1:04d}'.format(
+                        epoch, batch_idx))
+                sample_img_path = sample_path_base + '.jpg'
+                sample_data_path = sample_path_base + '.out'
+
+                test_img = imgs[0].cpu()
+                utils.save_image(test_img, sample_img_path)
+                pred_pos = pred_positions[0].data.cpu().numpy()
+                pred_ang = pred_angles[0].data.cpu().numpy()
+                pred_ang = np.argmax(pred_ang) * 10
+
+                with open(sample_data_path, 'w') as f:
+                    f.write('{0:.3f} {1:.3f} {2:.3f}'.format(
+                        pred_pos[0], pred_pos[1], pred_ang))
+                    f.close()
 
         # save checkpoint
         test_loss /= len(testloader)

@@ -6,8 +6,24 @@ import numpy as np
 from PIL import Image
 
 
-def preprocess_skewering_positions_datset():
-    print('preprocess_skewering_positions_datset')
+def preprocess_skewering_positions_dataset():
+    print('preprocess_skewering_positions_dataset')
+
+    rot_free_objs = {
+        "apple": False,
+        "apricot": True,
+        "banana": True,
+        "pepper": False,
+        "blackberry": True,
+        "cantalope": False,
+        "carrot": False,
+        "celery": False,
+        "tomato": True,
+        "egg": False,
+        "grape": True,
+        "melon": False,
+        "strawberry": False,
+        "plate": True, }
 
     org_base_dir = '../data/skewering_positions'
     ann_base_dir = os.path.join(org_base_dir, 'annotations')
@@ -28,12 +44,15 @@ def preprocess_skewering_positions_datset():
 
     summary_list = list()
 
+    img_list = list()
+
     for idx in range(len(anns)):
         ann_filename = anns[idx]
         if not ann_filename.endswith('.out'):
             continue
 
         img_filename = '{}.jpg'.format(ann_filename[:-4])
+        class_name = ann_filename.split('_')[-2]
 
         if (not os.path.exists(os.path.join(img_base_dir, img_filename)) or
             not os.path.exists(os.path.join(ann_base_dir, ann_filename))):
@@ -58,6 +77,9 @@ def preprocess_skewering_positions_datset():
         for i in range(2):
             ann[i] = np.round(float(ann[i]) * ratio + pads[i])
 
+        if rot_free_objs[class_name]:
+            ann[2] = '0.0'
+
         new_ann_str = '{0:.2f} {1:.2f} {2}'.format(*ann)
         with open(os.path.join(processed_ann_base_dir, ann_filename), 'w') as f:
             f.write(new_ann_str)
@@ -66,8 +88,13 @@ def preprocess_skewering_positions_datset():
         new_img.save(os.path.join(processed_img_base_dir, img_filename), 'JPEG')
         print(img_filename)
 
+        img_list.append(np.array(new_img) / 255.)
+
         summary_list.append(
             '{} {}'.format(img_filename, new_ann_str))
+
+    print('\nmean: {}'.format(np.mean(img_list, axis=(0, 1, 2))))
+    print('std: {}'.format(np.std(img_list, axis=(0, 1, 2))))
 
     max_train_idx = int(len(summary_list) * 0.9)
 
@@ -81,8 +108,8 @@ def preprocess_skewering_positions_datset():
             f.write('{}\n'.format(summary_list[idx]))
         f.close()
 
-    print('finished\n')
+    print('\nfinished\n')
 
 
 if __name__ == '__main__':
-    preprocess_skewering_positions_datset()
+    preprocess_skewering_positions_dataset()
