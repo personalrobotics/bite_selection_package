@@ -5,236 +5,66 @@ item {
 
 item {
   id: 2
-  name: 'asparagus'
+  name: 'apricot'
 }
 
 item {
   id: 3
-  name: 'avocado'
-}
-
-item {
-  id: 4
   name: 'banana'
 }
 
 item {
-  id: 5
-  name: 'green bean'
-}
-
-item {
-  id: 6
-  name: 'beef'
-}
-
-item {
-  id: 7
-  name: 'beetroot'
-}
-
-item {
-  id: 8
+  id: 4
   name: 'bell_pepper'
 }
 
 item {
-  id: 9
+  id: 5
   name: 'blackberry'
 }
 
 item {
-  id: 10
-  name: 'bread'
-}
-
-item {
-  id: 11
-  name: 'broccoli'
-}
-
-item {
-  id: 12
-  name: 'cake'
-}
-
-item {
-  id: 13
+  id: 6
   name: 'cantalope'
 }
 
 item {
-  id: 14
+  id: 7
   name: 'carrot'
 }
 
 item {
-  id: 15
-  name: 'cauliflower'
-}
-
-item {
-  id: 16
+  id: 8
   name: 'celery'
 }
 
 item {
-  id: 17
-  name: 'cheese'
-}
-
-item {
-  id: 18
+  id: 9
   name: 'cherry_tomato'
 }
 
 item {
-  id: 19
-  name: 'chicken'
-}
-
-item {
-  id: 20
-  name: 'cottage_cheese'
-}
-
-item {
-  id: 21
-  name: 'cucumber'
-}
-
-item {
-  id: 22
+  id: 10
   name: 'egg'
 }
 
 item {
-  id: 23
+  id: 11
   name: 'grape'
 }
 
 item {
-  id: 24
-  name: 'hummus'
-}
-
-item {
-  id: 25
-  name: 'jello'
-}
-
-item {
-  id: 26
-  name: 'mashed_potato'
-}
-
-item {
-  id: 27
+  id: 12
   name: 'melon'
 }
 
 item {
-  id: 28
-  name: 'mushroom'
-}
-
-item {
-  id: 29
-  name: 'noodle_soup'
-}
-
-item {
-  id: 30
-  name: 'onion'
-}
-
-item {
-  id: 31
-  name: 'pancake'
-}
-
-item {
-  id: 32
-  name: 'pasta'
-}
-
-item {
-  id: 33
-  name: 'peach'
-}
-
-item {
-  id: 34
-  name: 'pear'
-}
-
-item {
-  id: 35
-  name: 'pie'
-}
-
-item {
-  id: 36
-  name: 'pork'
-}
-
-item {
-  id: 37
-  name: 'potato'
-}
-
-item {
-  id: 38
-  name: 'raspberry'
-}
-
-item {
-  id: 39
-  name: 'ravioli'
-}
-
-item {
-  id: 40
-  name: 'rice'
-}
-
-item {
-  id: 41
-  name: 'salad'
-}
-
-item {
-  id: 42
-  name: 'spaghetti'
-}
-
-item {
-  id: 43
-  name: 'squash'
-}
-
-item {
-  id: 44
+  id: 13
   name: 'strawberry'
 }
 
 item {
-  id: 45
-  name: 'tomato'
-}
-
-item {
-  id: 46
-  name: 'waffle'
-}
-
-item {
-  id: 47
+  id: 14
   name: 'plate'
-}
-
-item {
-  id: 48
-  name: 'apricot'
 }
 
