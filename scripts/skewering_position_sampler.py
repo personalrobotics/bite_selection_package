@@ -350,6 +350,7 @@ options['all'] = 'running both cropping and sampling'
 options['crop'] = 'generating cropped images'
 options['sample'] = 'sampling skewering positions'
 options['view'] = 'checking saved skewering positions'
+options['view_w_dir'] = 'checking saved skewering positions in the given path'
 
 
 def print_usage():
@@ -360,6 +361,7 @@ def print_usage():
     print('    {0:11s}{1}'.format('crop', options['crop']))
     print('    {0:11s}{1}'.format('sample', options['sample']))
     print('    {0:11s}{1}'.format('view', options['view']))
+    print('    {0:11s}{1}'.format('view <base_dir>', options['view_w_dir']))
 
 
 if __name__ == '__main__':
