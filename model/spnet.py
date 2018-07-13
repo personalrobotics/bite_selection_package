@@ -9,21 +9,23 @@ class SPNet(nn.Module):
     def __init__(self):
         super(SPNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(3, 8, 3, padding=1)    # 56
-        self.conv2 = nn.Conv2d(8, 16, 3, padding=1)   # 28
-        self.conv2_bn = nn.BatchNorm2d(16)
-        self.conv3 = nn.Conv2d(16, 32, 3, padding=1)  # 14
-        self.conv3_bn = nn.BatchNorm2d(32)
-        self.conv4 = nn.Conv2d(32, 64, 3, padding=1)  # 7
-        self.conv4_bn = nn.BatchNorm2d(64)
+        self.conv1 = nn.Conv2d(3, 16, 3, padding=1)    # 56
+        self.conv2 = nn.Conv2d(16, 32, 3, padding=1)   # 28
+        self.conv2_bn = nn.BatchNorm2d(32)
+        self.conv3 = nn.Conv2d(32, 64, 3, padding=1)  # 14
+        self.conv3_bn = nn.BatchNorm2d(64)
+        self.conv4 = nn.Conv2d(64, 128, 3, padding=1)  # 7
+        self.conv4_bn = nn.BatchNorm2d(128)
 
-        self.fc1 = nn.Linear(64 * 7 * 7, 1024)
+        self.fc1 = nn.Linear(128 * 7 * 7, 1024)
 
-        self.fc_pos1 = nn.Linear(1024, 512)
-        self.fc_pos2 = nn.Linear(512, 2)
+        self.fc_pos1 = nn.Linear(1024, 1024)
+        self.fc_pos2 = nn.Linear(1024, 1024)
+        self.fc_pos3 = nn.Linear(1024, 2)
 
-        self.fc_rot1 = nn.Linear(1024, 512)
-        self.fc_rot2 = nn.Linear(512, 180)
+        self.fc_rot1 = nn.Linear(1024, 1024)
+        self.fc_rot2 = nn.Linear(1024, 1024)
+        self.fc_rot3 = nn.Linear(1024, 18)
 
     def forward(self, x):
         x = F.relu(self.conv1(x))
@@ -35,12 +37,14 @@ class SPNet(nn.Module):
         x = F.relu(self.fc1(x))
 
         pos = F.relu(self.fc_pos1(x))
+        pos = F.relu(self.fc_pos2(pos))
         pos = F.dropout(pos, training=self.training)
-        pos = self.fc_pos2(pos)
+        pos = self.fc_pos3(pos)
 
         rot = F.relu(self.fc_rot1(x))
+        rot = F.relu(self.fc_rot2(rot))
         rot = F.dropout(rot, training=self.training)
-        rot = self.fc_rot2(rot)
+        rot = self.fc_rot3(rot)
         return pos, rot
 
     def num_flat_features(self, x):
