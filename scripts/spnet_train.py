@@ -36,9 +36,13 @@ def train_spnet():
     checkpoint_path = os.path.join(checkpoint_dir, 'spnet_ckpt.pth')
 
     sample_dir = '../samples/'
+    img_dir = sample_dir + 'cropped_images/'
+    ann_dir = sample_dir + 'annotations/'
     if os.path.exists(sample_dir):
         shutil.rmtree(sample_dir)
     os.makedirs(sample_dir)
+    os.makedirs(img_dir)
+    os.makedirs(ann_dir)
 
     transform = transforms.Compose([
         transforms.ToTensor()])
@@ -143,11 +147,14 @@ def train_spnet():
                     ploss, rloss))
 
                 # save a sample prediction
-                sample_path_base = os.path.join(
-                    sample_dir, 'test_{0:04d}_{1:04d}'.format(
+                ann_path_base = os.path.join(
+                    ann_dir, 'test_{0:04d}_{1:04d}'.format(
                         epoch, batch_idx))
-                sample_img_path = sample_path_base + '.jpg'
-                sample_data_path = sample_path_base + '.out'
+                img_path_base = os.path.join(
+                    img_dir, 'test_{0:04d}_{1:04d}'.format(
+                        epoch, batch_idx))
+                sample_img_path = img_path_base + '.jpg'
+                sample_data_path = ann_path_base + '.out'
 
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img, sample_img_path)
