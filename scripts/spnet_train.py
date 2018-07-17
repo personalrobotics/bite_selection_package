@@ -24,8 +24,9 @@ from model.spnetloss import SPNetLoss
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 
-def train_spnet():
+def train_spnet(use_cuda):
     print('train_spnet')
+    print('use cuda: ' + str(use_cuda))
 
     img_base_dir = '../data/processed/cropped_images/'
 
@@ -81,7 +82,8 @@ def train_spnet():
 
     spnet = torch.nn.DataParallel(
         spnet, device_ids=range(torch.cuda.device_count()))
-    spnet = spnet.cuda()
+    if use_cuda:
+        spnet = spnet.cuda()
 
     criterion = SPNetLoss()
     optimizer = optim.SGD(spnet.parameters(), lr=1e-3,
@@ -100,9 +102,13 @@ def train_spnet():
             trainloader.dataset.num_samples / trainloader.batch_size))
 
         for batch_idx, (imgs, positions, angles) in enumerate(trainloader):
-            imgs = imgs.cuda()
-            gt_positions = positions.cuda()
-            gt_angles = angles.cuda()
+            if use_cuda:
+                imgs = imgs.cuda()
+                gt_positions = positions.cuda()
+                gt_angles = angles.cuda()
+            else:
+                gt_positions = positions
+                gt_angles = angles
 
             optimizer.zero_grad()
             pred_positions, pred_angles = spnet(imgs)
@@ -131,9 +137,13 @@ def train_spnet():
             testloader.dataset.num_samples / testloader.batch_size))
 
         for batch_idx, (imgs, positions, angles) in enumerate(testloader):
-            imgs = imgs.cuda()
-            gt_positions = positions.cuda()
-            gt_angles = angles.cuda()
+            if use_cuda:
+                imgs = imgs.cuda()
+                gt_positions = positions.cuda()
+                gt_angles = angles.cuda()
+            else:
+                gt_positions = positions
+                gt_angles = angles
 
             pred_positions, pred_angles = spnet(imgs)
             loss, ploss, rloss = criterion(
@@ -189,4 +199,8 @@ def train_spnet():
 
 
 if __name__ == '__main__':
-    train_spnet()
+    if len(sys.argv) == 2:
+        train_spnet(sys.argv[1] != 'nocuda')
+    else:
+        train_spnet(True)
+
