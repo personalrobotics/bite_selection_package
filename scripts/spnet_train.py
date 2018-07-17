@@ -106,6 +106,8 @@ def train_spnet():
 
             optimizer.zero_grad()
             pred_positions, pred_angles = spnet(imgs)
+            #print(gt_positions)
+            #print(gt_angles)
             loss, ploss, rloss = criterion(
                 pred_positions, gt_positions, pred_angles, gt_angles)
             loss.backward()
@@ -139,7 +141,8 @@ def train_spnet():
 
             test_loss += loss.data
 
-            if batch_idx % 10 == 0:
+            #if batch_idx % 10 == 0:
+            if True:
                 print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
                       '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
                     epoch, batch_idx, total_batches,
@@ -158,7 +161,11 @@ def train_spnet():
 
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img, sample_img_path)
-                pred_pos = pred_positions[0].data.cpu().numpy()
+                pred_posdata = pred_positions[0].data.cpu().numpy()
+                pred_posnumber = np.argmax(pred_posdata)
+                predx = (pred_posnumber % 8) * 7
+                predy = (pred_posnumber / 8) * 7
+                pred_pos = [predx, predy]
                 pred_ang = pred_angles[0].data.cpu().numpy()
                 pred_ang = np.argmax(pred_ang) * 10
 

@@ -21,7 +21,7 @@ class SPNet(nn.Module):
 
         self.fc_pos1 = nn.Linear(1024, 1024)
         self.fc_pos2 = nn.Linear(1024, 1024)
-        self.fc_pos3 = nn.Linear(1024, 2)
+        self.fc_pos3 = nn.Linear(1024, 64)
 
         self.fc_rot1 = nn.Linear(1024, 1024)
         self.fc_rot2 = nn.Linear(1024, 1024)

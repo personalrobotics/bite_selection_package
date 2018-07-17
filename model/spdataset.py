@@ -32,7 +32,8 @@ class SPDataset(data.Dataset):
 
                 x = float(items[1]) / img_size
                 y = float(items[2]) / img_size
-                self.gt_positions.append([x, y])
+                pos = int(x*8) + int(y*8) * 8
+                self.gt_positions.append(pos)
 
                 ang = np.round(float(items[3]) / 10)
                 if ang >= 18:
@@ -52,7 +53,7 @@ class SPDataset(data.Dataset):
         # TODO: resize and pad img
 
         img = self.transform(img)
-        gt_position = torch.Tensor(gt_position)
+        gt_position = torch.FloatTensor([gt_position])
         gt_angle = torch.FloatTensor([gt_angle])
         return img, gt_position, gt_angle
 
