@@ -11,7 +11,7 @@ import sys
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions',
+                 base_dir='../samples',
                  bbox_base_dir='../data/bounding_boxes/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
