@@ -112,8 +112,7 @@ def train_spnet(use_cuda):
 
             optimizer.zero_grad()
             pred_positions, pred_angles = spnet(imgs)
-            #print(gt_positions)
-            #print(gt_angles)
+
             loss, ploss, rloss = criterion(
                 pred_positions, gt_positions, pred_angles, gt_angles)
             loss.backward()
@@ -151,8 +150,7 @@ def train_spnet(use_cuda):
 
             test_loss += loss.data
 
-            #if batch_idx % 10 == 0:
-            if True:
+            if batch_idx % 2 == 0:
                 print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
                       '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
                     epoch, batch_idx, total_batches,
