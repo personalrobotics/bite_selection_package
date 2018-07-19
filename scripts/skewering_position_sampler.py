@@ -11,7 +11,7 @@ import sys
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../samples',
+                 base_dir='../data/skewering_positions',
                  bbox_base_dir='../data/bounding_boxes/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
@@ -357,11 +357,11 @@ def print_usage():
     print('Usage:')
     print('    python {} <option>\n'.format(sys.argv[0]))
     print('Available options:')
-    print('    {0:11s}{1}'.format('all', options['all']))
-    print('    {0:11s}{1}'.format('crop', options['crop']))
-    print('    {0:11s}{1}'.format('sample', options['sample']))
-    print('    {0:11s}{1}'.format('view', options['view']))
-    print('    {0:11s}{1}'.format('view <base_dir>', options['view_w_dir']))
+    print('    {0:18s}{1}'.format('all', options['all']))
+    print('    {0:18s}{1}'.format('crop', options['crop']))
+    print('    {0:18s}{1}'.format('sample', options['sample']))
+    print('    {0:18s}{1}'.format('view', options['view']))
+    print('    {0:18s}{1}'.format('view <base_dir>', options['view_w_dir']))
 
 
 if __name__ == '__main__':

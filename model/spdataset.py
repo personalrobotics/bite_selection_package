@@ -32,7 +32,7 @@ class SPDataset(data.Dataset):
 
                 x = float(items[1]) / img_size
                 y = float(items[2]) / img_size
-                pos = int(x*8) + int(y*8) * 8
+                pos = int(x * 8) + int(y * 8) * 8
                 self.gt_positions.append(pos)
 
                 ang = np.round(float(items[3]) / 10)
