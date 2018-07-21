@@ -21,7 +21,7 @@ from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '2'
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 
 def train_spnet(use_cuda):
@@ -45,6 +45,8 @@ def train_spnet(use_cuda):
     os.makedirs(img_dir)
     os.makedirs(ann_dir)
 
+    img_size = 80
+
     transform = transforms.Compose([
         transforms.ToTensor()])
         # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
@@ -52,7 +54,7 @@ def train_spnet(use_cuda):
     trainset = SPDataset(
         root=img_base_dir,
         list_file=train_list,
-        train=True, transform=transform, img_size=56)
+        train=True, transform=transform, img_size=img_size)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=8,
         shuffle=True, num_workers=8,
@@ -61,7 +63,7 @@ def train_spnet(use_cuda):
     testset = SPDataset(
         root=img_base_dir,
         list_file=test_list,
-        train=False, transform=transform, img_size=56)
+        train=False, transform=transform, img_size=img_size)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=4,
         shuffle=False, num_workers=8,
@@ -127,6 +129,26 @@ def train_spnet(use_cuda):
                     loss.data, train_loss / (batch_idx + 1),
                     ploss, rloss))
 
+                # # save a sample ground truth data
+                # ann_path_base = os.path.join(
+                #     ann_dir, 'train_{0:04d}_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # img_path_base = os.path.join(
+                #     img_dir, 'train_{0:04d}_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # sample_img_path = img_path_base + '.jpg'
+                # sample_data_path = ann_path_base + '.out'
+
+                # test_img = imgs[0].cpu()
+                # utils.save_image(test_img, sample_img_path)
+                # gt_pos = gt_positions[0].data.cpu().numpy()
+                # gt_ang = gt_angles[0].data.cpu().numpy()[0] * 10
+
+                # with open(sample_data_path, 'w') as f:
+                #     f.write('{0:.3f} {1:.3f} {2:.3f}'.format(
+                #         gt_pos[0], gt_pos[1], gt_ang))
+                #     f.close()
+
         # testing
         print('\nTest')
         spnet.eval()
@@ -169,13 +191,16 @@ def train_spnet(use_cuda):
 
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img, sample_img_path)
-                pred_posdata = pred_positions[0].data.cpu().numpy()
-                pred_posnumber = np.argmax(pred_posdata)
-                predx = (pred_posnumber % 8) * 7
-                predy = (pred_posnumber / 8) * 7
-                pred_pos = [predx, predy]
+                pred_pos = pred_positions[0].data.cpu().numpy()
                 pred_ang = pred_angles[0].data.cpu().numpy()
                 pred_ang = np.argmax(pred_ang) * 10
+
+                # pred_posdata = pred_positions[0].data.cpu().numpy()
+                # pred_posnumber = np.argmax(pred_posdata)
+                # block_size = img_size / 8
+                # predx = (pred_posnumber % 8) * block_size + block_size * 0.5
+                # predy = (pred_posnumber / 8) * block_size + block_size * 0.5
+                # pred_pos = [predx, predy]
 
                 with open(sample_data_path, 'w') as f:
                     f.write('{0:.3f} {1:.3f} {2:.3f}'.format(

@@ -9,6 +9,11 @@ import torch.utils.data as data
 
 from PIL import Image
 
+import sys
+sys.path.append('../')
+
+import utils.transform as trans
+
 
 class SPDataset(data.Dataset):
     def __init__(self, root, list_file, train, transform, img_size):
@@ -32,8 +37,9 @@ class SPDataset(data.Dataset):
 
                 x = float(items[1]) / img_size
                 y = float(items[2]) / img_size
-                pos = int(x * 8) + int(y * 8) * 8
-                self.gt_positions.append(pos)
+                # pos = int(x * 8) + int(y * 8) * 8
+
+                self.gt_positions.append([x, y])
 
                 ang = np.round(float(items[3]) / 10)
                 if ang >= 18:
@@ -46,16 +52,21 @@ class SPDataset(data.Dataset):
         if img.mode != 'RGB':
             img = img.convert('RGB')
 
-        gt_position = self.gt_positions[idx]
-        gt_angle = self.gt_angles[idx]
+        gt_loc = self.gt_positions[idx]
+        gt_rot = self.gt_angles[idx]
         size = self.img_size
 
         # TODO: resize and pad img
 
+        # Data augmentation
+        if self.train:
+            img, gt_loc, gt_rot = trans.random_flip(img, gt_loc, gt_rot)
+            img, gt_loc, gt_rot = trans.random_rotate(img, gt_loc, gt_rot)
+
         img = self.transform(img)
-        gt_position = torch.FloatTensor([gt_position])
-        gt_angle = torch.FloatTensor([gt_angle])
-        return img, gt_position, gt_angle
+        gt_loc = torch.Tensor(gt_loc)
+        gt_rot = torch.FloatTensor([gt_rot])
+        return img, gt_loc, gt_rot
 
     def collate_fn(self, batch):
         imgs = [x[0] for x in batch]
