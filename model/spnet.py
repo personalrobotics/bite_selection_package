@@ -9,31 +9,47 @@ class SPNet(nn.Module):
     def __init__(self):
         super(SPNet, self).__init__()
 
-        self.conv1 = nn.Conv2d(3, 16, 3, padding=1)    # 56
-        self.conv2 = nn.Conv2d(16, 32, 3, padding=1)   # 28
-        self.conv2_bn = nn.BatchNorm2d(32)
-        self.conv3 = nn.Conv2d(32, 64, 3, padding=1)  # 14
-        self.conv3_bn = nn.BatchNorm2d(64)
-        self.conv4 = nn.Conv2d(64, 128, 3, padding=1)  # 7
-        self.conv4_bn = nn.BatchNorm2d(128)
+        self.conv_layers = nn.Sequential(
+            nn.Conv2d(3, 8, 3, padding=1),
+            nn.ReLU(),  # 80
 
-        self.fc1 = nn.Linear(128 * 7 * 7, 1024)
+            nn.Conv2d(8, 16, 3, padding=1),
+            nn.MaxPool2d(2),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),  # 40
 
-        self.fc_pos1 = nn.Linear(1024, 1024)
-        self.fc_pos2 = nn.Linear(1024, 1024)
-        self.fc_pos3 = nn.Linear(1024, 64)
+            nn.Conv2d(16, 32, 3, padding=1),
+            nn.MaxPool2d(2),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),  # 20
 
-        self.fc_rot1 = nn.Linear(1024, 1024)
-        self.fc_rot2 = nn.Linear(1024, 1024)
-        self.fc_rot3 = nn.Linear(1024, 18)
+            nn.Conv2d(32, 64, 3, padding=1),
+            nn.MaxPool2d(2),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),  # 10
+
+            nn.Conv2d(64, 128, 3, padding=1),
+            nn.MaxPool2d(2),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),  # 5
+        )
+
+        self.num_flat_features = 128 * 5 * 5
+        self.fc_size = 1024
+        self.fc1 = nn.Linear(self.num_flat_features, self.fc_size)
+
+        self.fc_pos1 = nn.Linear(self.fc_size, self.fc_size)
+        self.fc_pos2 = nn.Linear(self.fc_size, self.fc_size)
+        self.fc_pos3 = nn.Linear(self.fc_size, 2)
+
+        self.fc_rot1 = nn.Linear(self.fc_size, self.fc_size)
+        self.fc_rot2 = nn.Linear(self.fc_size, self.fc_size)
+        self.fc_rot3 = nn.Linear(self.fc_size, 18)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(F.max_pool2d(self.conv2_bn(self.conv2(x)), 2))
-        x = F.relu(F.max_pool2d(self.conv3_bn(self.conv3(x)), 2))
-        x = F.relu(F.max_pool2d(self.conv4_bn(self.conv4(x)), 2))
+        x = self.conv_layers(x)
 
-        x = x.view(-1, self.num_flat_features(x))
+        x = x.view(-1, self.num_flat_features)
         x = F.relu(self.fc1(x))
 
         pos = F.relu(self.fc_pos1(x))
@@ -46,10 +62,3 @@ class SPNet(nn.Module):
         rot = F.dropout(rot, training=self.training)
         rot = self.fc_rot3(rot)
         return pos, rot
-
-    def num_flat_features(self, x):
-        size = x.size()[1:]
-        num_features = 1
-        for s in size:
-            num_features *= s
-        return num_features

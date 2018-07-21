@@ -9,6 +9,9 @@ from PIL import Image
 def preprocess_skewering_positions_dataset():
     print('preprocess_skewering_positions_dataset')
 
+    skip_classes = {
+        "plate": True }
+
     rot_free_objs = {
         "apple": False,
         "apricot": True,
@@ -40,11 +43,13 @@ def preprocess_skewering_positions_dataset():
 
     anns = os.listdir(ann_base_dir)
 
-    target_size = 56
+    target_size = 80
 
     summary_list = list()
 
     img_list = list()
+
+    img_size_list = list()
 
     for idx in range(len(anns)):
         ann_filename = anns[idx]
@@ -57,8 +62,12 @@ def preprocess_skewering_positions_dataset():
         if (not os.path.exists(os.path.join(img_base_dir, img_filename)) or
             not os.path.exists(os.path.join(ann_base_dir, ann_filename))):
             continue
+        if class_name in skip_classes:
+            continue
 
         img = Image.open(os.path.join(img_base_dir, img_filename))
+
+        img_size_list.append(img.size)
 
         ratio = float(target_size / max(img.size))
         new_size = tuple([int(x * ratio) for x in img.size])
@@ -92,6 +101,9 @@ def preprocess_skewering_positions_dataset():
 
         summary_list.append(
             '{} {}'.format(img_filename, new_ann_str))
+
+    img_size_list = np.asarray(img_size_list)
+    print('\navg image size: {}'.format(np.mean(img_size_list)))
 
     print('\nmean: {}'.format(np.mean(img_list, axis=(0, 1, 2))))
     print('std: {}'.format(np.std(img_list, axis=(0, 1, 2))))
