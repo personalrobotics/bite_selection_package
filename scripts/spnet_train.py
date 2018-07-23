@@ -191,7 +191,9 @@ def train_spnet(use_cuda):
 
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img, sample_img_path)
-                pred_pos = pred_positions[0].data.cpu().numpy()
+
+                pred_pos = pred_positions[0].data.cpu().numpy() * img_size
+
                 pred_ang = pred_angles[0].data.cpu().numpy()
                 pred_ang = np.argmax(pred_ang) * 10
 
