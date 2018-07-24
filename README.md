@@ -31,3 +31,9 @@ Available options are:
 - `crop`: generating cropped images from images and annotations in `data/bounding_boxes`
 - `sample`: sampling skewering position and rotation for each cropped image
 
+
+## SPNet: CNNs for Estimating Skewering Positions
+
+### Training SPNet
+1. Run `preprocess_spdataset.sh`. It will resize and pad all the images in `data/skewering_positions/` and save them in `data/processed/`.
+2. Run `spnet_train.sh`. The training script will train `SPNet` with the cropped images and annotations in `data/processed/` and save its checkpoint file as `checkpoints/spnet_ckpt.pth`.
