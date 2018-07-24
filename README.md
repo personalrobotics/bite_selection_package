@@ -34,6 +34,14 @@ Available options are:
 
 ## SPNet: CNNs for Estimating Skewering Positions
 
+### Preprocess Skewering Dataset
+```
+./preprocess_spdataset.sh
+```
+This script will resize and pad all the images in `data/skewering_positions/` and save them in `data/processed/`.
+
 ### Training SPNet
-1. Run `preprocess_spdataset.sh`. It will resize and pad all the images in `data/skewering_positions/` and save them in `data/processed/`.
-2. Run `spnet_train.sh`. The training script will train `SPNet` with the cropped images and annotations in `data/processed/` and save its checkpoint file as `checkpoints/spnet_ckpt.pth`.
+```
+spnet_train.sh
+```
+The training script will train `SPNet` with the cropped images and annotations in `data/processed/` and save its checkpoint file as `checkpoints/spnet_ckpt.pth`.
