@@ -42,6 +42,6 @@ This script will resize and pad all the images in `data/skewering_positions/` an
 
 ### Training SPNet
 ```
-spnet_train.sh
+./spnet_train.sh
 ```
 The training script will train `SPNet` with the cropped images and annotations in `data/processed/` and save its checkpoint file as `checkpoints/spnet_ckpt.pth`.
