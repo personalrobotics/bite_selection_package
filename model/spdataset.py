@@ -44,6 +44,7 @@ class SPDataset(data.Dataset):
                 ang = np.round(float(items[3]) / 10)
                 if ang >= 18:
                     ang = 0
+                ang *= 10
                 self.gt_angles.append(ang)
 
     def __getitem__(self, idx):

@@ -156,7 +156,7 @@ class SPSampler(object):
 
     def reset_plot(self, saved_values=None):
         if self.cur_fig is None:
-            self.cur_fig = plt.figure(0, figsize=[6, 6])
+            self.cur_fig = plt.figure(1, figsize=[6, 6])
         else:
             self.cur_fig.clf()
         plt.ion()
