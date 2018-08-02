@@ -59,6 +59,7 @@ class PyQtTest(QMainWindow):
         self.statusbar_height = 20
 
         self.shift_pressed = False
+        self.ctrl_pressed = False
 
         self.title = 'PyQt Test'
         self.left = 150
@@ -253,7 +254,7 @@ class PyQtTest(QMainWindow):
 
         grid_idx = ratio_in_label * self.grid_size
         self.mask_grid[int(grid_idx[0]), int(grid_idx[1])] = \
-            1 if is_left and not self.shift_pressed else 0
+            1 if is_left and not self.ctrl_pressed else 0
 
         self.img_label.set_grid(self.mask_grid)
 
@@ -320,6 +321,8 @@ class PyQtTest(QMainWindow):
             self.show_shortcuts()
         elif event.key() == Qt.Key_Shift:
             self.shift_pressed = True
+        elif event.key() == Qt.Key_Control:
+            self.ctrl_pressed = True
 
     # override
     def keyReleaseEvent(self, event):
@@ -327,6 +330,8 @@ class PyQtTest(QMainWindow):
             self.show_shortcuts(show=False)
         elif event.key() == Qt.Key_Shift:
             self.shift_pressed = False
+        elif event.key() == Qt.Key_Control:
+            self.ctrl_pressed = False
 
     # override
     def resizeEvent(self, event):
@@ -343,7 +348,8 @@ class PyQtTest(QMainWindow):
         # if event.buttons() == Qt.NoButton:
         #     print('released')
         if event.buttons() == Qt.LeftButton:
-            self.update_grid_by_pos(event.pos(), is_left=True)
+            if not self.shift_pressed:
+                self.update_grid_by_pos(event.pos(), is_left=True)
             self.update()
         elif event.buttons() == Qt.RightButton:
             self.update_grid_by_pos(event.pos(), is_left=False)
@@ -352,7 +358,8 @@ class PyQtTest(QMainWindow):
     # override
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            self.update_grid_by_pos(event.pos(), is_left=True)
+            if not self.shift_pressed:
+                self.update_grid_by_pos(event.pos(), is_left=True)
         elif event.buttons() == Qt.RightButton:
             self.update_grid_by_pos(event.pos(), is_left=False)
         self.update()
