@@ -38,13 +38,23 @@ class SPNet(nn.Module):
         self.fc_size = 1024
         self.fc1 = nn.Linear(self.num_flat_features, self.fc_size)
 
-        self.fc_pos1 = nn.Linear(self.fc_size, self.fc_size)
-        self.fc_pos2 = nn.Linear(self.fc_size, self.fc_size)
-        self.fc_pos3 = nn.Linear(self.fc_size, 2)
+        self.fc_pos = nn.Sequential(
+            nn.Linear(self.fc_size, self.fc_size),
+            nn.ReLU(),
+            nn.Linear(self.fc_size, self.fc_size // 2),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(self.fc_size // 2, 2),
+        )
 
-        self.fc_rot1 = nn.Linear(self.fc_size, self.fc_size)
-        self.fc_rot2 = nn.Linear(self.fc_size, self.fc_size)
-        self.fc_rot3 = nn.Linear(self.fc_size, 18)
+        self.fc_rot = nn.Sequential(
+            nn.Linear(self.fc_size, self.fc_size),
+            nn.ReLU(),
+            nn.Linear(self.fc_size, self.fc_size // 2),
+            nn.ReLU(),
+            nn.Dropout(p=0.5),
+            nn.Linear(self.fc_size // 2, 1),  # 18),
+        )
 
     def forward(self, x):
         x = self.conv_layers(x)
@@ -52,13 +62,6 @@ class SPNet(nn.Module):
         x = x.view(-1, self.num_flat_features)
         x = F.relu(self.fc1(x))
 
-        pos = F.relu(self.fc_pos1(x))
-        pos = F.relu(self.fc_pos2(pos))
-        pos = F.dropout(pos, training=self.training)
-        pos = self.fc_pos3(pos)
-
-        rot = F.relu(self.fc_rot1(x))
-        rot = F.relu(self.fc_rot2(rot))
-        rot = F.dropout(rot, training=self.training)
-        rot = self.fc_rot3(rot)
+        pos = self.fc_pos(x)
+        rot = self.fc_rot(x)
         return pos, rot

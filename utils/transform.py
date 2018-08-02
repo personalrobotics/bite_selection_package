@@ -38,13 +38,20 @@ def random_flip(img, loc, rot):
 
 
 def random_rotate(img, loc, rot):
-    roff = random.random() * 180
+    if random.random() < 0.7:
+        roff = random.random() * 180
 
-    img = img.rotate(roff, resample=Image.BILINEAR)
-    loc = list(rotate_point(loc, roff))
+        # img = img.convert('RGBA')
+        # img_rotated = img.rotate(roff, resample=Image.BICUBIC)
+        # img = Image.composite(img_rotated, img, img_rotated)
+        # img = img.convert('RGB')
 
-    if rot > 0:
-        rot = (rot + np.round(float(roff) / 10)) % 18
+        img = img.rotate(roff, resample=Image.BICUBIC)
+
+        loc = list(rotate_point(loc, roff))
+
+        if rot > 0:
+            rot = (rot + np.round(float(roff) / 10)) % 18
     return img, loc, rot
 
 

@@ -172,7 +172,7 @@ def train_spnet(use_cuda):
 
             test_loss += loss.data
 
-            if batch_idx % 2 == 0:
+            if batch_idx % 10 == 0:
                 print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
                       '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
                     epoch, batch_idx, total_batches,
@@ -194,8 +194,8 @@ def train_spnet(use_cuda):
 
                 pred_pos = pred_positions[0].data.cpu().numpy() * img_size
 
-                pred_ang = pred_angles[0].data.cpu().numpy()
-                pred_ang = np.argmax(pred_ang) * 10
+                pred_ang = float(pred_angles[0].data.cpu().numpy())
+                # pred_ang = np.argmax(pred_ang) * 10
 
                 # pred_posdata = pred_positions[0].data.cpu().numpy()
                 # pred_posnumber = np.argmax(pred_posdata)
