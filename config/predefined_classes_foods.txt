@@ -1,0 +1,17 @@
+apple
+apricot
+banana
+bell_pepper
+blackberry
+broccoli
+cantalope
+carrot
+cauliflower
+celery
+cherry_tomato
+egg
+grape_purple
+grape_green
+melon
+strawberry
+plate
