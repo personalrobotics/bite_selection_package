@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QStatusBar,
     QPushButton, QLabel, QFrame, QListWidget)
 from PyQt5.QtGui import (
-    QPainter, QColor, QPen, QPixmap, QImage)
+    QPainter, QColor, QPen, QBrush, QPixmap, QImage)
 from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
@@ -44,10 +44,11 @@ class PyQtTest(QMainWindow):
             "strawberry": True,
             "plate": False, }
 
-        self.img_label = None
+        self.label = None
         self.pixmap = None
         self.grid_size = (17, 17)
-        self.mask_grid = None
+
+        self.cur_group = None
 
         self.org_img_size = None
         self.label_size = 450
@@ -200,6 +201,14 @@ class PyQtTest(QMainWindow):
         self.list_widget.clearFocus()
         self.show_image()
 
+    def set_statusbar(self, optional=None):
+        msg = 'Recording masks:  {} / {}   |   Image Directory: "{}"'.format(
+                self.img_idx + 1, len(self.img_filename_list), self.img_dir)
+        if optional is not None:
+            msg += '  | {}'.format(optional)
+
+        self.statusbar.showMessage(msg)
+
     def show_image(self):
         filename = os.path.join(
             self.img_dir, self.img_filename_list[self.img_idx]) + '.jpg'
@@ -210,33 +219,28 @@ class PyQtTest(QMainWindow):
             [self.pixmap.width(), self.pixmap.height()])
         self.rescale_image()
 
-        if self.img_label is None:
-            self.img_label = OverlayLabel(self)
-            self.img_label.setAlignment(Qt.AlignCenter)
-            self.img_label.setFrameShape(QFrame.Panel)
-            self.img_label.setFrameShadow(QFrame.Sunken)
-            self.img_label.setLineWidth(1)
+        if self.label is None:
+            self.label = OverlayLabel(self, grid_size=self.grid_size)
+            self.label.setAlignment(Qt.AlignCenter)
+            self.label.setFrameShape(QFrame.Panel)
+            self.label.setFrameShadow(QFrame.Sunken)
+            self.label.setLineWidth(1)
 
-        self.img_label.setPixmap(self.pixmap)
-        self.img_label.move(self.margin, self.margin)
-        self.img_label.resize(self.label_size, self.label_size)
+        self.label.setPixmap(self.pixmap)
+        self.label.move(self.margin, self.margin)
+        self.label.resize(self.label_size, self.label_size)
 
         self.load_grid_from_file()
-        self.img_label.set_grid(self.mask_grid)
 
-        self.statusbar.showMessage(
-            'Recording masks:  {} / {}   |   Image Directory: "{}"'.format(
-                self.img_idx + 1, len(self.img_filename_list), self.img_dir))
+        self.set_statusbar()
         self.update()
 
     def resize_image(self):
         self.rescale_image()
-        self.img_label.setPixmap(self.pixmap)
-        self.img_label.move(self.margin, self.margin)
-        self.img_label.resize(self.label_size, self.label_size)
-
+        self.label.setPixmap(self.pixmap)
+        self.label.move(self.margin, self.margin)
+        self.label.resize(self.label_size, self.label_size)
         self.update_list()
-
         self.update()
 
     def rescale_image(self):
@@ -245,22 +249,79 @@ class PyQtTest(QMainWindow):
         self.pixmap = self.pixmap.scaled(new_size[0], new_size[1])
         self.pixmap_offset = (self.label_size - new_size) * 0.5 + self.margin
 
-    def update_grid_by_pos(self, pos, is_left=True):
-        ratio_in_label = (
-            (np.array([pos.x(), pos.y()]) - self.margin) / self.label_size)
+    def calculate_angle(self):
+        pdiff = self.label.angle_sp - self.label.angle_ep
+        return np.degrees(
+            np.arctan2(pdiff[0], pdiff[1])) % 180
 
-        if np.min(ratio_in_label) < 0 or np.max(ratio_in_label) >= 1:
+    def add_group_item(self, x, y):
+        if x < 0 or x >= self.grid_size[0] or y < 0 or y >= self.grid_size[1]:
+            return False
+        if self.label.grid[x, y] == 0:
+            return False
+
+        if self.cur_group is None:
+            self.cur_group = dict()
+
+        hv = x * self.grid_size[0] + y
+
+        if hv in self.cur_group:
+            return False
+        self.cur_group[hv] = True
+        return True
+
+    def propagate_selection(self, x, y):
+        if self.add_group_item(x + 1, y):
+            self.propagate_selection(x + 1, y)
+        if self.add_group_item(x - 1, y):
+            self.propagate_selection(x - 1, y)
+        if self.add_group_item(x, y + 1):
+            self.propagate_selection(x, y + 1)
+        if self.add_group_item(x, y - 1):
+            self.propagate_selection(x, y - 1)
+        if self.add_group_item(x + 1, y + 1):
+            self.propagate_selection(x + 1, y + 1)
+        if self.add_group_item(x - 1, y - 1):
+            self.propagate_selection(x - 1, y - 1)
+        if self.add_group_item(x - 1, y + 1):
+            self.propagate_selection(x - 1, y + 1)
+        if self.add_group_item(x + 1, y - 1):
+            self.propagate_selection(x + 1, y - 1)
+
+    def select_group(self, pos):
+        grid_idx = self.pos_to_grid_idx(pos)
+        if grid_idx is None or self.label.grid[grid_idx[0], grid_idx[1]] == 0:
+            self.clear_group()
             return
 
-        grid_idx = ratio_in_label * self.grid_size
-        self.mask_grid[int(grid_idx[0]), int(grid_idx[1])] = \
-            1 if is_left and not self.ctrl_pressed else 0
+        self.add_group_item(grid_idx[0], grid_idx[1])
+        self.propagate_selection(grid_idx[0], grid_idx[1])
 
-        self.img_label.set_grid(self.mask_grid)
+        for k, v in sorted(self.cur_group.items()):
+            this_idx = [k // self.grid_size[0], k % self.grid_size[0]]
+            self.label.set_highlight_at(this_idx[0], this_idx[1], 1)
+
+    def clear_group(self):
+        self.label.clear_highlight()
+        self.cur_group = None
+
+    def pos_to_grid_idx(self, pos):
+        ratio_in_label = (
+            (np.array([pos.x(), pos.y()]) - self.margin) / self.label_size)
+        if np.min(ratio_in_label) < 0 or np.max(ratio_in_label) >= 1:
+            return None
+        return list(map(int, ratio_in_label * self.grid_size))
+
+    def update_grid_by_pos(self, pos, is_left=True):
+        grid_idx = self.pos_to_grid_idx(pos)
+        if grid_idx is None:
+            return
+        self.label.set_grid_at(
+            grid_idx[0], grid_idx[1],
+            1 if is_left and not self.ctrl_pressed else 0)
 
     def clear_grid(self):
-        self.mask_grid[:] = 0
-        self.img_label.set_grid(self.mask_grid)
+        self.label.clear_grid()
         self.update()
 
     def save_grid(self):
@@ -269,11 +330,13 @@ class PyQtTest(QMainWindow):
         img_name = self.img_filename_list[self.img_idx]
         mask_filename = os.path.join(
             self.mask_dir, img_name) + '.txt'
+
+        gird = self.label.grid
         with open(mask_filename, 'w') as f:
-            for ci in range(self.mask_grid.shape[1]):
-                for ri in range(self.mask_grid.shape[0]):
-                    f.write(str(self.mask_grid[ri, ci]))
-                    if ri + 1 < self.mask_grid.shape[1]:
+            for ci in range(grid.shape[1]):
+                for ri in range(grid.shape[0]):
+                    f.write(str(grid[ri, ci]))
+                    if ri + 1 < grid.shape[1]:
                         f.write(',')
                 f.write('\n')
             f.close()
@@ -284,7 +347,6 @@ class PyQtTest(QMainWindow):
         mask_filename = os.path.join(
             self.mask_dir, img_name) + '.txt'
 
-        self.mask_grid = np.zeros(self.grid_size, dtype=np.int32)
         if not os.path.exists(mask_filename):
             return
         with open(mask_filename, 'r') as f:
@@ -292,7 +354,7 @@ class PyQtTest(QMainWindow):
             for ci, line in enumerate(lines):
                 items = line.split(',')
                 for ri, item in enumerate(items):
-                    self.mask_grid[ri, ci] = int(item.strip())
+                    self.label.set_grid_at(ri, ci, int(item.strip()))
             f.close()
 
     def show_shortcuts(self, show=True):
@@ -345,10 +407,14 @@ class PyQtTest(QMainWindow):
 
     # override
     def mouseMoveEvent(self, event):
-        # if event.buttons() == Qt.NoButton:
-        #     print('released')
         if event.buttons() == Qt.LeftButton:
-            if not self.shift_pressed:
+            if self.shift_pressed:
+                self.label.set_angle_ep(
+                    event.pos().x() - self.margin,
+                    event.pos().y() - self.margin)
+                angle = self.calculate_angle()
+                self.set_statusbar('angle: {0:.3f}'.format(angle))
+            else:
                 self.update_grid_by_pos(event.pos(), is_left=True)
             self.update()
         elif event.buttons() == Qt.RightButton:
@@ -358,38 +424,100 @@ class PyQtTest(QMainWindow):
     # override
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            if not self.shift_pressed:
+            if self.shift_pressed:
+                self.label.set_angle_sp(
+                    event.pos().x() - self.margin,
+                    event.pos().y() - self.margin)
+                self.select_group(event.pos())
+            else:
                 self.update_grid_by_pos(event.pos(), is_left=True)
         elif event.buttons() == Qt.RightButton:
             self.update_grid_by_pos(event.pos(), is_left=False)
         self.update()
 
+    # override
+    def mouseReleaseEvent(self, event):
+        if self.label.angle_sp is not None and self.label.angle_ep is not None:
+            angle = self.calculate_angle()
+            print('angle for this group: {}'.format(angle))
+
+        self.clear_group()
+        self.label.angle_sp = None
+        self.label.angle_ep = None
+        self.set_statusbar()
+        self.update()
+
 
 class OverlayLabel(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, grid_size=(17, 17)):
         super(OverlayLabel, self).__init__(parent=parent)
+        self.grid_size = grid_size
         self.grid = None
+        self.highlight = None
+        self.angle_sp = None
+        self.angle_ep = None
 
-    def set_grid(self, grid):
-        self.grid = grid
+    def init_grid(self):
+        self.grid = np.zeros(self.grid_size, dtype=np.int32)
 
-    def set_grid_by_idx(self, x, y, v):
+    def set_grid_at(self, x, y, v=1):
         self.grid[x, y] = v
+
+    def clear_grid(self):
+        if self.grid is None:
+            self.init_grid()
+        else:
+            self.grid[:] = 0
+
+    def init_highlight(self):
+        self.highlight = np.zeros(self.grid_size, dtype=np.int32)
+
+    def set_highlight_at(self, x, y, v=1):
+        self.highlight[x, y] = v
+
+    def clear_highlight(self):
+        if self.highlight is None:
+            self.init_highlight()
+        else:
+            self.highlight[:] = 0
+
+    def set_angle_sp(self, x, y):
+        self.angle_sp = np.array([x, y])
+
+    def clear_angle_sp(self):
+        self.angle_sp = None
+
+    def set_angle_ep(self, x, y):
+        self.angle_ep = np.array([x, y])
+
+    def clear_angle_ep(self):
+        self.angle_ep = None
 
     # override
     def paintEvent(self, event):
         super().paintEvent(event)
-        self.overlay_grid()
 
-    def overlay_grid(self):
         if self.grid is None:
-            return
+            self.init_grid()
+
+        if self.highlight is None:
+            self.init_highlight()
 
         painter = QPainter(self)
 
-        pen = QPen(QColor(255, 255, 255, alpha=100))
+        pen = QPen(QColor(255, 255, 255, alpha=120))
         pen.setCapStyle(Qt.RoundCap)
         pen.setWidth(1)
+
+        pen_ang = QPen(QColor(191, 17, 46, alpha=220))
+        pen_ang.setCapStyle(Qt.RoundCap)
+        pen_ang.setWidth(2)
+
+        brush = QBrush(QColor(2, 23, 62, alpha=150))
+        brush.setStyle(Qt.SolidPattern)
+
+        brush_hl = QBrush(QColor(19, 163, 153, alpha=150))
+        brush_hl.setStyle(Qt.Dense1Pattern)
 
         painter.setBrush(Qt.NoBrush)
         painter.setPen(pen)
@@ -408,14 +536,29 @@ class OverlayLabel(QLabel):
                 0, grid_h * hi,
                 self.height(), grid_h * hi)
 
-        painter.setBrush(QColor(0, 0, 0, alpha=100))
         painter.setPen(Qt.NoPen)
+
         for wi in range(self.grid.shape[0]):
             for hi in range(self.grid.shape[1]):
                 if self.grid[wi, hi] == 1:
+                    if self.highlight[wi, hi] == 1:
+                        painter.setBrush(brush_hl)
+                    else:
+                        painter.setBrush(brush)
+
                     painter.drawRect(
                         grid_w * wi + 1, grid_h * hi + 1,
                         grid_w - 1, grid_h - 1)
+
+        if self.angle_sp is not None and self.angle_ep is not None:
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(pen_ang)
+            painter.setRenderHint(QPainter.Antialiasing, True)
+
+            popp = self.angle_sp + (self.angle_sp - self.angle_ep)
+            painter.drawLine(
+                popp[0], popp[1],
+                self.angle_ep[0], self.angle_ep[1])
 
 
 if __name__ == '__main__':
