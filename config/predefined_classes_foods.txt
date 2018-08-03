@@ -14,4 +14,3 @@ grape_purple
 grape_green
 melon
 strawberry
-plate

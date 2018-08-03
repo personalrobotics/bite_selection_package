@@ -25,46 +25,56 @@ item {
 
 item {
   id: 6
-  name: 'cantalope'
+  name: 'broccoli'
 }
 
 item {
   id: 7
-  name: 'carrot'
+  name: 'cantalope'
 }
 
 item {
   id: 8
-  name: 'celery'
+  name: 'carrot'
 }
 
 item {
   id: 9
-  name: 'cherry_tomato'
+  name: 'cauliflower'
 }
 
 item {
   id: 10
-  name: 'egg'
+  name: 'celery'
 }
 
 item {
   id: 11
-  name: 'grape'
+  name: 'cherry_tomato'
 }
 
 item {
   id: 12
-  name: 'melon'
+  name: 'egg'
 }
 
 item {
   id: 13
-  name: 'strawberry'
+  name: 'grape_purple'
 }
 
 item {
   id: 14
-  name: 'plate'
+  name: 'grape_green'
+}
+
+item {
+  id: 15
+  name: 'melon'
+}
+
+item {
+  id: 16
+  name: 'strawberry'
 }
 

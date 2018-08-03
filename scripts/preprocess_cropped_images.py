@@ -18,15 +18,17 @@ def preprocess_skewering_positions_dataset():
         "banana": True,
         "pepper": False,
         "blackberry": True,
+        "broccoli": False,
         "cantalope": False,
         "carrot": False,
+        "cauliflower": False,
         "celery": False,
         "tomato": True,
         "egg": False,
-        "grape": True,
+        "purple": True,
+        "green": True,
         "melon": False,
-        "strawberry": False,
-        "plate": True, }
+        "strawberry": False }
 
     org_base_dir = '../data/skewering_positions'
     ann_base_dir = os.path.join(org_base_dir, 'annotations')
