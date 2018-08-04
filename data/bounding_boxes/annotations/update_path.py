@@ -4,9 +4,6 @@ import xml.etree.ElementTree as ET
 import os
 
 
-image_base_dir = '/mnt/hard_data/Data/foods/data/images'
-
-
 def update_xml(filepath, filename, is_edit=False):
     print('>>> {}'.format(filename))
     tree = ET.parse(filepath)
@@ -15,10 +12,16 @@ def update_xml(filepath, filename, is_edit=False):
     for node in root:
         if node.tag == 'object':
             name_node = node.find('name')
-            name_node.text = name_node.text.replace(' ', '_')
-            print('{} -> {}'.format(
-                name_node.text,
-                name_node.text.replace(' ', '_')))
+            new_name = name_node.text.replace(' ', '_')
+
+            # print('{} -> {}'.format(
+            #     name_node.text,
+            #     new_name))
+            name_node.text = new_name
+
+            if name_node.text == 'plate':
+                print('plate!!')
+                root.remove(node)
 
     if is_edit:
         tree.write(filepath)

@@ -72,18 +72,6 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>plate</name>
-		<pose>Unspecified</pose>
-		<truncated>0</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>444</xmin>
-			<ymin>209</ymin>
-			<xmax>915</xmax>
-			<ymax>662</ymax>
-		</bndbox>
-	</object>
-	<object>
 		<name>apricot</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>

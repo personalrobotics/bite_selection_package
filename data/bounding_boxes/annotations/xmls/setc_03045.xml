@@ -228,18 +228,6 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>plate</name>
-		<pose>Unspecified</pose>
-		<truncated>0</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>994</xmin>
-			<ymin>427</ymin>
-			<xmax>1356</xmax>
-			<ymax>732</ymax>
-		</bndbox>
-	</object>
-	<object>
 		<name>bell_pepper</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
@@ -336,7 +324,7 @@
 		</bndbox>
 	</object>
 	<object>
-		<name>grape</name>
+		<name>grape_purple</name>
 		<pose>Unspecified</pose>
 		<truncated>0</truncated>
 		<difficult>0</difficult>
@@ -419,16 +407,4 @@
 			<ymax>804</ymax>
 		</bndbox>
 	</object>
-	<object>
-		<name>plate</name>
-		<pose>Unspecified</pose>
-		<truncated>0</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>788</xmin>
-			<ymin>703</ymin>
-			<xmax>1181</xmax>
-			<ymax>1079</ymax>
-		</bndbox>
-	</object>
-</annotation>
+	</annotation>

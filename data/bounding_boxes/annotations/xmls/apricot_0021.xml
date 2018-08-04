@@ -95,16 +95,4 @@
 			<ymax>517</ymax>
 		</bndbox>
 	</object>
-	<object>
-		<name>plate</name>
-		<pose>Unspecified</pose>
-		<truncated>0</truncated>
-		<difficult>0</difficult>
-		<bndbox>
-			<xmin>472</xmin>
-			<ymin>174</ymin>
-			<xmax>1082</xmax>
-			<ymax>714</ymax>
-		</bndbox>
-	</object>
-</annotation>
+	</annotation>
