@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QStatusBar,
     QPushButton, QLabel, QFrame, QListWidget)
 from PyQt5.QtGui import (
-    QPainter, QColor, QPen, QBrush, QPixmap, QImage)
+    QPainter, QColor, QPen, QBrush, QPixmap)
 from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
@@ -319,7 +319,8 @@ class PyQtTest(QMainWindow):
         return list(map(int, ratio_in_label * self.grid_size))
 
     def grid_idx_to_pos(self, grid_idx):
-        return np.asarray(grid_idx) * self.label_size / self.grid_size + self.margin
+        return (np.asarray(grid_idx) * self.label_size / self.grid_size +
+                self.margin)
 
     def update_grid_by_pos(self, pos, val=0, is_left=True):
         grid_idx = self.pos_to_grid_idx(pos)
@@ -421,8 +422,9 @@ class PyQtTest(QMainWindow):
     def resizeEvent(self, event):
         self.width, self.height = event.size().width(), event.size().height()
 
-        self.label_size = self.height - (self.margin * 3 + \
-            self.btn_height + self.statusbar_height)
+        self.label_size = (
+            self.height - (self.margin * 3 +
+                           self.btn_height + self.statusbar_height))
         self.resize_image()
 
         self.adjust_buttons()
@@ -623,7 +625,6 @@ class OverlayLabel(QLabel):
             painter.drawLine(
                 self.angle_ep[0], self.angle_ep[1] - rho,
                 self.angle_ep[0], self.angle_ep[1] + rho)
-
 
 
 if __name__ == '__main__':
