@@ -67,7 +67,7 @@ class PyQtTest(QMainWindow):
         self.shift_pressed = False
         self.ctrl_pressed = False
 
-        self.title = 'PyQt Test'
+        self.title = 'Skewering Mask Sampler'
         self.left = 150
         self.top = 100
         self.width = 840
