@@ -15,9 +15,9 @@ from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
 
-class PyQtTest(QMainWindow):
+class PyQtSampler(QMainWindow):
     def __init__(self):
-        super(PyQtTest, self).__init__()
+        super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
         self.base_dir = '../data/skewering_positions'
@@ -633,5 +633,5 @@ class OverlayLabel(QLabel):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = PyQtTest()
+    ex = PyQtSampler()
     sys.exit(app.exec_())
