@@ -1,0 +1,80 @@
+item {
+  id: 1
+  name: 'apple'
+}
+
+item {
+  id: 2
+  name: 'apricot'
+}
+
+item {
+  id: 3
+  name: 'banana'
+}
+
+item {
+  id: 4
+  name: 'bell_pepper'
+}
+
+item {
+  id: 5
+  name: 'blackberry'
+}
+
+item {
+  id: 6
+  name: 'broccoli'
+}
+
+item {
+  id: 7
+  name: 'cantalope'
+}
+
+item {
+  id: 8
+  name: 'carrot'
+}
+
+item {
+  id: 9
+  name: 'cauliflower'
+}
+
+item {
+  id: 10
+  name: 'celery'
+}
+
+item {
+  id: 11
+  name: 'cherry_tomato'
+}
+
+item {
+  id: 12
+  name: 'egg'
+}
+
+item {
+  id: 13
+  name: 'grape_purple'
+}
+
+item {
+  id: 14
+  name: 'grape_green'
+}
+
+item {
+  id: 15
+  name: 'melon'
+}
+
+item {
+  id: 16
+  name: 'strawberry'
+}
+
