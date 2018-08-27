@@ -52,7 +52,7 @@ class PyQtSampler(QMainWindow):
         self.label = None
         self.pixmap = None
         # self.grid_size = (17, 17)
-        self.grid_size = (9, 9)
+        self.grid_size = (11, 11)
 
         self.cur_group = None
 
@@ -425,6 +425,7 @@ class PyQtSampler(QMainWindow):
         elif event.key() == Qt.Key_C:
             self.clear_grid()
         elif event.key() == Qt.Key_D:
+            self.save_grid()
             self.show_next_image()
         elif event.key() == Qt.Key_Alt:
             self.show_shortcuts()
