@@ -15,9 +15,9 @@ from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
 
-class PyQtTest(QMainWindow):
+class PyQtSampler(QMainWindow):
     def __init__(self):
-        super(PyQtTest, self).__init__()
+        super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
         self.base_dir = '../data/skewering_positions'
@@ -51,7 +51,8 @@ class PyQtTest(QMainWindow):
 
         self.label = None
         self.pixmap = None
-        self.grid_size = (17, 17)
+        # self.grid_size = (17, 17)
+        self.grid_size = (9, 9)
 
         self.cur_group = None
 
@@ -368,6 +369,17 @@ class PyQtTest(QMainWindow):
             f.close()
             print('saved: {}'.format(mask_filename))
 
+    def resize_grid(self, grid, new_size):
+        new_grid = np.zeros(new_size)
+        nw, nh = new_size
+        ow, oh = grid.shape
+        for wi in range(new_size[0]):
+            for hi in range(new_size[1]):
+                new_grid[wi, hi] = grid[
+                    int(wi / nw * ow),
+                    int(hi / nh * oh)]
+        return new_grid
+
     def load_grid_from_file(self):
         img_name = self.img_filename_list[self.img_idx]
         mask_filename = os.path.join(
@@ -376,13 +388,21 @@ class PyQtTest(QMainWindow):
         self.clear_grid()
         if not os.path.exists(mask_filename):
             return
+
+        new_grid = list()
         with open(mask_filename, 'r') as f:
             lines = f.readlines()
-            for ci, line in enumerate(lines):
+            for line in lines:
                 items = line.split(',')
-                for ri, item in enumerate(items):
-                    self.label.set_grid_at(ri, ci, float(item.strip()))
+                new_row = list()
+                for item in items:
+                    new_row.append(float(item.strip()))
+                new_grid.append(new_row)
             f.close()
+
+        new_grid = np.asarray(new_grid).transpose()
+        new_grid = self.resize_grid(new_grid, self.grid_size)
+        self.label.grid = new_grid
 
     def show_shortcuts(self, show=True):
         if show:
@@ -633,5 +653,5 @@ class OverlayLabel(QLabel):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = PyQtTest()
+    ex = PyQtSampler()
     sys.exit(app.exec_())

@@ -24,6 +24,12 @@ class SPSampler(object):
         self.ann_dir = os.path.join(self.base_dir, 'annotations')
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
 
+        self.label_map_path = '../config/food_label_map.pbtxt'
+
+        self.listdataset = list()
+        self.listdataset_train_path = '../data/food_ann_train.txt'
+        self.listdataset_test_path = '../data/food_ann_test.txt'
+
         self.cur_img_name = None
         self.is_clicked = False
 
@@ -47,8 +53,32 @@ class SPSampler(object):
         if not os.path.exists(self.img_dir):
             os.makedirs(self.img_dir)
 
+    def load_label_map(self):
+        with open(self.label_map_path, 'r') as f:
+            content = f.read().splitlines()
+            f.close()
+        assert content is not None, 'cannot find label map'
+
+        temp = list()
+        for line in content:
+            line = line.strip()
+            if (len(line) > 2 and
+                    (line.startswith('id') or
+                     line.startswith('name'))):
+                temp.append(line.split(':')[1].strip())
+
+        label_dict = dict()
+        for idx in range(0, len(temp), 2):
+            item_id = int(temp[idx])
+            item_name = temp[idx + 1][1:-1]
+            label_dict[item_name] = item_id
+        return label_dict
+
     def generate_cropped_images(self):
         print('-- generate_cropped_images ---------------------------------\n')
+
+        label_dict = self.load_label_map()
+
         xml_filenames = sorted(os.listdir(self.bbox_ann_dir))
         for xidx, xml_filename in enumerate(xml_filenames):
             if not xml_filename.endswith('.xml'):
@@ -61,6 +91,8 @@ class SPSampler(object):
 
             print('[{}/{}] {}'.format(
                 xidx + 1, len(xml_filenames), xml_file_path))
+
+            this_ann_line = xml_filename[:-4] + '.jpg'
 
             bboxes = dict()
             tree = ET.parse(xml_file_path)
@@ -93,6 +125,23 @@ class SPSampler(object):
                             xml_filename[:-4], obj_name, bidx))
                     print(save_path)
                     cv2.imwrite(save_path, cropped_img)
+
+                    this_ann_line += ' {} {} {} {} {} {}'.format(
+                        xmin, ymin, xmax, ymax,
+                        label_dict[obj_name], bidx)
+
+            self.listdataset.append(this_ann_line)
+
+        num_trainset = int(len(self.listdataset) * 0.9)
+        with open(self.listdataset_train_path, 'w') as f:
+            for idx in range(0, num_trainset):
+                f.write('{}\n'.format(self.listdataset[idx]))
+            f.close()
+        with open(self.listdataset_test_path, 'w') as f:
+            for idx in range(num_trainset, len(self.listdataset)):
+                f.write('{}\n'.format(self.listdataset[idx]))
+            f.close()
+
         print('-- generate_cropped_images finished ------------------------\n')
 
     def sampling_skewering_positions(self, skip=True):
