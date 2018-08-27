@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 import sys
+import random
 
 
 class SPSampler(object):
@@ -35,8 +36,9 @@ class SPSampler(object):
 
         samplable_objs = [
             'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
-            'cantalope', 'carrot', 'celery', 'cherry_tomato', 'egg',
-            'grape', 'melon', 'strawberry']
+            'broccoli', 'cantalope', 'carrot', 'cauliflower', 'celery',
+            'cherry_tomato', 'egg', 'grape_purple', 'grape_green',
+            'melon', 'strawberry']
         self.samplable = dict()
         for obj_name in samplable_objs:
             self.samplable[obj_name] = True
@@ -94,12 +96,15 @@ class SPSampler(object):
 
             this_ann_line = xml_filename[:-4] + '.jpg'
 
+            num_boxes = 0
             bboxes = dict()
             tree = ET.parse(xml_file_path)
             root = tree.getroot()
             for node in root:
                 if node.tag == 'object':
                     obj_name = node.find('name').text
+                    if obj_name not in self.samplable:
+                        continue
                     xmin = int(node.find('bndbox').find('xmin').text)
                     ymin = int(node.find('bndbox').find('ymin').text)
                     xmax = int(node.find('bndbox').find('xmax').text)
@@ -129,8 +134,12 @@ class SPSampler(object):
                     this_ann_line += ' {} {} {} {} {} {}'.format(
                         xmin, ymin, xmax, ymax,
                         label_dict[obj_name], bidx)
+                    num_boxes += 1
 
-            self.listdataset.append(this_ann_line)
+            if num_boxes > 0:
+                self.listdataset.append(this_ann_line)
+
+        random.shuffle(self.listdataset)
 
         num_trainset = int(len(self.listdataset) * 0.9)
         with open(self.listdataset_train_path, 'w') as f:
