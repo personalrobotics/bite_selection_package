@@ -16,7 +16,7 @@ from PyQt5.QtCore import (
 
 
 class PyQtSampler(QMainWindow):
-    def __init__(self, for_test=True):
+    def __init__(self, for_test=False):
         super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
@@ -54,8 +54,7 @@ class PyQtSampler(QMainWindow):
 
         self.label = None
         self.pixmap = None
-        # self.grid_size = (17, 17)
-        self.grid_size = (9, 9)
+        self.grid_size = (17, 17)
 
         self.cur_group = None
 
@@ -343,12 +342,12 @@ class PyQtSampler(QMainWindow):
         for ci in range(highlight.shape[0]):
             for ri in range(highlight.shape[1]):
                 if highlight[ri, ci] == 1:
-                    if self.category_types[self.cur_category] == 'flat':
-                        self.label.set_grid_at(ri, ci, angle)
-                    else:
+                    if self.category_types[self.cur_category] == 'round':
                         this_sp = self.grid_idx_to_pos([ri, ci])
                         this_angle = self.calculate_angle(sp=this_sp)
                         self.label.set_grid_at(ri, ci, this_angle)
+                    else:
+                        self.label.set_grid_at(ri, ci, angle)
 
     def clear_grid(self):
         self.label.clear_grid()
@@ -640,7 +639,7 @@ class OverlayLabel(QLabel):
             painter.setPen(pen_ang)
             painter.setRenderHint(QPainter.Antialiasing, True)
 
-            if self.angle_type == 'flat':
+            if self.angle_type != 'round':
                 popp = self.angle_sp + (self.angle_sp - self.angle_ep)
                 painter.drawLine(
                     popp[0], popp[1],
