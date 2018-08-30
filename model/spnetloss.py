@@ -2,25 +2,38 @@ from __future__ import print_function
 from __future__ import division
 
 import math
+import sys
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+sys.path.append('../')
+from config import config
+
 
 class SPNetLoss(nn.Module):
     def __init__(self):
         super(SPNetLoss, self).__init__()
-        self.sll = nn.SmoothL1Loss()
-        #self.cel = nn.CrossEntropyLoss()
+        self.bce_loss = nn.BCEWithLogitsLoss()
+        self.ce_loss = nn.CrossEntropyLoss()
 
-    def forward(self, pred_positions, gt_positions, pred_angles, gt_angles):
-        position_loss = self.sll(pred_positions, gt_positions)
+    def forward(self, bmask_preds, bmask_targets, rmask_preds, rmask_targets):
+        bmask_preds = bmask_preds.view(-1, config.mask_size ** 2)
+        bmask_targets = bmask_targets.view(-1, config.mask_size ** 2)
+        bmask_loss = self.bce_loss(bmask_preds, bmask_targets)
 
-        #angle_loss = self.cel(pred_angles, gt_angles.round().long().view(-1))
-        angle_loss = torch.mean(torch.abs(
-            torch.sin((torch.abs(pred_angles - gt_angles) / 180 * math.pi))))
+        rmask_preds_full = rmask_preds.view(-1, config.angle_res)
+        rmask_targets_full = rmask_targets.view(-1)
+        rmask_loss_full = self.ce_loss(
+            rmask_preds_full, rmask_targets_full.long())
 
-        loss = position_loss + angle_loss
+        positives = bmask_targets > 0
+        mask = positives.unsqueeze(2).expand_as(rmask_preds)
+        rmask_preds = rmask_preds[mask].view(-1, config.angle_res)
+        rmask_targets = rmask_targets[positives]
+        rmask_loss = self.ce_loss(rmask_preds, rmask_targets.long())
 
-        return loss, position_loss, angle_loss
+        loss = bmask_loss + rmask_loss_full + rmask_loss
+
+        return loss, bmask_loss, rmask_loss

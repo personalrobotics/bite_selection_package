@@ -19,54 +19,64 @@ sys.path.append('../')
 from model.spnet import SPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
+from config import config
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
 def train_spnet(use_cuda):
     print('train_spnet')
     print('use cuda: ' + str(use_cuda))
 
-    img_base_dir = '../data/processed/cropped_images/'
+    img_base_dir = config.cropped_img_dir
 
-    train_list = '../data/processed/sp_train.txt'
-    test_list = '../data/processed/sp_test.txt'
+    train_list = config.train_list_filename
+    test_list = config.test_list_filename
 
-    checkpoint_dir = '../checkpoints/'
-    checkpoint_path = os.path.join(checkpoint_dir, 'spnet_ckpt.pth')
+    checkpoint_path = config.checkpoint_filename
+    checkpoint_path_best = config.checkpoint_best_filename
 
     sample_dir = '../samples/'
     img_dir = sample_dir + 'cropped_images/'
-    ann_dir = sample_dir + 'annotations/'
+    ann_dir = sample_dir + 'masks/'
     if os.path.exists(sample_dir):
         shutil.rmtree(sample_dir)
     os.makedirs(sample_dir)
     os.makedirs(img_dir)
     os.makedirs(ann_dir)
 
-    img_size = 80
+    img_size = config.cropped_img_res
 
     transform = transforms.Compose([
         transforms.ToTensor()])
         # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    print('load SPDataset')
     trainset = SPDataset(
-        root=img_base_dir,
-        list_file=train_list,
-        train=True, transform=transform, img_size=img_size)
+        cropped_img_dir=config.cropped_img_dir,
+        mask_dir=config.mask_dir,
+        list_filename=config.train_list_filename,
+        label_map_filename=config.label_map_filename,
+        train=True,
+        transform=transform,
+        cropped_img_res=config.cropped_img_res)
     trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=8,
+        trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
         collate_fn=trainset.collate_fn)
 
     testset = SPDataset(
-        root=img_base_dir,
-        list_file=test_list,
-        train=False, transform=transform, img_size=img_size)
+        cropped_img_dir=config.cropped_img_dir,
+        mask_dir=config.mask_dir,
+        list_filename=config.test_list_filename,
+        label_map_filename=config.label_map_filename,
+        train=False,
+        transform=transform,
+        cropped_img_res=config.cropped_img_res)
     testloader = torch.utils.data.DataLoader(
-        testset, batch_size=4,
-        shuffle=False, num_workers=8,
+        testset, batch_size=config.test_batch_size,
+        shuffle=True, num_workers=8,
         collate_fn=testset.collate_fn)
 
     spnet = SPNet()
@@ -103,20 +113,21 @@ def train_spnet(use_cuda):
         total_batches = int(math.ceil(
             trainloader.dataset.num_samples / trainloader.batch_size))
 
-        for batch_idx, (imgs, positions, angles) in enumerate(trainloader):
+        for batch_idx, batch_items in enumerate(trainloader):
+            imgs = batch_items[0]
+            gt_bmasks = batch_items[1]
+            gt_rmasks = batch_items[2]
+
             if use_cuda:
                 imgs = imgs.cuda()
-                gt_positions = positions.cuda()
-                gt_angles = angles.cuda()
-            else:
-                gt_positions = positions
-                gt_angles = angles
+                gt_bmasks = gt_bmasks.cuda()
+                gt_rmasks = gt_rmasks.cuda()
 
             optimizer.zero_grad()
-            pred_positions, pred_angles = spnet(imgs)
+            pred_bmasks, pred_rmasks = spnet(imgs)
 
-            loss, ploss, rloss = criterion(
-                pred_positions, gt_positions, pred_angles, gt_angles)
+            loss, bmloss, rmloss = criterion(
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
             loss.backward()
             optimizer.step()
 
@@ -124,10 +135,9 @@ def train_spnet(use_cuda):
 
             if batch_idx % 20 == 0:
                 print('[{0}| {1:3d}/{2:3d}] train_loss: {3:6.3f} '
-                      '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
-                    epoch, batch_idx, total_batches,
-                    loss.data, train_loss / (batch_idx + 1),
-                    ploss, rloss))
+                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f}'.format(
+                    epoch, batch_idx, total_batches, loss.data,
+                    bmloss, rmloss, train_loss / (batch_idx + 1)))
 
                 # # save a sample ground truth data
                 # ann_path_base = os.path.join(
@@ -157,69 +167,77 @@ def train_spnet(use_cuda):
         total_batches = int(math.ceil(
             testloader.dataset.num_samples / testloader.batch_size))
 
-        for batch_idx, (imgs, positions, angles) in enumerate(testloader):
+        for batch_idx, batch_items in enumerate(testloader):
+            imgs = batch_items[0]
+            gt_bmasks = batch_items[1]
+            gt_rmasks = batch_items[2]
+
             if use_cuda:
                 imgs = imgs.cuda()
-                gt_positions = positions.cuda()
-                gt_angles = angles.cuda()
-            else:
-                gt_positions = positions
-                gt_angles = angles
+                gt_bmasks = gt_bmasks.cuda()
+                gt_rmasks = gt_rmasks.cuda()
 
-            pred_positions, pred_angles = spnet(imgs)
-            loss, ploss, rloss = criterion(
-                pred_positions, gt_positions, pred_angles, gt_angles)
+            pred_bmasks, pred_rmasks = spnet(imgs)
+            loss, bmloss, rmloss = criterion(
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
 
             test_loss += loss.data
 
-            if batch_idx % 10 == 0:
-                print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
-                      '(p={5:.3f}, r={6:.3f}) | avg_loss: {4:6.3f}'.format(
-                    epoch, batch_idx, total_batches,
-                    loss.data, test_loss / (batch_idx + 1),
-                    ploss, rloss))
+            if batch_idx % 20 == 0:
+                print('[{0}| {1:3d}/{2:3d}] test_loss: {3:6.3f} '
+                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f}'.format(
+                    epoch, batch_idx, total_batches, loss.data,
+                    bmloss, rmloss, test_loss / (batch_idx + 1)))
 
                 # save a sample prediction
-                ann_path_base = os.path.join(
-                    ann_dir, 'test_{0:04d}_{1:04d}'.format(
-                        epoch, batch_idx))
                 img_path_base = os.path.join(
-                    img_dir, 'test_{0:04d}_{1:04d}'.format(
+                    img_dir, 'test_{0:04d}_apple_{1:04d}'.format(
+                        epoch, batch_idx))
+                mask_path_base = os.path.join(
+                    ann_dir, 'test_{0:04d}_apple_{1:04d}'.format(
                         epoch, batch_idx))
                 sample_img_path = img_path_base + '.jpg'
-                sample_data_path = ann_path_base + '.out'
+                sample_mask_path = mask_path_base + '.txt'
 
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img, sample_img_path)
 
-                pred_pos = pred_positions[0].data.cpu().numpy() * img_size
+                positives = pred_bmasks[0].data.cpu().numpy() < 0
+                rmask = pred_rmasks[0].data.cpu().numpy()
+                rmask = np.argmax(rmask, axis=1)
+                rmask = rmask * 180 / config.angle_res
+                rmask[rmask < 0] = 0
+                rmask[positives] = -1
+                rmask = rmask.reshape(config.mask_size, config.mask_size)
 
-                pred_ang = float(pred_angles[0].data.cpu().numpy())
-                # pred_ang = np.argmax(pred_ang) * 10
-
-                # pred_posdata = pred_positions[0].data.cpu().numpy()
-                # pred_posnumber = np.argmax(pred_posdata)
-                # block_size = img_size / 8
-                # predx = (pred_posnumber % 8) * block_size + block_size * 0.5
-                # predy = (pred_posnumber / 8) * block_size + block_size * 0.5
-                # pred_pos = [predx, predy]
-
-                with open(sample_data_path, 'w') as f:
-                    f.write('{0:.3f} {1:.3f} {2:.3f}'.format(
-                        pred_pos[0], pred_pos[1], pred_ang))
+                with open(sample_mask_path, 'w') as f:
+                    for ri in range(config.mask_size):
+                        for ci in range(config.mask_size):
+                            f.write('{0:.1f}'.format(rmask[ri][ci]))
+                            if ci < config.mask_size - 1:
+                                f.write(',')
+                        f.write('\n')
                     f.close()
 
         # save checkpoint
+        state = {
+            'net': spnet.module.state_dict(),
+            'loss': test_loss,
+            'epoch': epoch, }
+        if not os.path.exists(os.path.dirname(checkpoint_path)):
+            os.makedirs(os.path.dirname(checkpoint_path))
+        torch.save(state, checkpoint_path)
+
         test_loss /= len(testloader)
         if test_loss < best_loss:
-            print('Saving checkpoint..')
+            print('Saving best checkpoint..')
             state = {
                 'net': spnet.module.state_dict(),
                 'loss': test_loss,
                 'epoch': epoch, }
-            if not os.path.exists(os.path.dirname(checkpoint_path)):
-                os.makedirs(os.path.dirname(checkpoint_path))
-            torch.save(state, checkpoint_path)
+            if not os.path.exists(os.path.dirname(checkpoint_path_best)):
+                os.makedirs(os.path.dirname(checkpoint_path_best))
+            torch.save(state, checkpoint_path_best)
             best_loss = test_loss
 
 
