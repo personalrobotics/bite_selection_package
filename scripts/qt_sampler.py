@@ -16,11 +16,14 @@ from PyQt5.QtCore import (
 
 
 class PyQtSampler(QMainWindow):
-    def __init__(self):
+    def __init__(self, for_test=True):
         super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
-        self.base_dir = '../data/skewering_positions'
+        if for_test:
+            self.base_dir = '../samples'
+        else:
+            self.base_dir = '../data/skewering_positions'
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()
@@ -52,7 +55,7 @@ class PyQtSampler(QMainWindow):
         self.label = None
         self.pixmap = None
         # self.grid_size = (17, 17)
-        self.grid_size = (11, 11)
+        self.grid_size = (9, 9)
 
         self.cur_group = None
 
@@ -376,8 +379,8 @@ class PyQtSampler(QMainWindow):
         for wi in range(new_size[0]):
             for hi in range(new_size[1]):
                 new_grid[wi, hi] = grid[
-                    int(wi / nw * ow),
-                    int(hi / nh * oh)]
+                    int((wi + 0.5) / nw * ow),
+                    int((hi + 0.5) / nh * oh)]
         return new_grid
 
     def load_grid_from_file(self):
