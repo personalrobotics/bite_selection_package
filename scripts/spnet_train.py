@@ -27,7 +27,8 @@ os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 def train_spnet(use_cuda):
     print('train_spnet')
-    print('use cuda: ' + str(use_cuda))
+    print('use cuda: {}'.format(use_cuda))
+    print('use identity: {}'.format(config.use_identity))
 
     img_base_dir = config.cropped_img_dir
 
@@ -37,9 +38,15 @@ def train_spnet(use_cuda):
     checkpoint_path = config.checkpoint_filename
     checkpoint_path_best = config.checkpoint_best_filename
 
-    sample_dir = '../samples/'
-    img_dir = sample_dir + 'cropped_images/'
-    ann_dir = sample_dir + 'masks/'
+    sample_dir_name = 'samples'
+    if config.use_identity:
+        sample_dir_name += '_identity'
+
+    sample_dir = os.path.join(
+        config.project_dir, sample_dir_name)
+
+    img_dir = os.path.join(sample_dir, 'cropped_images')
+    ann_dir = os.path.join(sample_dir, 'masks')
     if os.path.exists(sample_dir):
         shutil.rmtree(sample_dir)
     os.makedirs(sample_dir)
@@ -85,9 +92,9 @@ def train_spnet(use_cuda):
     best_loss = float('inf')
     start_epoch = 0
 
-    if os.path.exists(checkpoint_path):
-        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
-        checkpoint = torch.load(checkpoint_path)
+    if os.path.exists(checkpoint_path_best):
+        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path_best))
+        checkpoint = torch.load(checkpoint_path_best)
         spnet.load_state_dict(checkpoint['net'])
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
@@ -200,7 +207,7 @@ def train_spnet(use_cuda):
                 sample_mask_path = mask_path_base + '.txt'
 
                 test_img = imgs[0].cpu()
-                utils.save_image(test_img, sample_img_path)
+                utils.save_image(test_img[:3], sample_img_path)
 
                 positives = pred_bmasks[0].data.cpu().numpy() < 0
                 rmask = pred_rmasks[0].data.cpu().numpy()
