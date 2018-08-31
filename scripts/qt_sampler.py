@@ -372,9 +372,11 @@ class PyQtSampler(QMainWindow):
             print('saved: {}'.format(mask_filename))
 
     def resize_grid(self, grid, new_size):
-        new_grid = np.zeros(new_size)
         nw, nh = new_size
         ow, oh = grid.shape
+        assert ow == 17 and oh == 17, 'input is not in original resolution'
+
+        new_grid = np.zeros(new_size)
         for wi in range(new_size[0]):
             for hi in range(new_size[1]):
                 new_grid[wi, hi] = grid[
