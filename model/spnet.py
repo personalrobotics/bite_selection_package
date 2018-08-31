@@ -14,8 +14,13 @@ class SPNet(nn.Module):
     def __init__(self):
         super(SPNet, self).__init__()
 
+        if config.use_identity:
+            input_channels = 4
+        else:
+            input_channels = 3
+
         self.conv_layers_top = nn.Sequential(
-            nn.Conv2d(3, 8, 3, padding=1),
+            nn.Conv2d(input_channels, 8, 3, padding=1),
             nn.BatchNorm2d(8),
             nn.ReLU(),  # 72
 

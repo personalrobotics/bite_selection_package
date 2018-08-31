@@ -29,6 +29,20 @@ def resize(img, loc, rot, size):
     return img, loc, rot
 
 
+def random_flip_w_mask(img, bmask, rmask):
+    if random.random() < 0.33:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+        mask_size = int(np.sqrt(len(bmask)))
+        bmask = bmask.reshape(mask_size, mask_size)[:, ::-1].flatten()
+        rmask = rmask.reshape(mask_size, mask_size)[:, ::-1].flatten()
+    elif random.random() < 0.66:
+        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        mask_size = int(np.sqrt(len(bmask)))
+        bmask = bmask.reshape(mask_size, mask_size)[::-1, :].flatten()
+        rmask = rmask.reshape(mask_size, mask_size)[::-1, :].flatten()
+    return img, bmask, rmask
+
+
 def random_flip(img, loc, rot):
     if random.random() < 0.5:
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
