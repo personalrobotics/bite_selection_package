@@ -14,6 +14,9 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
+sys.path.append('../')
+from config import config
+
 
 class PyQtSampler(QMainWindow):
     def __init__(self, for_test=False):
@@ -21,7 +24,8 @@ class PyQtSampler(QMainWindow):
         self.setMouseTracking(True)
 
         if for_test:
-            self.base_dir = '../samples'
+            self.base_dir = os.path.join(
+                '../samples', config.project_prefix)
         else:
             self.base_dir = '../data/skewering_positions'
 

@@ -38,10 +38,7 @@ def train_spnet(use_cuda):
     checkpoint_path = config.checkpoint_filename
     checkpoint_path_best = config.checkpoint_best_filename
 
-    sample_dir_name = 'samples'
-    if config.use_identity:
-        sample_dir_name += '_identity'
-
+    sample_dir_name = os.path.join('samples', config.project_prefix)
     sample_dir = os.path.join(
         config.project_dir, sample_dir_name)
 
@@ -111,7 +108,7 @@ def train_spnet(use_cuda):
     print(trainloader.dataset.num_samples)
     print(testloader.dataset.num_samples)
 
-    for epoch in range(start_epoch, start_epoch + 1000):
+    for epoch in range(start_epoch, start_epoch + 10000):
         # training
         print('\nEpoch: {}'.format(epoch))
         spnet.train()
