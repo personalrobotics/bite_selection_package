@@ -25,7 +25,7 @@ class PyQtSampler(QMainWindow):
 
         if for_test:
             self.base_dir = os.path.join(
-                '../samples', config.project_prefix)
+                '../test_rst', config.project_prefix)
         else:
             self.base_dir = '../data/skewering_positions'
 
