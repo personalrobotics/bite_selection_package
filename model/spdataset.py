@@ -123,9 +123,8 @@ class SPDataset(data.Dataset):
         img.paste(img_org, pads)
 
         # # Data augmentation
-        if self.train:
-            img, bmask, rmask = trans.random_flip_w_mask(img, bmask, rmask)
-        #     img, gt_loc, gt_rot = trans.random_rotate(img, gt_loc, gt_rot)
+        # if self.train:
+        #     img, bmask, rmask = trans.random_flip_w_mask(img, bmask, rmask)
 
         img = self.transform(img)
         if config.use_identity:
