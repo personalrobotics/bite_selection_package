@@ -25,11 +25,12 @@ from config import config
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
-def train_spnet(use_cuda):
+def train_spnet(use_cuda=True):
     print('train_spnet')
     print('use cuda: {}'.format(use_cuda))
     print('use identity: {}'.format(config.use_identity))
     print('use rotation: {}'.format(config.use_rotation))
+    print('use rot_alt: {}'.format(config.use_rot_alt))
 
     img_base_dir = config.cropped_img_dir
 
@@ -250,5 +251,5 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         train_spnet(sys.argv[1] != 'nocuda')
     else:
-        train_spnet(True)
+        train_spnet()
 
