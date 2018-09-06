@@ -54,16 +54,20 @@ class SPDataset(data.Dataset):
             num_boxes = (len(splited) - 1) // isize
 
             for bidx in range(num_boxes):
+                xmin = int(splited[1 + isize * bidx])
+                ymin = int(splited[2 + isize * bidx])
                 cls = int(splited[5 + isize * bidx])
                 cidx = splited[6 + isize * bidx]
 
                 cropped_filename = os.path.join(
-                    self.cropped_img_dir, '{}_{}_{}.jpg'.format(
-                        this_img_filename[:-4], self.label_map[cls], cidx))
+                    self.cropped_img_dir, '{0}_{1}_{2:04d}{3:04d}.jpg'.format(
+                        this_img_filename[:-4], self.label_map[cls],
+                        xmin, ymin))
 
                 mask_filename = os.path.join(
-                    self.mask_dir, '{}_{}_{}.txt'.format(
-                        this_img_filename[:-4], self.label_map[cls], cidx))
+                    self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                        this_img_filename[:-4], self.label_map[cls],
+                        xmin, ymin))
 
                 if not os.path.exists(mask_filename):
                     continue
@@ -79,11 +83,16 @@ class SPDataset(data.Dataset):
                     continue
 
                 # rotation mask
-                this_rmask = this_mask
-                this_rmask[this_rmask <= 0] = 0
-                this_rmask = np.asarray(
-                    this_rmask / (180 / config.angle_res), dtype=long)
-                this_rmask[this_rmask > config.angle_res - 1] = config.angle_res - 1
+                this_rmask = this_mask.copy()
+                this_rmask[this_rmask == 0] = -1
+                this_rmask[this_rmask > 0] /= 180 / config.angle_res
+                this_rmask = np.round(this_rmask).astype(np.long) + 1
+                this_rmask[this_rmask > config.angle_res] = 1
+
+                # this_rmask[this_rmask <= 0] = 0
+                # this_rmask = np.asarray(
+                #     this_rmask / (180 / config.angle_res), dtype=long)
+                # this_rmask[this_rmask > config.angle_res - 1] = config.angle_res - 1
 
                 self.cropped_filenames.append(cropped_filename)
                 self.labels.append(cls)
@@ -120,7 +129,7 @@ class SPDataset(data.Dataset):
 
         img = self.transform(img)
         if config.use_identity:
-            label_ch = torch.ones(target_size, target_size) * label
+            label_ch = torch.ones(target_size, target_size) * label * 10
             label_ch = label_ch.view(1, target_size, target_size)
             img = torch.cat((img, label_ch), 0)
 

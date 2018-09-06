@@ -42,35 +42,39 @@ class SPNet(nn.Module):
 
         self.conv_layers_bot = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),  # 17
         )
 
         self.final_layers_bin = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 1, 1, padding=0),
         )
 
         self.final_layers_rot = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, config.angle_res, 1, padding=0),
+            nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
         )
+
+        if config.use_rot_alt:
+            self.final_layers_rot_alt = nn.Sequential(
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, 1, 1, padding=0),
+            )
 
         # self.num_flat_features = 64 * config.mask_size ** 2
         # self.fc_size = 1024
@@ -101,13 +105,17 @@ class SPNet(nn.Module):
             x = self.conv_layers_bot(x)
 
         bmask = self.final_layers_bin(x)
-        rmask = self.final_layers_rot(x)
-
         bmask = bmask.permute(0, 2, 3, 1).contiguous().view(
             x.size(0), config.mask_size ** 2)
 
-        rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-            x.size(0), config.mask_size ** 2, config.angle_res)
+        if config.use_rot_alt:
+            rmask = self.final_layers_rot_alt(x)
+            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+                x.size(0), config.mask_size ** 2)
+        else:
+            rmask = self.final_layers_rot(x)
+            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+                x.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
 
