@@ -19,7 +19,7 @@ from config import config
 
 
 class PyQtSampler(QMainWindow):
-    def __init__(self, for_test=False):
+    def __init__(self, for_test=True):
         super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 

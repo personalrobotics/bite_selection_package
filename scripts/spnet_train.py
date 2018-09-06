@@ -29,6 +29,7 @@ def train_spnet(use_cuda):
     print('train_spnet')
     print('use cuda: {}'.format(use_cuda))
     print('use identity: {}'.format(config.use_identity))
+    print('use rotation: {}'.format(config.use_rotation))
 
     img_base_dir = config.cropped_img_dir
 
@@ -89,9 +90,9 @@ def train_spnet(use_cuda):
     best_loss = float('inf')
     start_epoch = 0
 
-    if os.path.exists(checkpoint_path_best):
-        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path_best))
-        checkpoint = torch.load(checkpoint_path_best)
+    if os.path.exists(checkpoint_path):
+        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
+        checkpoint = torch.load(checkpoint_path)
         spnet.load_state_dict(checkpoint['net'])
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
@@ -206,12 +207,12 @@ def train_spnet(use_cuda):
                 test_img = imgs[0].cpu()
                 utils.save_image(test_img[:3], sample_img_path)
 
-                positives = pred_bmasks[0].data.cpu().numpy() < 0
+                negatives = pred_bmasks[0].data.cpu().numpy() < 0
                 rmask = pred_rmasks[0].data.cpu().numpy()
-                rmask = np.argmax(rmask, axis=1)
+                rmask = np.argmax(rmask, axis=1) - 1
                 rmask = rmask * 180 / config.angle_res
                 rmask[rmask < 0] = 0
-                rmask[positives] = -1
+                rmask[negatives] = -1
                 rmask = rmask.reshape(config.mask_size, config.mask_size)
 
                 with open(sample_mask_path, 'w') as f:

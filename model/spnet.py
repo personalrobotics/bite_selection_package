@@ -42,34 +42,27 @@ class SPNet(nn.Module):
 
         self.conv_layers_bot = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),  # 17
         )
 
         self.final_layers_bin = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 1, 1, padding=0),
         )
 
         self.final_layers_rot = nn.Sequential(
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 64, 3, padding=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, config.angle_res, 1, padding=0),
+            nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
         )
 
         # self.num_flat_features = 64 * config.mask_size ** 2
@@ -107,7 +100,7 @@ class SPNet(nn.Module):
             x.size(0), config.mask_size ** 2)
 
         rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-            x.size(0), config.mask_size ** 2, config.angle_res)
+            x.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
 

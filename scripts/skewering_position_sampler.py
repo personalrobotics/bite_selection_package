@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 import sys
 import random
+import shutil
 
 
 class SPSampler(object):
@@ -81,6 +82,9 @@ class SPSampler(object):
 
         label_dict = self.load_label_map()
 
+        self.mask_dir = os.path.join(self.base_dir, 'masks')
+        self.mask_org_dir = os.path.join(self.base_dir, 'masks_renamed')
+
         xml_filenames = sorted(os.listdir(self.bbox_ann_dir))
         for xidx, xml_filename in enumerate(xml_filenames):
             if not xml_filename.endswith('.xml'):
@@ -126,10 +130,22 @@ class SPSampler(object):
                     cropped_img = img[ymin:ymax, xmin:xmax]
 
                     save_path = os.path.join(
-                        self.img_dir, '{}_{}_{}.jpg'.format(
-                            xml_filename[:-4], obj_name, bidx))
+                        self.img_dir, '{0}_{1}_{2:04d}{3:04d}.jpg'.format(
+                            xml_filename[:-4], obj_name, xmin, ymin))
                     print(save_path)
                     cv2.imwrite(save_path, cropped_img)
+
+                    mask_path = os.path.join(
+                        self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                            xml_filename[:-4], obj_name, xmin, ymin))
+                    mask_org_path = os.path.join(
+                        self.mask_org_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                            xml_filename[:-4], obj_name, xmin, ymin))
+                    # mask_org_path = os.path.join(
+                    #     self.mask_org_dir, '{}_{}_{}.txt'.format(
+                    #         xml_filename[:-4], obj_name, bidx))
+                    if os.path.exists(mask_org_path):
+                        shutil.copy(mask_org_path, mask_path)
 
                     this_ann_line += ' {} {} {} {} {} {}'.format(
                         xmin, ymin, xmax, ymax,
