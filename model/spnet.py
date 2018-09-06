@@ -2,11 +2,12 @@ from __future__ import print_function
 from __future__ import division
 
 import sys
+import os
 
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append('../')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from config import config
 
 
