@@ -24,16 +24,28 @@ class SPNetLoss(nn.Module):
         bmask_loss = self.bce_loss(bmask_preds, bmask_targets)
 
         if config.use_rotation:
-            rmask_preds_full = rmask_preds.view(-1, config.angle_res + 1)
-            rmask_targets_full = rmask_targets.view(-1)
-            rmask_loss_full = self.ce_loss(
-                rmask_preds_full, rmask_targets_full.long())
+            if config.use_rot_alt:
+                rmask_preds_full = rmask_preds.view(-1, config.angle_res + 1)
+                rmask_targets_full = rmask_targets.view(-1)
+                rmask_loss_full = self.ce_loss(
+                    rmask_preds_full, rmask_targets_full.long())
 
-            positives = bmask_targets > 0
-            mask = positives.unsqueeze(2).expand_as(rmask_preds)
-            rmask_preds = rmask_preds[mask].view(-1, config.angle_res + 1)
-            rmask_targets = rmask_targets[positives]
-            rmask_loss = self.ce_loss(rmask_preds, rmask_targets.long())
+                positives = bmask_targets > 0
+                mask = positives.unsqueeze(2).expand_as(rmask_preds)
+                rmask_preds = rmask_preds[mask].view(-1, config.angle_res + 1)
+                rmask_targets = rmask_targets[positives]
+                rmask_loss = self.ce_loss(rmask_preds, rmask_targets.long())
+            else:
+                rmask_preds_full = rmask_preds.view(-1, config.angle_res + 1)
+                rmask_targets_full = rmask_targets.view(-1)
+                rmask_loss_full = self.ce_loss(
+                    rmask_preds_full, rmask_targets_full.long())
+
+                positives = bmask_targets > 0
+                mask = positives.unsqueeze(2).expand_as(rmask_preds)
+                rmask_preds = rmask_preds[mask].view(-1, config.angle_res + 1)
+                rmask_targets = rmask_targets[positives]
+                rmask_loss = self.ce_loss(rmask_preds, rmask_targets.long())
         else:
             rmask_loss_full = 0
             rmask_loss = 0
