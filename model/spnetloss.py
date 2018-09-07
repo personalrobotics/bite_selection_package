@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append('../')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from config import config
 
 

@@ -6,7 +6,7 @@ import sys
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append('../')
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from config import config
 
 
@@ -76,28 +76,6 @@ class SPNet(nn.Module):
                 nn.Conv2d(64, 1, 1, padding=0),
             )
 
-        # self.num_flat_features = 64 * config.mask_size ** 2
-        # self.fc_size = 1024
-        # self.fc1 = nn.Linear(self.num_flat_features, self.fc_size)
-
-        # self.fc_pos = nn.Sequential(
-        #     nn.Linear(self.fc_size, self.fc_size),
-        #     nn.ReLU(),
-        #     nn.Linear(self.fc_size, self.fc_size // 2),
-        #     nn.ReLU(),
-        #     nn.Dropout(p=0.5),
-        #     nn.Linear(self.fc_size // 2, 2),
-        # )
-
-        # self.fc_rot = nn.Sequential(
-        #     nn.Linear(self.fc_size, self.fc_size),
-        #     nn.ReLU(),
-        #     nn.Linear(self.fc_size, self.fc_size // 2),
-        #     nn.ReLU(),
-        #     nn.Dropout(p=0.5),
-        #     nn.Linear(self.fc_size // 2, 1),  # 18),
-        # )
-
     def forward(self, x):
         x = self.conv_layers_top(x)
 
@@ -118,10 +96,3 @@ class SPNet(nn.Module):
                 x.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
-
-        # x = x.view(-1, self.num_flat_features)
-        # x = F.relu(self.fc1(x))
-
-        # pos = self.fc_pos(x)
-        # rot = self.fc_rot(x)
-        # return pos, rot
