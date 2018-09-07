@@ -4,9 +4,9 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import sys
 import os
 import shutil
-import sys
 import math
 
 import torch

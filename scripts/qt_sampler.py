@@ -4,8 +4,8 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
-import os
 import sys
+import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QStatusBar,
     QPushButton, QLabel, QFrame, QListWidget)
