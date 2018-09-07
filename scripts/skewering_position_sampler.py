@@ -15,8 +15,10 @@ class SPSampler(object):
     def __init__(self,
                  base_dir='../data/skewering_positions',
                  bbox_base_dir='../data/bounding_boxes/'):
-        self.base_dir = base_dir
+        self.base_dir = base_dir + '_c9'
         self.bbox_base_dir = bbox_base_dir
+
+        project_prefix = 'food_c9'
 
         self.bbox_ann_dir = os.path.join(
                 self.bbox_base_dir, 'annotations/xmls')
@@ -26,20 +28,26 @@ class SPSampler(object):
         self.ann_dir = os.path.join(self.base_dir, 'annotations')
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
 
-        self.label_map_path = '../config/food_label_map.pbtxt'
+        self.label_map_path = '../data/{}_label_map.pbtxt'.format(project_prefix)
 
         self.listdataset = list()
-        self.listdataset_train_path = '../data/food_ann_train.txt'
-        self.listdataset_test_path = '../data/food_ann_test.txt'
+        self.listdataset_train_path = '../data/{}_ann_train.txt'.format(project_prefix)
+        self.listdataset_test_path = '../data/{}_ann_test.txt'.format(project_prefix)
 
         self.cur_img_name = None
         self.is_clicked = False
 
-        samplable_objs = [
-            'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
-            'broccoli', 'cantalope', 'carrot', 'cauliflower', 'celery',
-            'cherry_tomato', 'egg', 'grape_purple', 'grape_green',
-            'melon', 'strawberry']
+        if project_prefix.endswith('c9'):
+            samplable_objs = [
+                'apple', 'banana', 'carrot', 'celery',
+                'egg', 'grape_purple', 'grape_green', 'melon']
+        else:
+            samplable_objs = [
+                'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
+                'broccoli', 'cantalope', 'carrot', 'cauliflower', 'celery',
+                'cherry_tomato', 'egg', 'grape_purple', 'grape_green',
+                'melon', 'strawberry']
+
         self.samplable = dict()
         for obj_name in samplable_objs:
             self.samplable[obj_name] = True

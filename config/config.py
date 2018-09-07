@@ -3,7 +3,7 @@
 import os
 
 
-gpu_id = '0'
+gpu_id = '3'
 
 use_identity = False
 use_rotation = True
@@ -22,6 +22,8 @@ num_classes = 17
 
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = 18
+
+# project_prefix += 'a_{}'.format(angle_res)
 
 cropped_img_res = mask_size * 8  # 136
 
