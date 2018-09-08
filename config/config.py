@@ -11,7 +11,7 @@ use_rot_alt = False
 use_densenet = True
 
 valid_denseblock_sizes = [[3, 6], [6, 12]]
-denseblock_sizes = valid_denseblock_sizes[0]
+denseblock_sizes = valid_denseblock_sizes[1]
 
 # project_dir = os.path.split(os.getcwd())[0]
 project_dir = os.path.join(os.path.dirname(__file__), '../')
