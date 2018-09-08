@@ -1,6 +1,7 @@
 from __future__ import division
 from __future__ import print_function
 
+import sys
 import os
 import numpy as np
 import pandas
@@ -10,9 +11,7 @@ import torch.utils.data as data
 
 from PIL import Image
 
-import sys
-sys.path.append('../')
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 import utils.transform as trans
 from utils.utils import load_label_map
 from config import config

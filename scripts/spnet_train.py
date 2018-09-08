@@ -4,9 +4,9 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import sys
 import os
 import shutil
-import sys
 import math
 
 import torch
@@ -14,9 +14,8 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 
-sys.path.append('../')
-
-from model.spnet import SPNet
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+from model.spnet import SPNet, DenseSPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 from config import config
@@ -31,6 +30,7 @@ def train_spnet(use_cuda=True):
     print('use identity: {}'.format(config.use_identity))
     print('use rotation: {}'.format(config.use_rotation))
     print('use rot_alt: {}'.format(config.use_rot_alt))
+    print('use densenet: {}'.format(config.use_densenet))
 
     img_base_dir = config.cropped_img_dir
 
@@ -85,7 +85,10 @@ def train_spnet(use_cuda=True):
         shuffle=True, num_workers=8,
         collate_fn=testset.collate_fn)
 
-    spnet = SPNet()
+    if config.use_densenet:
+        spnet = DenseSPNet()
+    else:
+        spnet = SPNet()
     print(spnet)
 
     best_loss = float('inf')
@@ -114,6 +117,7 @@ def train_spnet(use_cuda=True):
         # training
         print('\nEpoch: {}'.format(epoch))
         spnet.train()
+        # spnet.module.freeze_bn()
         train_loss = 0
 
         total_batches = int(math.ceil(

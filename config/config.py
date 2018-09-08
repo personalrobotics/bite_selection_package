@@ -8,11 +8,14 @@ gpu_id = '0'
 use_identity = False
 use_rotation = True
 use_rot_alt = False
+use_densenet = True
 
 project_dir = os.path.split(os.getcwd())[0]
 project_prefix = 'food_spnet'
 if use_identity:
     project_prefix += '_identity'
+if use_densenet:
+    project_prefix += '_dense'
 if not use_rotation:
     project_prefix += '_loc_only'
 if use_rotation and use_rot_alt:
@@ -22,6 +25,8 @@ num_classes = 17
 
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = 18
+
+# project_prefix += 'a_{}'.format(angle_res)
 
 cropped_img_res = mask_size * 8  # 136
 

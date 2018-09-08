@@ -4,9 +4,9 @@ from __future__ import division
 from __future__ import print_function
 
 import numpy as np
+import sys
 import os
 import shutil
-import sys
 import math
 
 import torch
@@ -14,8 +14,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 
-sys.path.append('../')
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
 from model.spnet import SPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
