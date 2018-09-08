@@ -3,12 +3,12 @@
 import os
 
 
-gpu_id = '2'
+gpu_id = '0'
 
 use_identity = False
 use_rotation = True
 use_rot_alt = False
-use_densenet = False
+use_densenet = True
 
 project_dir = os.path.split(os.getcwd())[0]
 project_prefix = 'food_spnet'

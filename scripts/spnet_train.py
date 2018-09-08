@@ -117,7 +117,7 @@ def train_spnet(use_cuda=True):
         # training
         print('\nEpoch: {}'.format(epoch))
         spnet.train()
-        spnet.module.freeze_bn()
+        # spnet.module.freeze_bn()
         train_loss = 0
 
         total_batches = int(math.ceil(

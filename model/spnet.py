@@ -76,7 +76,7 @@ class DenseSPNet(nn.Module):
             ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
         ]))
 
-        block_config = (3, 3)
+        block_config = (3, 6)
         # Each denseblock
         num_features = num_init_features
         for i, num_layers in enumerate(block_config):
@@ -90,8 +90,8 @@ class DenseSPNet(nn.Module):
                 num_features = num_features // 2
 
         # Final masks
-        self.mask_ch = 128
-        self.final_conv = nn.Conv2d(176, self.mask_ch, 1, padding=0)
+        self.mask_ch = 256
+        self.final_conv = nn.Conv2d(num_features, self.mask_ch, 1, padding=0)
 
         self.final_layers_bin = nn.Sequential(
             nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
