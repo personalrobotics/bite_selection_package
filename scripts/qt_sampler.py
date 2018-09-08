@@ -19,7 +19,7 @@ from config import config
 
 
 class PyQtSampler(QMainWindow):
-    def __init__(self, for_test=True):
+    def __init__(self, for_test=False):
         super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
@@ -27,7 +27,7 @@ class PyQtSampler(QMainWindow):
             self.base_dir = os.path.join(
                 '../test_rst', config.project_prefix)
         else:
-            self.base_dir = '../data/skewering_positions'
+            self.base_dir = '../data/skewering_positions_c9'
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()
@@ -470,6 +470,8 @@ class PyQtSampler(QMainWindow):
                     event.pos().x() - self.margin,
                     event.pos().y() - self.margin)
                 angle = self.calculate_angle()
+                if angle == 0:
+                    angle = 0.1
                 self.update_highlighted_grids(angle)
                 self.set_statusbar('angle: {0:.3f}'.format(angle))
             else:

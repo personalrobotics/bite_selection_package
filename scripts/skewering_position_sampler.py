@@ -13,9 +13,9 @@ import shutil
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions',
-                 bbox_base_dir='../data/bounding_boxes/'):
-        self.base_dir = base_dir + '_c9'
+                 base_dir='../data/skewering_positions_c9',
+                 bbox_base_dir='../data/bounding_boxes_c9/'):
+        self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
 
         project_prefix = 'food_c9'
