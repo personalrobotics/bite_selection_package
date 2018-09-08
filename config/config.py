@@ -10,12 +10,14 @@ use_rotation = True
 use_rot_alt = False
 use_densenet = True
 
+denseblock_sizes = (6, 12)
+
 project_dir = os.path.split(os.getcwd())[0]
 project_prefix = 'food_spnet'
 if use_identity:
     project_prefix += '_identity'
 if use_densenet:
-    project_prefix += '_dense'
+    project_prefix += '_dense_{}_{}'.format(*denseblock_sizes)
 if not use_rotation:
     project_prefix += '_loc_only'
 if use_rotation and use_rot_alt:

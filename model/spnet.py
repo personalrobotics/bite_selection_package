@@ -76,7 +76,7 @@ class DenseSPNet(nn.Module):
             ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
         ]))
 
-        block_config = (3, 6)
+        block_config = config.denseblock_sizes
         # Each denseblock
         num_features = num_init_features
         for i, num_layers in enumerate(block_config):
