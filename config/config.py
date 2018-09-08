@@ -37,13 +37,13 @@ test_batch_size = 4
 
 dataset_dir = os.path.join(project_dir, 'data')
 
-label_map_filename = os.path.join(dataset_dir, 'food_label_map.pbtxt')
-img_dir = os.path.join(dataset_dir, 'bounding_boxes/images')
-cropped_img_dir = os.path.join(dataset_dir, 'skewering_positions/cropped_images')
-mask_dir = os.path.join(dataset_dir, 'skewering_positions/masks')
+label_map_filename = os.path.join(dataset_dir, 'food_c9_label_map.pbtxt')
+img_dir = os.path.join(dataset_dir, 'bounding_boxes_c9/images')
+cropped_img_dir = os.path.join(dataset_dir, 'skewering_positions_c9/cropped_images')
+mask_dir = os.path.join(dataset_dir, 'skewering_positions_c9/masks')
 
-train_list_filename = os.path.join(dataset_dir, 'food_ann_train.txt')
-test_list_filename = os.path.join(dataset_dir, 'food_ann_test.txt')
+train_list_filename = os.path.join(dataset_dir, 'food_c9_ann_train.txt')
+test_list_filename = os.path.join(dataset_dir, 'food_c9_ann_test.txt')
 
 pretrained_dir = os.path.join(project_dir, 'pretrained')
 pretrained_filename = os.path.join(
