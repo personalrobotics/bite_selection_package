@@ -65,7 +65,7 @@ class DenseSPNet(nn.Module):
     """
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
-                 num_init_features=64, bn_size=4, drop_rate=0):
+                 num_init_features=64, bn_size=4, drop_rate=0.2):
         super(DenseSPNet, self).__init__()
 
         # First convolution
@@ -225,6 +225,8 @@ class SPNet(nn.Module):
 
         for _ in range(3):
             x = self.conv_layers_bot(x)
+
+        x = F.dropout(x, p=0.5, training=self.training)
 
         bmask = self.final_layers_bin(x)
         bmask = bmask.permute(0, 2, 3, 1).contiguous().view(
