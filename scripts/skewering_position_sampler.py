@@ -101,6 +101,8 @@ class SPSampler(object):
         for xidx, xml_filename in enumerate(xml_filenames):
             if not xml_filename.endswith('.xml'):
                 continue
+            if xml_filename.startswith('sample'):
+                continue
             xml_file_path = os.path.join(self.bbox_ann_dir, xml_filename)
             img_file_path = os.path.join(
                 self.bbox_img_dir, xml_filename[:-4] + '.jpg')
