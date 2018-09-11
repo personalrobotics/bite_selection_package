@@ -3,7 +3,7 @@
 import os
 
 
-gpu_id = '0'
+gpu_id = '2'
 
 use_identity = False
 use_rotation = True
@@ -16,7 +16,7 @@ denseblock_sizes = valid_denseblock_sizes[1]
 project_dir = os.path.split(os.getcwd())[0]
 # project_dir = os.path.join(os.path.dirname(__file__), '../')
 
-project_prefix = 'food_spnet'
+project_prefix = 'food_spnet_c8'
 if use_identity:
     project_prefix += '_identity'
 if use_densenet:
@@ -26,7 +26,7 @@ if not use_rotation:
 if use_rotation and use_rot_alt:
     project_prefix += '_rot_alt'
 
-num_classes = 17
+num_classes = 8
 
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = 18
@@ -35,7 +35,7 @@ angle_res = 18
 
 cropped_img_res = mask_size * 8  # 136
 
-train_batch_size = 16
+train_batch_size = 32
 test_batch_size = 4
 
 dataset_dir = os.path.join(project_dir, 'data')
