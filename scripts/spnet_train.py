@@ -19,6 +19,7 @@ from model.spnet import SPNet, DenseSPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 from config import config
+from utils.utils import get_accuracy
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
@@ -119,6 +120,9 @@ def train_spnet(use_cuda=True):
         spnet.train()
         # spnet.module.freeze_bn()
         train_loss = 0
+        this_tbp = 0
+        this_tbr = 0
+        this_trd = 0
 
         total_batches = int(math.ceil(
             trainloader.dataset.num_samples / trainloader.batch_size))
@@ -143,11 +147,21 @@ def train_spnet(use_cuda=True):
 
             train_loss += loss.data
 
+            bmask_precision, bmask_recall, rmask_dist = get_accuracy(
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
+            this_tbp += bmask_precision
+            this_tbr += bmask_recall
+            this_trd += rmask_dist
+
             if batch_idx % 20 == 0:
-                print('[{0}| {1:3d}/{2:3d}] train_loss: {3:6.3f} '
-                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f}'.format(
+                print('[{0}| {1:3d}/{2:3d}] test_loss: {3:6.3f} '
+                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f} | '
+                      'bp: {7:.4f}, br: {8:.4f}, rd: {9:.4f}'.format(
                     epoch, batch_idx, total_batches, loss.data,
-                    bmloss, rmloss, train_loss / (batch_idx + 1)))
+                    bmloss, rmloss, train_loss / (batch_idx + 1),
+                    this_tbp / (batch_idx + 1),
+                    this_tbr / (batch_idx + 1),
+                    this_trd / (batch_idx + 1)))
 
                 # # save a sample ground truth data
                 # ann_path_base = os.path.join(
@@ -173,6 +187,9 @@ def train_spnet(use_cuda=True):
         print('\nTest')
         spnet.eval()
         test_loss = 0
+        this_tbp = 0
+        this_tbr = 0
+        this_trd = 0
 
         total_batches = int(math.ceil(
             testloader.dataset.num_samples / testloader.batch_size))
@@ -193,41 +210,51 @@ def train_spnet(use_cuda=True):
 
             test_loss += loss.data
 
+            bmask_precision, bmask_recall, rmask_dist = get_accuracy(
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
+            this_tbp += bmask_precision
+            this_tbr += bmask_recall
+            this_trd += rmask_dist
+
             if batch_idx % 20 == 0:
                 print('[{0}| {1:3d}/{2:3d}] test_loss: {3:6.3f} '
-                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f}'.format(
+                      '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f} | '
+                      'bp: {7:.4f}, br: {8:.4f}, rd: {9:.4f}'.format(
                     epoch, batch_idx, total_batches, loss.data,
-                    bmloss, rmloss, test_loss / (batch_idx + 1)))
+                    bmloss, rmloss, test_loss / (batch_idx + 1),
+                    this_tbp / (batch_idx + 1),
+                    this_tbr / (batch_idx + 1),
+                    this_trd / (batch_idx + 1)))
 
-                # save a sample prediction
-                img_path_base = os.path.join(
-                    img_dir, 'test_{0:04d}_apple_{1:04d}'.format(
-                        epoch, batch_idx))
-                mask_path_base = os.path.join(
-                    ann_dir, 'test_{0:04d}_apple_{1:04d}'.format(
-                        epoch, batch_idx))
-                sample_img_path = img_path_base + '.jpg'
-                sample_mask_path = mask_path_base + '.txt'
+                # # save a sample prediction
+                # img_path_base = os.path.join(
+                #     img_dir, 'test_{0:04d}_apple_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # mask_path_base = os.path.join(
+                #     ann_dir, 'test_{0:04d}_apple_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # sample_img_path = img_path_base + '.jpg'
+                # sample_mask_path = mask_path_base + '.txt'
 
-                test_img = imgs[0].cpu()
-                utils.save_image(test_img[:3], sample_img_path)
+                # test_img = imgs[0].cpu()
+                # utils.save_image(test_img[:3], sample_img_path)
 
-                negatives = pred_bmasks[0].data.cpu().numpy() < 0
-                rmask = pred_rmasks[0].data.cpu().numpy()
-                rmask = np.argmax(rmask, axis=1) - 1
-                rmask = rmask * 180 / config.angle_res
-                rmask[rmask < 0] = 0
-                rmask[negatives] = -1
-                rmask = rmask.reshape(config.mask_size, config.mask_size)
+                # negatives = pred_bmasks[0].data.cpu().numpy() < 0
+                # rmask = pred_rmasks[0].data.cpu().numpy()
+                # rmask = np.argmax(rmask, axis=1) - 1
+                # rmask = rmask * 180 / config.angle_res
+                # rmask[rmask < 0] = 0
+                # rmask[negatives] = -1
+                # rmask = rmask.reshape(config.mask_size, config.mask_size)
 
-                with open(sample_mask_path, 'w') as f:
-                    for ri in range(config.mask_size):
-                        for ci in range(config.mask_size):
-                            f.write('{0:.1f}'.format(rmask[ri][ci]))
-                            if ci < config.mask_size - 1:
-                                f.write(',')
-                        f.write('\n')
-                    f.close()
+                # with open(sample_mask_path, 'w') as f:
+                #     for ri in range(config.mask_size):
+                #         for ci in range(config.mask_size):
+                #             f.write('{0:.1f}'.format(rmask[ri][ci]))
+                #             if ci < config.mask_size - 1:
+                #                 f.write(',')
+                #         f.write('\n')
+                #     f.close()
 
         # save checkpoint
         state = {

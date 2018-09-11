@@ -103,15 +103,26 @@ class DenseSPNet(nn.Module):
             nn.Conv2d(self.mask_ch, 1, 1, padding=0),
         )
 
-        self.final_layers_rot = nn.Sequential(
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0),
-        )
+        if config.use_rot_alt:
+            self.final_layers_rot = nn.Sequential(
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, 1, 1, padding=0),
+            )
+        else:
+            self.final_layers_rot = nn.Sequential(
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0),
+            )
 
         # Final batch norm
         # self.features.add_module('norm5', nn.BatchNorm2d(num_features))
@@ -142,8 +153,12 @@ class DenseSPNet(nn.Module):
             out.size(0), config.mask_size ** 2)
 
         rmask = self.final_layers_rot(out)
-        rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-            out.size(0), config.mask_size ** 2, config.angle_res + 1)
+        if config.use_rot_alt:
+            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+                out.size(0), config.mask_size ** 2)
+        else:
+            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+                out.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
 
@@ -199,18 +214,8 @@ class SPNet(nn.Module):
             nn.Conv2d(64, 1, 1, padding=0),
         )
 
-        self.final_layers_rot = nn.Sequential(
-            nn.Conv2d(64, 64, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
-        )
-
         if config.use_rot_alt:
-            self.final_layers_rot_alt = nn.Sequential(
+            self.final_layers_rot = nn.Sequential(
                 nn.Conv2d(64, 64, 3, padding=1),
                 nn.ReLU(),
                 nn.Conv2d(64, 64, 3, padding=1),
@@ -218,6 +223,16 @@ class SPNet(nn.Module):
                 nn.Conv2d(64, 64, 3, padding=1),
                 nn.ReLU(),
                 nn.Conv2d(64, 1, 1, padding=0),
+            )
+        else:
+            self.final_layers_rot = nn.Sequential(
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, 64, 3, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
             )
 
     def forward(self, x):
@@ -232,12 +247,11 @@ class SPNet(nn.Module):
         bmask = bmask.permute(0, 2, 3, 1).contiguous().view(
             x.size(0), config.mask_size ** 2)
 
+        rmask = self.final_layers_rot(x)
         if config.use_rot_alt:
-            rmask = self.final_layers_rot_alt(x)
             rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
                 x.size(0), config.mask_size ** 2)
         else:
-            rmask = self.final_layers_rot(x)
             rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
                 x.size(0), config.mask_size ** 2, config.angle_res + 1)
 

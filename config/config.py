@@ -7,7 +7,7 @@ gpu_id = '0'
 
 use_identity = False
 use_rotation = True
-use_rot_alt = False
+use_rot_alt = True
 use_densenet = True
 
 valid_denseblock_sizes = [[3, 6], [6, 12]]
@@ -34,7 +34,7 @@ angle_res = 18
 
 cropped_img_res = mask_size * 8  # 136
 
-train_batch_size = 32
+train_batch_size = 16
 test_batch_size = 4
 
 dataset_dir = os.path.join(project_dir, 'data')

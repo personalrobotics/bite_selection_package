@@ -3,7 +3,7 @@
 from __future__ import print_function
 from __future__ import division
 
-import math
+import numpy as np
 import sys
 import os
 
@@ -43,30 +43,62 @@ def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
     bmask_precision = 0
     bmask_recall = 0
 
-    bmask_preds = bmask_preds.data.cpu().numpy().flatten()
-    bmask_targets = bmask_targets.data.cpu().numpy().flatten()
+    bp = bmask_preds.data.cpu().numpy().flatten()
+    bt = bmask_targets.data.cpu().numpy().flatten()
 
-    bmask_preds_pos = bmask_preds < 0.001
-    bmask_targets_pos = bmask_targets == 1
+    pred_labels = bp > 0.05
+    true_labels = bt == 1
 
-    bmask_true_positives = np.sum(bmask_preds_pos == bmask_targets_pos)
-    bmask_false_positives = np.sum(~bmask_preds_pos == bmask_targets_pos)
-    bmask_false_negatives = np.sum(bmask_preds_pos == ~bmask_targets_pos)
+    # True Positive (TP): we predict a label of 1 (positive), and the true label is 1.
+    TP = np.sum(np.logical_and(pred_labels == 1, true_labels == 1))
+    # True Negative (TN): we predict a label of 0 (negative), and the true label is 0.
+    TN = np.sum(np.logical_and(pred_labels == 0, true_labels == 0))
+    # False Positive (FP): we predict a label of 1 (positive), but the true label is 0.
+    FP = np.sum(np.logical_and(pred_labels == 1, true_labels == 0))
+    # False Negative (FN): we predict a label of 0 (negative), but the true label is 1.
+    FN = np.sum(np.logical_and(pred_labels == 0, true_labels == 1))
 
-    bmask_precision = bmask_true_positives / (bmask_true_positives + bmask_false_positives)
-    bmask_recall = bmask_true_positives / (bmask_true_positives + bmask_false_negatives)
+    bmask_precision = TP / (TP + FP)
+    bmask_recall = TP / (TP + FN)
 
     if config.use_rotation:
-        positives = bmask_preds_pos == bmask_targets_pos
-        mask = positives.unsqueeze(2).expand_as(rmask_preds)
-        rmask_preds = rmask_preds[mask].view(-1, config.angle_res + 1)
-        rmask_targets = rmask_targets[positives]
+        if config.use_rot_alt:
+            positives = np.logical_and(pred_labels == 1, true_labels == 1)
 
-        rmask_preds = rmask_preds.data.cpu().numpy()
-        rmask_targets = rmask_targets.data.cpu().numpy()
+            rp = rmask_preds.data.cpu().numpy().flatten()
+            rt = rmask_targets.data.cpu().numpy().flatten()
 
-        rmask_preds = np.argmax(rmask_preds, axis=1)
+            rp_tp = rp[positives]
+            rt_tp = rt[positives]
 
-        rmask_accuracy = np.mean(np.sin(abs(rmask_preds - rmask_targets)))
+            if len(rp_tp) == 0:
+                rmask_dist = -1
+            else:
+                rmask_dist = abs(rp_tp - rt_tp) * 180 / config.angle_res
+                rmask_dist[rmask_dist >= 90] -= 180
+                rmask_dist = np.mean(np.abs(rmask_dist))
 
-    return bmask_precision, bmask_recall, rmask_accuracy
+        else:
+            positives = np.logical_and(pred_labels == 1, true_labels == 1)
+
+            rp = np.argmax(rmask_preds.data.cpu().numpy(), axis=2).flatten()
+            rt = rmask_targets.data.cpu().numpy().flatten()
+
+            rp_tp = rp[positives]
+            rt_tp = rt[positives]
+
+            rot_free = rt_tp == 0
+
+            rp_tp = rp_tp[~rot_free]
+            rt_tp = rt_tp[~rot_free]
+
+            if len(rp_tp) == 0:
+                rmask_dist = -1
+            else:
+                rp_tp -= 1
+                rt_tp -= 1
+                rmask_dist = abs(rp_tp - rt_tp) * 180 / config.angle_res
+                rmask_dist[rmask_dist >= 90] -= 180
+                rmask_dist = np.mean(np.abs(rmask_dist))
+
+    return bmask_precision, bmask_recall, rmask_dist

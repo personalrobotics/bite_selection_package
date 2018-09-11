@@ -26,16 +26,18 @@ class SPNetLoss(nn.Module):
 
         if config.use_rotation:
             if config.use_rot_alt:
-                rmask_preds_full = rmask_preds.view(-1, config.angle_res + 1)
-                rmask_targets_full = rmask_targets.view(-1)
-                rmask_loss_full = self.ce_loss(
-                    rmask_preds_full, rmask_targets_full.long())
+                rmask_preds_full = rmask_preds.view(-1, config.mask_size ** 2)
+                rmask_targets_full = rmask_targets.view(-1, config.mask_size ** 2)
+                rmask_loss_full = torch.mean(torch.sin(
+                    (torch.abs(rmask_targets_full - rmask_preds_full)
+                     * 3.141592 / 180)))
 
                 positives = bmask_targets > 0
-                mask = positives.unsqueeze(2).expand_as(rmask_preds)
-                rmask_preds = rmask_preds[mask].view(-1, config.angle_res + 1)
+                rmask_preds = rmask_preds[positives]
                 rmask_targets = rmask_targets[positives]
-                rmask_loss = self.ce_loss(rmask_preds, rmask_targets.long())
+                rmask_loss = torch.mean(torch.sin(
+                    (torch.abs(rmask_targets - rmask_preds)
+                     * 3.141592 / 180)))
             else:
                 rmask_preds_full = rmask_preds.view(-1, config.angle_res + 1)
                 rmask_targets_full = rmask_targets.view(-1)
