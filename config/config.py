@@ -3,7 +3,7 @@
 import os
 
 
-gpu_id = '2'
+gpu_id = '0'
 
 use_identity = False
 use_rotation = True
@@ -14,7 +14,6 @@ valid_denseblock_sizes = [[3, 6], [6, 12]]
 denseblock_sizes = valid_denseblock_sizes[1]
 
 project_dir = os.path.split(os.getcwd())[0]
-# project_dir = os.path.join(os.path.dirname(__file__), '../')
 
 project_prefix = 'food_spnet_c8'
 if use_identity:

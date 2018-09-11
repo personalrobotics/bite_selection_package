@@ -14,7 +14,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(os.path.split(os.getcwd())[0])
 from config import config
 
 

@@ -14,7 +14,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
+sys.path.append(os.path.split(os.getcwd())[0])
 from model.spnet import SPNet, DenseSPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss

@@ -14,8 +14,8 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 import torchvision.utils as utils
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '../'))
-from model.spnet import SPNet
+sys.path.append(os.path.split(os.getcwd())[0])
+from model.spnet import SPNet, DenseSPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 from config import config
@@ -30,6 +30,7 @@ def test_spnet(use_cuda=True):
     print('use identity: {}'.format(config.use_identity))
     print('use rotation: {}'.format(config.use_rotation))
     print('use rot_alt: {}'.format(config.use_rot_alt))
+    print('use densenet: {}'.format(config.use_densenet))
 
     img_base_dir = config.cropped_img_dir
 
@@ -70,7 +71,10 @@ def test_spnet(use_cuda=True):
         shuffle=True, num_workers=8,
         collate_fn=testset.collate_fn)
 
-    spnet = SPNet()
+    if config.use_densenet:
+        spnet = DenseSPNet()
+    else:
+        spnet = SPNet()
     print(spnet)
 
     if not os.path.exists(checkpoint_path_best):
