@@ -184,7 +184,7 @@ def test_spnet(use_cuda=True):
             if rmask_dist > -1:
                 test_rmask_dist.append(rmask_dist)
 
-    print('\nFinal: {}'.format(config.project_prefix))
+    print('\nFinal | {}'.format(config.project_prefix))
 
     model_parameters = filter(lambda p: p.requires_grad, spnet.parameters())
     params = sum([np.prod(p.size()) for p in model_parameters])
