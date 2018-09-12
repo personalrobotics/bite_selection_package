@@ -148,6 +148,8 @@ class DenseSPNet(nn.Module):
 
         out = F.relu(self.final_conv(out))
 
+        out = F.dropout(out, p=0.4, training=self.training)
+
         bmask = self.final_layers_bin(out)
         bmask = bmask.permute(0, 2, 3, 1).contiguous().view(
             out.size(0), config.mask_size ** 2)

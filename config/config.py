@@ -3,7 +3,27 @@
 import os
 
 
-gpu_id = '3'
+presets = list()
+presets.append({
+    'gpu_id': '0',
+    'valid_denseblock_sizes_idx': 0,
+    'angle_res': 18})
+presets.append({
+    'gpu_id': '1',
+    'valid_denseblock_sizes_idx': 1,
+    'angle_res': 18})
+presets.append({
+    'gpu_id': '2',
+    'valid_denseblock_sizes_idx': 0,
+    'angle_res': 36})
+presets.append({
+    'gpu_id': '3',
+    'valid_denseblock_sizes_idx': 1,
+    'angle_res': 36})
+
+pidx = 0
+
+gpu_id = presets[pidx]['gpu_id']
 
 use_identity = False
 use_rotation = True
@@ -11,13 +31,14 @@ use_rot_alt = False
 use_densenet = True
 
 valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12]]
-denseblock_sizes = valid_denseblock_sizes[1]
+denseblock_sizes = valid_denseblock_sizes[
+    presets[pidx]['valid_denseblock_sizes_idx']]
 
 project_dir = os.path.split(os.getcwd())[0]
 
 num_classes = 8
 mask_size = 17  # grid_shape: (17, 17)
-angle_res = 36
+angle_res = presets[pidx]['angle_res']
 
 project_prefix = 'food_spnet_c{}'.format(num_classes)
 if use_identity:
