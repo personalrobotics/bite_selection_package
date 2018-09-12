@@ -43,7 +43,7 @@ class SPNetLoss(nn.Module):
                 rmask_targets_full = rmask_targets.view(-1)
                 rmask_loss_full = self.ce_loss(
                     rmask_preds_full, rmask_targets_full.long())
-                rmask_loss_full *= 1e-2
+                rmask_loss_full *= 1e-1
 
                 positives = bmask_targets > 0
                 mask = positives.unsqueeze(2).expand_as(rmask_preds)

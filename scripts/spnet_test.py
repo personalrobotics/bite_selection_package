@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import division
 from __future__ import print_function
@@ -12,14 +12,14 @@ import math
 import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
-import torchvision.utils as utils
+import torchvision.utils as torch_utils
 
 sys.path.append(os.path.split(os.getcwd())[0])
 from model.spnet import SPNet, DenseSPNet
 from model.spdataset import SPDataset
 from model.spnetloss import SPNetLoss
 from config import config
-from utils.utils import get_accuracy
+from spnet_utils.utils import get_accuracy
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id

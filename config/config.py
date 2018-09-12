@@ -7,19 +7,35 @@ presets = list()
 presets.append({
     'gpu_id': '0',
     'valid_denseblock_sizes_idx': 0,
-    'angle_res': 18})
+    'angle_res': 9})
 presets.append({
     'gpu_id': '1',
     'valid_denseblock_sizes_idx': 1,
-    'angle_res': 18})
+    'angle_res': 9})
 presets.append({
     'gpu_id': '2',
     'valid_denseblock_sizes_idx': 0,
-    'angle_res': 36})
+    'angle_res': 18})
 presets.append({
     'gpu_id': '3',
     'valid_denseblock_sizes_idx': 1,
+    'angle_res': 18})
+presets.append({
+    'gpu_id': '0',
+    'valid_denseblock_sizes_idx': 0,
     'angle_res': 36})
+presets.append({
+    'gpu_id': '1',
+    'valid_denseblock_sizes_idx': 1,
+    'angle_res': 36})
+presets.append({
+    'gpu_id': '2',
+    'valid_denseblock_sizes_idx': 0,
+    'angle_res': 90})
+presets.append({
+    'gpu_id': '3',
+    'valid_denseblock_sizes_idx': 1,
+    'angle_res': 90})
 
 pidx = 0
 
