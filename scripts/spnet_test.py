@@ -100,7 +100,6 @@ def test_spnet(use_cuda=True):
     # testing
     print('\nTest')
     spnet.eval()
-    test_loss = 0
     test_bmask_precision = list()
     test_bmask_recall = list()
     test_rmask_dist = list()
@@ -108,10 +107,12 @@ def test_spnet(use_cuda=True):
     total_batches = int(math.ceil(
         testloader.dataset.num_samples / testloader.batch_size))
 
-    for ei in range(5):
+    for ei in range(10):
         this_tbp = 0
         this_tbr = 0
         this_trd = 0
+
+        test_loss = 0
 
         for batch_idx, batch_items in enumerate(testloader):
             imgs = batch_items[0]
@@ -182,7 +183,7 @@ def test_spnet(use_cuda=True):
             if rmask_dist > -1:
                 test_rmask_dist.append(rmask_dist)
 
-    print('Final')
+    print('Final: {}'.format(config.project_prefix))
     print('avg_bp: {0:.4f}, avg_br: {1:.4f}, avg_rd: {2:.4f}'.format(
         np.mean(test_bmask_precision),
         np.mean(test_bmask_recall),
