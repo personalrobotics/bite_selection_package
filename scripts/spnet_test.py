@@ -100,6 +100,7 @@ def test_spnet(use_cuda=True):
     # testing
     print('\nTest')
     spnet.eval()
+
     test_bmask_precision = list()
     test_bmask_recall = list()
     test_rmask_dist = list()
@@ -183,8 +184,13 @@ def test_spnet(use_cuda=True):
             if rmask_dist > -1:
                 test_rmask_dist.append(rmask_dist)
 
-    print('Final: {}'.format(config.project_prefix))
-    print('avg_bp: {0:.4f}, avg_br: {1:.4f}, avg_rd: {2:.4f}'.format(
+    print('\nFinal: {}'.format(config.project_prefix))
+
+    model_parameters = filter(lambda p: p.requires_grad, spnet.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    print('Total parameters: {}'.format(params))
+
+    print('Results: avg_bp: {0:.4f}, avg_br: {1:.4f}, avg_rd: {2:.4f}\n'.format(
         np.mean(test_bmask_precision),
         np.mean(test_bmask_recall),
         np.mean(test_rmask_dist)))
