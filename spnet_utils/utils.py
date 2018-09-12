@@ -58,8 +58,8 @@ def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
     # False Negative (FN): we predict a label of 0 (negative), but the true label is 1.
     FN = np.sum(np.logical_and(pred_labels == 0, true_labels == 1))
 
-    bmask_precision = TP / (TP + FP)
-    bmask_recall = TP / (TP + FN)
+    bmask_precision = 0 if (TP + FP) == 0 else TP / (TP + FP)
+    bmask_recall = 0 if (TP + FN) == 0 else TP / (TP + FN)
 
     if config.use_rotation:
         if config.use_rot_alt:
