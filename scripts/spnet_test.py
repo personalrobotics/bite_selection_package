@@ -190,7 +190,7 @@ def test_spnet(use_cuda=True):
     params = sum([np.prod(p.size()) for p in model_parameters])
     print('Total parameters: {}'.format(params))
 
-    print('Results: avg_bp: {0:.4f}, avg_br: {1:.4f}, avg_rd: {2:.4f}\n'.format(
+    print('Results: avg_bp: {0:.3f}, avg_br: {1:.3f}, avg_rd: {2:.3f}\n'.format(
         np.mean(test_bmask_precision),
         np.mean(test_bmask_recall),
         np.mean(test_rmask_dist)))
