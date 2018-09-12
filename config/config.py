@@ -3,7 +3,7 @@
 import os
 
 
-gpu_id = '0'
+gpu_id = '3'
 
 use_identity = False
 use_rotation = True
@@ -11,13 +11,13 @@ use_rot_alt = False
 use_densenet = True
 
 valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12]]
-denseblock_sizes = valid_denseblock_sizes[0]
+denseblock_sizes = valid_denseblock_sizes[1]
 
 project_dir = os.path.split(os.getcwd())[0]
 
 num_classes = 8
 mask_size = 17  # grid_shape: (17, 17)
-angle_res = 18
+angle_res = 36
 
 project_prefix = 'food_spnet_c{}'.format(num_classes)
 if use_identity:

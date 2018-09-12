@@ -116,7 +116,7 @@ def train_spnet(use_cuda=True):
 
     for epoch in range(start_epoch, start_epoch + 10000):
         # training
-        print('\nEpoch: {}'.format(epoch))
+        print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
         spnet.train()
         # spnet.module.freeze_bn()
         train_loss = 0
