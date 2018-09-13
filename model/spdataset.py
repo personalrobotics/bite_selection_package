@@ -12,8 +12,8 @@ import torch.utils.data as data
 from PIL import Image
 
 sys.path.append(os.path.split(os.getcwd())[0])
-import utils.transform as trans
-from utils.utils import load_label_map
+import spnet_utils.transform as trans
+from spnet_utils.utils import load_label_map
 from config import config
 
 
