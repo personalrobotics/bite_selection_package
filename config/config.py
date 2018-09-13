@@ -37,7 +37,7 @@ presets.append({
     'valid_denseblock_sizes_idx': 1,
     'angle_res': 90})
 
-pidx = 0
+pidx = 3
 
 gpu_id = presets[pidx]['gpu_id']
 
@@ -45,6 +45,7 @@ use_identity = False
 use_rotation = True
 use_rot_alt = False
 use_densenet = True
+denseblock_version = 2
 
 valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12]]
 denseblock_sizes = valid_denseblock_sizes[
@@ -60,7 +61,10 @@ project_prefix = 'food_spnet_c{}'.format(num_classes)
 if use_identity:
     project_prefix += '_identity'
 if use_densenet:
-    project_prefix += '_dense_{}_{}'.format(*denseblock_sizes)
+    if denseblock_version == 2:
+        project_prefix += '_dense_v2'
+    else:
+        project_prefix += '_dense_{}_{}'.format(*denseblock_sizes)
 if not use_rotation:
     project_prefix += '_loc_only'
 else:

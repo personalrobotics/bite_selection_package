@@ -68,15 +68,26 @@ class DenseSPNet(nn.Module):
                  num_init_features=64, bn_size=4, drop_rate=0.2):
         super(DenseSPNet, self).__init__()
 
-        # First convolution
-        self.features = nn.Sequential(OrderedDict([
-            ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
-            ('norm0', nn.BatchNorm2d(num_init_features)),
-            ('relu0', nn.ReLU(inplace=True)),
-            ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
-        ]))
+        if config.denseblock_version == 2:
+            num_init_features = 32
+            # First convolution
+            self.features = nn.Sequential(OrderedDict([
+                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=3, padding=1)),
+                ('norm0', nn.BatchNorm2d(num_init_features)),
+                ('relu0', nn.ReLU(inplace=True)),
+                ('pool0', nn.MaxPool2d(2)),
+            ]))
+            block_config = [3, 6, 6]
+        else:
+            # First convolution
+            self.features = nn.Sequential(OrderedDict([
+                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
+                ('norm0', nn.BatchNorm2d(num_init_features)),
+                ('relu0', nn.ReLU(inplace=True)),
+                ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
+            ]))
+            block_config = config.denseblock_sizes
 
-        block_config = config.denseblock_sizes
         # Each denseblock
         num_features = num_init_features
         for i, num_layers in enumerate(block_config):
@@ -93,36 +104,39 @@ class DenseSPNet(nn.Module):
         self.mask_ch = 256
         self.final_conv = nn.Conv2d(num_features, self.mask_ch, 1, padding=0)
 
-        self.final_layers_bin = nn.Sequential(
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(self.mask_ch, 1, 1, padding=0),
-        )
+        self.final_layers_bin = nn.Sequential(OrderedDict([
+            ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('1', nn.ReLU()),
+            ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('3', nn.ReLU()),
+            ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('5', nn.ReLU()),
+            ('d', nn.Dropout(p=0.2)),
+            ('6', nn.Conv2d(self.mask_ch, 1, 1, padding=0)),
+        ]))
 
         if config.use_rot_alt:
-            self.final_layers_rot = nn.Sequential(
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, 1, 1, padding=0),
-            )
+            self.final_layers_rot = nn.Sequential(OrderedDict([
+                ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('1', nn.ReLU()),
+                ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('3', nn.ReLU()),
+                ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('5', nn.ReLU()),
+                ('d', nn.Dropout(p=0.2)),
+                ('6', nn.Conv2d(self.mask_ch, 1, 1, padding=0)),
+            ]))
         else:
-            self.final_layers_rot = nn.Sequential(
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0),
-            )
+            self.final_layers_rot = nn.Sequential(OrderedDict([
+                ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('1', nn.ReLU()),
+                ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('3', nn.ReLU()),
+                ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+                ('5', nn.ReLU()),
+                ('d', nn.Dropout(p=0.2)),
+                ('6', nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0)),
+            ]))
 
         # Final batch norm
         # self.features.add_module('norm5', nn.BatchNorm2d(num_features))
@@ -147,10 +161,10 @@ class DenseSPNet(nn.Module):
         # out = self.classifier(out)
 
         out = F.relu(self.final_conv(out))
-
-        out = F.dropout(out, p=0.4, training=self.training)
+        out = F.dropout(out, p=0.2, training=self.training)
 
         bmask = self.final_layers_bin(out)
+
         bmask = bmask.permute(0, 2, 3, 1).contiguous().view(
             out.size(0), config.mask_size ** 2)
 
