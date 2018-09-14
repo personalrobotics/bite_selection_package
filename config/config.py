@@ -45,7 +45,7 @@ use_identity = False
 use_rotation = True
 use_rot_alt = False
 use_densenet = True
-denseblock_version = 2
+denseblock_version = 1
 
 valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12]]
 denseblock_sizes = valid_denseblock_sizes[
@@ -73,8 +73,12 @@ else:
     else:
         project_prefix += '_a_{}'.format(angle_res)
 
-
-# project_prefix += 'a_{}'.format(angle_res)
+###############################################################################
+# pw tests: 0.02, 0.03, 0.04, 0.05, 0.08, 0.10, 0.20, 0.30, 0.40
+p_weight = 0.04
+gpu_id = '0'
+project_prefix = 'food_spnet_pw_{0:02d}'.format(int(p_weight * 100))
+###############################################################################
 
 cropped_img_res = mask_size * 8  # 136
 
