@@ -37,7 +37,7 @@ presets.append({
     'valid_denseblock_sizes_idx': 1,
     'angle_res': 90})
 
-pidx = 3
+pidx = 2
 
 gpu_id = presets[pidx]['gpu_id']
 
