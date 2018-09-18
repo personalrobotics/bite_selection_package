@@ -13,12 +13,12 @@ import shutil
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions_c8',
-                 bbox_base_dir='../data/bounding_boxes_c8/'):
+                 base_dir='../data/skewering_positions_c7',
+                 bbox_base_dir='../data/bounding_boxes_c7/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
 
-        project_prefix = 'food_c8'
+        project_prefix = 'food_c7'
 
         self.bbox_ann_dir = os.path.join(
                 self.bbox_base_dir, 'annotations/xmls')
@@ -37,14 +37,10 @@ class SPSampler(object):
         self.cur_img_name = None
         self.is_clicked = False
 
-        if project_prefix.endswith('c8'):
+        if project_prefix.endswith('c7'):
             samplable_objs = [
-                'banana', 'cantaloupe', 'carrot', 'celery',
-                'egg', 'green_grape', 'strawberry']
-        elif project_prefix.endswith('c9'):
-            samplable_objs = [
-                'apple', 'banana', 'carrot', 'celery',
-                'egg', 'grape_purple', 'grape_green', 'melon']
+                'banana', 'cantaloupe', 'carrot',
+                'celery', 'egg', 'strawberry']
         else:
             samplable_objs = [
                 'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
@@ -95,7 +91,6 @@ class SPSampler(object):
         label_dict = self.load_label_map()
 
         self.mask_dir = os.path.join(self.base_dir, 'masks')
-        self.mask_org_dir = os.path.join(self.base_dir, 'masks_renamed')
 
         xml_filenames = sorted(os.listdir(self.bbox_ann_dir))
         for xidx, xml_filename in enumerate(xml_filenames):
@@ -152,14 +147,11 @@ class SPSampler(object):
                     mask_path = os.path.join(
                         self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
                             xml_filename[:-4], obj_name, xmin, ymin))
-                    mask_org_path = os.path.join(
-                        self.mask_org_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
-                            xml_filename[:-4], obj_name, xmin, ymin))
                     # mask_org_path = os.path.join(
-                    #     self.mask_org_dir, '{}_{}_{}.txt'.format(
-                    #         xml_filename[:-4], obj_name, bidx))
-                    if os.path.exists(mask_org_path):
-                        shutil.copy(mask_org_path, mask_path)
+                    #     self.mask_org_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                    #         xml_filename[:-4], obj_name, xmin, ymin))
+                    # if os.path.exists(mask_org_path):
+                    #     shutil.copy(mask_org_path, mask_path)
 
                     this_ann_line += ' {} {} {} {} {} {}'.format(
                         xmin, ymin, xmax, ymax,

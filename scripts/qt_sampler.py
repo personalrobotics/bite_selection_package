@@ -19,7 +19,7 @@ from config import config
 
 
 class PyQtSampler(QMainWindow):
-    def __init__(self, for_test=True):
+    def __init__(self, for_test=False):
         super(PyQtSampler, self).__init__()
         self.setMouseTracking(True)
 
@@ -27,7 +27,7 @@ class PyQtSampler(QMainWindow):
             self.base_dir = os.path.join(
                 '../samples', config.project_prefix)
         else:
-            self.base_dir = '../data/skewering_positions_c9'
+            self.base_dir = '../data/skewering_positions_c7'
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()
@@ -42,7 +42,7 @@ class PyQtSampler(QMainWindow):
             "pepper": 'flat',
             "blackberry": 'any',
             "broccoli": 'flat',
-            "cantalope": 'flat',
+            "cantaloupe": 'flat',
             "carrot": 'flat',
             "cauliflower": 'flat',
             "celery": 'flat',
