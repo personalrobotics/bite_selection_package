@@ -23,7 +23,7 @@ class SPNetLoss(nn.Module):
         bmask_preds = bmask_preds.view(-1, config.mask_size ** 2)
         bmask_targets = bmask_targets.view(-1, config.mask_size ** 2)
 
-        positives = bmask_targets > 0
+        positives = bmask_targets == 1
 
         bmask_preds_pos = bmask_preds[positives]
         bmask_targets_pos = bmask_targets[positives]
@@ -33,7 +33,7 @@ class SPNetLoss(nn.Module):
         bmask_targets_neg = bmask_targets[~positives]
         bmask_loss_neg = self.bce_loss(bmask_preds_neg, bmask_targets_neg)
 
-        pw = 0.3
+        pw = config.p_weight
         bmask_loss = pw * bmask_loss_pos + (1 - pw) * bmask_loss_neg
 
         if config.use_rotation:

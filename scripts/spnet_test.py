@@ -8,6 +8,7 @@ import sys
 import os
 import shutil
 import math
+import time
 
 import torch
 import torch.optim as optim
@@ -101,19 +102,26 @@ def test_spnet(use_cuda=True):
     print('\nTest')
     spnet.eval()
 
-    test_bmask_precision = list()
-    test_bmask_recall = list()
-    test_rmask_dist = list()
+    total_bacc = list()
+    total_bpre = list()
+    total_brec = list()
+    total_bf1 = list()
+    total_rdist = list()
 
     total_batches = int(math.ceil(
         testloader.dataset.num_samples / testloader.batch_size))
 
-    for ei in range(10):
-        this_tbp = 0
-        this_tbr = 0
-        this_trd = 0
+    max_epoch = 10
+    start_time = time.time()
 
+    for ei in range(max_epoch):
         test_loss = 0
+
+        this_bacc = 0
+        this_bpre = 0
+        this_brec = 0
+        this_bf1 = 0
+        this_rdist = 0
 
         for batch_idx, batch_items in enumerate(testloader):
             imgs = batch_items[0]
@@ -131,22 +139,26 @@ def test_spnet(use_cuda=True):
 
             test_loss += loss.data
 
-            bmask_precision, bmask_recall, rmask_dist = get_accuracy(
+            bacc, bpre, brec, bf1, rdist = get_accuracy(
                 pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
+            this_bacc += bacc
+            this_bpre += bpre
+            this_brec += brec
+            this_bf1 += bf1
+            this_rdist += rdist
 
-            this_tbp += bmask_precision
-            this_tbr += bmask_recall
-            this_trd += rmask_dist
-
-            if batch_idx % 10 == 0:
-                print('[{0}| {1:3d}/{2:3d}] test_loss: {3:6.3f} '
+            if batch_idx % 20 == 0:
+                print('[{0}| {1:3d}/{2:3d}]  test_loss: {3:6.3f} '
                       '(b={4:.3f}, r={5:.3f}) | avg_loss: {6:6.3f} | '
-                      'bp: {7:.4f}, br: {8:.4f}, rd: {9:.4f}'.format(
+                      'bacc: {7:.3f}, bpre: {8:.3f}, brec: {9:.3f}, '
+                      'bf1: {10:.3f}, rdist: {11:.3f}'.format(
                     ei, batch_idx, total_batches, loss.data,
                     bmloss, rmloss, test_loss / (batch_idx + 1),
-                    this_tbp / (batch_idx + 1),
-                    this_tbr / (batch_idx + 1),
-                    this_trd / (batch_idx + 1)))
+                    this_bacc / (batch_idx + 1),
+                    this_bpre / (batch_idx + 1),
+                    this_brec / (batch_idx + 1),
+                    this_bf1 / (batch_idx + 1),
+                    this_rdist / (batch_idx + 1)))
 
                 # # save a sample prediction
                 # img_path_base = os.path.join(
@@ -179,10 +191,15 @@ def test_spnet(use_cuda=True):
                 #         f.write('\n')
                 #     f.close()
 
-            test_bmask_precision.append(bmask_precision)
-            test_bmask_recall.append(bmask_recall)
-            if rmask_dist > -1:
-                test_rmask_dist.append(rmask_dist)
+            total_bacc.append(bacc)
+            total_bpre.append(bpre)
+            total_brec.append(brec)
+            total_bf1.append(bf1)
+            if rdist > -1:
+                total_rdist.append(rdist)
+
+    elapsed_time = time.time() - start_time
+    time_per_image = elapsed_time / testloader.dataset.num_samples / max_epoch
 
     print('\nFinal | {}'.format(config.project_prefix))
 
@@ -190,10 +207,15 @@ def test_spnet(use_cuda=True):
     params = sum([np.prod(p.size()) for p in model_parameters])
     print('Total parameters: {}'.format(params))
 
-    print('Results: avg_bp: {0:.3f}, avg_br: {1:.3f}, avg_rd: {2:.3f}\n'.format(
-        np.mean(test_bmask_precision),
-        np.mean(test_bmask_recall),
-        np.mean(test_rmask_dist)))
+    print('Results: avg_bacc: {0:.3f}, avg_bpre: {1:.3f}, avg_rec: {2:.3f}, '
+          'avg_bf1: {3:.3f}, avg_rdist: {4:.3f}\n'.format(
+              np.mean(total_bacc),
+              np.mean(total_bpre),
+              np.mean(total_brec),
+              np.mean(total_bf1),
+              np.mean(total_rdist)))
+
+    print('time_per_image: {0:.4f}'.format(time_per_image))
 
 
 if __name__ == '__main__':
