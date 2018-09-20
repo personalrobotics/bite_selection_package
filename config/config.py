@@ -53,7 +53,7 @@ denseblock_sizes = valid_denseblock_sizes[
 
 project_dir = os.path.split(os.getcwd())[0]
 
-num_classes = 8
+num_classes = 7
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = presets[pidx]['angle_res']
 
@@ -75,9 +75,9 @@ else:
 
 ###############################################################################
 # pw tests: 0.02, 0.03, 0.04, 0.05, 0.08, 0.10, 0.20, 0.30, 0.40
-p_weight = 0.04
-gpu_id = '0'
-project_prefix = 'food_spnet_pw_{0:02d}'.format(int(p_weight * 100))
+p_weight = 0.07
+# gpu_id = '3'
+# project_prefix = 'food_spnet_pw_{0:02d}'.format(int(p_weight * 100))
 ###############################################################################
 
 cropped_img_res = mask_size * 8  # 136
