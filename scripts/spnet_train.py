@@ -111,8 +111,8 @@ def train_spnet(use_cuda=True):
     optimizer = optim.SGD(spnet.parameters(), lr=1e-3,
                           momentum=0.9, weight_decay=1e-4)
 
-    print(trainloader.dataset.num_samples)
-    print(testloader.dataset.num_samples)
+    print('training set: {}'.format(trainloader.dataset.num_samples))
+    print('test set: {}'.format(testloader.dataset.num_samples))
 
     for epoch in range(start_epoch, start_epoch + 10000):
         # training
@@ -171,25 +171,37 @@ def train_spnet(use_cuda=True):
                     this_bf1 / (batch_idx + 1),
                     this_rdist / (batch_idx + 1)))
 
-                # # save a sample ground truth data
-                # ann_path_base = os.path.join(
-                #     ann_dir, 'train_{0:04d}_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # img_path_base = os.path.join(
-                #     img_dir, 'train_{0:04d}_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # sample_img_path = img_path_base + '.jpg'
-                # sample_data_path = ann_path_base + '.out'
+                # save a sample ground truth data
+                img_path_base = os.path.join(
+                    img_dir, 'train_{0:04d}_apple_{1:04d}'.format(
+                        epoch, batch_idx))
+                mask_path_base = os.path.join(
+                    ann_dir, 'train_{0:04d}_apple_{1:04d}'.format(
+                        epoch, batch_idx))
+                sample_img_path = img_path_base + '.jpg'
+                sample_mask_path = mask_path_base + '.txt'
 
-                # test_img = imgs[0].cpu()
-                # utils.save_image(test_img, sample_img_path)
-                # gt_pos = gt_positions[0].data.cpu().numpy()
-                # gt_ang = gt_angles[0].data.cpu().numpy()[0] * 10
+                test_img = imgs[0].cpu()
+                torch_utils.save_image(test_img[:3], sample_img_path)
 
-                # with open(sample_data_path, 'w') as f:
-                #     f.write('{0:.3f} {1:.3f} {2:.3f}'.format(
-                #         gt_pos[0], gt_pos[1], gt_ang))
-                #     f.close()
+                negatives = gt_bmasks[0].data.cpu().numpy() == 0
+                rmask = gt_rmasks[0].data.cpu().numpy()
+
+                # rmask = np.argmax(rmask, axis=1) - 1
+                rmask -= 1
+                rmask = rmask * 180 / config.angle_res
+                rmask[rmask < 0] = 0
+                rmask[negatives] = -1
+                rmask = rmask.reshape(config.mask_size, config.mask_size)
+
+                with open(sample_mask_path, 'w') as f:
+                    for ri in range(config.mask_size):
+                        for ci in range(config.mask_size):
+                            f.write('{0:.1f}'.format(rmask[ri][ci]))
+                            if ci < config.mask_size - 1:
+                                f.write(',')
+                        f.write('\n')
+                    f.close()
 
         # testing
         print('\nTest')

@@ -121,18 +121,19 @@ class SPDataset(data.Dataset):
         img = Image.new('RGB', (target_size, target_size))
         img.paste(img_org, pads)
 
-        # # Data augmentation
-        # if self.train:
-        #     img, bmask, rmask = trans.random_flip_w_mask(img, bmask, rmask)
+        gt_bmask = torch.Tensor(bmask)
+        gt_rmask = torch.Tensor(rmask)
+
+        # Data augmentation
+        if self.train:
+            img, gt_bmask, gt_rmask = trans.random_flip_w_mask(
+                img, gt_bmask, gt_rmask)
 
         img = self.transform(img)
         if config.use_identity:
             label_ch = torch.ones(target_size, target_size) * label * 10
             label_ch = label_ch.view(1, target_size, target_size)
             img = torch.cat((img, label_ch), 0)
-
-        gt_bmask = torch.Tensor(bmask)
-        gt_rmask = torch.Tensor(rmask)
 
         return img, gt_bmask, gt_rmask
 
