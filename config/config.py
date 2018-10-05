@@ -21,7 +21,7 @@ presets.append({
     'valid_denseblock_sizes_idx': 1,
     'angle_res': 18})
 presets.append({
-    'gpu_id': '0',
+    'gpu_id': '1',
     'valid_denseblock_sizes_idx': 0,
     'angle_res': 36})
 presets.append({
@@ -36,8 +36,12 @@ presets.append({
     'gpu_id': '3',
     'valid_denseblock_sizes_idx': 1,
     'angle_res': 90})
+presets.append({
+    'gpu_id': '2',
+    'valid_denseblock_sizes_idx': 3,
+    'angle_res': 60})
 
-pidx = 2
+pidx = 4
 
 gpu_id = presets[pidx]['gpu_id']
 
@@ -47,7 +51,7 @@ use_rot_alt = False
 use_densenet = True
 denseblock_version = 1
 
-valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12]]
+valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12], [3, 3]]
 denseblock_sizes = valid_denseblock_sizes[
     presets[pidx]['valid_denseblock_sizes_idx']]
 
@@ -75,7 +79,7 @@ else:
 
 ###############################################################################
 # pw tests: 0.02, 0.03, 0.04, 0.05, 0.08, 0.10, 0.20, 0.30, 0.40
-p_weight = 0.06
+p_weight = 0.08
 # gpu_id = '3'
 # project_prefix = 'food_spnet_pw_{0:02d}'.format(int(p_weight * 100))
 ###############################################################################

@@ -13,12 +13,12 @@ import shutil
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions_c7',
-                 bbox_base_dir='../data/bounding_boxes_c7/'):
+                 base_dir='../data/skewering_positions_c9',
+                 bbox_base_dir='../data/bounding_boxes_c9/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
 
-        project_prefix = 'food_c7'
+        project_prefix = 'food_c9'
 
         self.bbox_ann_dir = os.path.join(
                 self.bbox_base_dir, 'annotations/xmls')
@@ -38,9 +38,14 @@ class SPSampler(object):
         self.is_clicked = False
 
         if project_prefix.endswith('c7'):
-            samplable_objs = [
+            samplable_objs = [\
                 'banana', 'cantaloupe', 'carrot',
                 'celery', 'egg', 'strawberry']
+        elif project_prefix.endswith('c9'):
+            samplable_objs = [\
+                'banana', 'cantaloupe', 'carrot',
+                'celery', 'egg', 'strawberry',
+                'grape_green', 'grape_purple']
         else:
             samplable_objs = [
                 'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',

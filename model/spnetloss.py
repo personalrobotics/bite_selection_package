@@ -47,14 +47,12 @@ class SPNetLoss(nn.Module):
                 rmask_targets = rmask_targets.view(-1, config.mask_size ** 2)
                 mask = positives.unsqueeze(2).expand_as(rmask_preds)
 
-                # rmask_preds_pos = rmask_preds[mask].view(-1, config.angle_res + 1)
-                # rmask_targets_pos = rmask_targets[positives].view(-1)
                 rmask_preds_pos = rmask_preds[mask].view(-1, config.angle_res + 1)
                 rmask_targets_pos = rmask_targets[positives]
-                rot_pos = rmask_targets_pos > 0
-                rmask_targets_pos = rmask_targets_pos[rot_pos]
-                rmask_preds_pos = rmask_preds_pos[
-                    rot_pos.unsqueeze(1).expand_as(rmask_preds_pos)]
+                # rot_pos = rmask_targets_pos > 0
+                # rmask_targets_pos = rmask_targets_pos[rot_pos]
+                # rmask_preds_pos = rmask_preds_pos[
+                #     rot_pos.unsqueeze(1).expand_as(rmask_preds_pos)]
                 rmask_preds_pos = rmask_preds_pos.view(-1, config.angle_res + 1)
                 rmask_targets_pos = rmask_targets_pos.view(-1)
                 if rmask_targets_pos.size() > torch.Size([0]):
@@ -68,7 +66,7 @@ class SPNetLoss(nn.Module):
                 rmask_loss_neg = self.ce_loss(
                     rmask_preds_neg, rmask_targets_neg.long())
 
-                pw = 0.9
+                pw = 0.99
                 rmask_loss = pw * rmask_loss_pos + (1 - pw) * rmask_loss_neg
         else:
             rmask_loss_full = 0

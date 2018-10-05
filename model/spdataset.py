@@ -131,7 +131,7 @@ class SPDataset(data.Dataset):
 
         img = self.transform(img)
         if config.use_identity:
-            label_ch = torch.ones(target_size, target_size) * label * 10
+            label_ch = torch.ones(target_size, target_size) * (label + 1) * 30
             label_ch = label_ch.view(1, target_size, target_size)
             img = torch.cat((img, label_ch), 0)
 

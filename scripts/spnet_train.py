@@ -171,37 +171,37 @@ def train_spnet(use_cuda=True):
                     this_bf1 / (batch_idx + 1),
                     this_rdist / (batch_idx + 1)))
 
-                # save a sample ground truth data
-                img_path_base = os.path.join(
-                    img_dir, 'train_{0:04d}_apple_{1:04d}'.format(
-                        epoch, batch_idx))
-                mask_path_base = os.path.join(
-                    ann_dir, 'train_{0:04d}_apple_{1:04d}'.format(
-                        epoch, batch_idx))
-                sample_img_path = img_path_base + '.jpg'
-                sample_mask_path = mask_path_base + '.txt'
+                # # save a sample ground truth data
+                # img_path_base = os.path.join(
+                #     img_dir, 'train_{0:04d}_apple_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # mask_path_base = os.path.join(
+                #     ann_dir, 'train_{0:04d}_apple_{1:04d}'.format(
+                #         epoch, batch_idx))
+                # sample_img_path = img_path_base + '.jpg'
+                # sample_mask_path = mask_path_base + '.txt'
 
-                test_img = imgs[0].cpu()
-                torch_utils.save_image(test_img[:3], sample_img_path)
+                # test_img = imgs[0].cpu()
+                # torch_utils.save_image(test_img[:3], sample_img_path)
 
-                negatives = gt_bmasks[0].data.cpu().numpy() == 0
-                rmask = gt_rmasks[0].data.cpu().numpy()
+                # negatives = gt_bmasks[0].data.cpu().numpy() == 0
+                # rmask = gt_rmasks[0].data.cpu().numpy()
 
-                # rmask = np.argmax(rmask, axis=1) - 1
-                rmask -= 1
-                rmask = rmask * 180 / config.angle_res
-                rmask[rmask < 0] = 0
-                rmask[negatives] = -1
-                rmask = rmask.reshape(config.mask_size, config.mask_size)
+                # # rmask = np.argmax(rmask, axis=1) - 1
+                # rmask -= 1
+                # rmask = rmask * 180 / config.angle_res
+                # rmask[rmask < 0] = 0
+                # rmask[negatives] = -1
+                # rmask = rmask.reshape(config.mask_size, config.mask_size)
 
-                with open(sample_mask_path, 'w') as f:
-                    for ri in range(config.mask_size):
-                        for ci in range(config.mask_size):
-                            f.write('{0:.1f}'.format(rmask[ri][ci]))
-                            if ci < config.mask_size - 1:
-                                f.write(',')
-                        f.write('\n')
-                    f.close()
+                # with open(sample_mask_path, 'w') as f:
+                #     for ri in range(config.mask_size):
+                #         for ci in range(config.mask_size):
+                #             f.write('{0:.1f}'.format(rmask[ri][ci]))
+                #             if ci < config.mask_size - 1:
+                #                 f.write(',')
+                #         f.write('\n')
+                #     f.close()
 
         # testing
         print('\nTest')

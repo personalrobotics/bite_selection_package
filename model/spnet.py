@@ -68,11 +68,17 @@ class DenseSPNet(nn.Module):
                  num_init_features=64, bn_size=4, drop_rate=0.2):
         super(DenseSPNet, self).__init__()
 
+        if config.use_identity:
+            input_channels = 4
+        else:
+            input_channels = 3
+
         if config.denseblock_version == 2:
             num_init_features = 32
             # First convolution
             self.features = nn.Sequential(OrderedDict([
-                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=3, padding=1)),
+                ('conv0', nn.Conv2d(input_channels, num_init_features,
+                    kernel_size=3, padding=1)),
                 ('norm0', nn.BatchNorm2d(num_init_features)),
                 ('relu0', nn.ReLU(inplace=True)),
                 ('pool0', nn.MaxPool2d(2)),
@@ -81,7 +87,8 @@ class DenseSPNet(nn.Module):
         else:
             # First convolution
             self.features = nn.Sequential(OrderedDict([
-                ('conv0', nn.Conv2d(3, num_init_features, kernel_size=7, stride=2, padding=3, bias=False)),
+                ('conv0', nn.Conv2d(input_channels, num_init_features,
+                    kernel_size=7, stride=2, padding=3, bias=False)),
                 ('norm0', nn.BatchNorm2d(num_init_features)),
                 ('relu0', nn.ReLU(inplace=True)),
                 ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
@@ -161,7 +168,7 @@ class DenseSPNet(nn.Module):
         # out = self.classifier(out)
 
         out = F.relu(self.final_conv(out))
-        out = F.dropout(out, p=0.2, training=self.training)
+        out = F.dropout(out, p=0.4, training=self.training)
 
         bmask = self.final_layers_bin(out)
 
