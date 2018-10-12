@@ -13,7 +13,7 @@ presets.append({
     'valid_denseblock_sizes_idx': 1,
     'angle_res': 9})
 presets.append({
-    'gpu_id': '2',
+    'gpu_id': '1',
     'valid_denseblock_sizes_idx': 0,
     'angle_res': 18})
 presets.append({
@@ -41,7 +41,7 @@ presets.append({
     'valid_denseblock_sizes_idx': 3,
     'angle_res': 60})
 
-pidx = 4
+pidx = 2
 
 gpu_id = presets[pidx]['gpu_id']
 
@@ -57,7 +57,7 @@ denseblock_sizes = valid_denseblock_sizes[
 
 project_dir = os.path.split(os.getcwd())[0]
 
-num_classes = 7
+num_classes = 6
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = presets[pidx]['angle_res']
 
