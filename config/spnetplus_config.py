@@ -15,7 +15,7 @@ denseblock_sizes = [3, 6]
 
 project_dir = os.path.split(os.getcwd())[0]
 
-project_prefix = 'food_spnet_plus_{}{}{}'.format(
+project_prefix = 'food_spnetplus_{}{}{}'.format(
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
     '_dense' if use_densenet else '')
