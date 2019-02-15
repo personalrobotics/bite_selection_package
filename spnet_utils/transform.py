@@ -9,9 +9,6 @@ import torch
 
 from PIL import Image, ImageDraw
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import config
-
 
 def resize(img, loc, rot, size):
     w, h = img.size
@@ -34,19 +31,19 @@ def resize(img, loc, rot, size):
     return img, loc, rot
 
 
-def random_flip_w_mask(img, bmask, rmask):
+def random_flip_w_mask(img, bmask, rmask, angle_res):
     if random.random() < 0.33:
         img = img.transpose(Image.FLIP_LEFT_RIGHT)
         mask_size = int(np.sqrt(len(bmask)))
         bmask = bmask.view(mask_size, mask_size).flip(1).view(-1)
         rmask = rmask.view(mask_size, mask_size).flip(1).view(-1)
-        rmask[rmask >= 2] = config.angle_res + 2 - rmask[rmask >= 2]
+        rmask[rmask >= 2] = angle_res + 2 - rmask[rmask >= 2]
     elif random.random() < 0.66:
         img = img.transpose(Image.FLIP_TOP_BOTTOM)
         mask_size = int(np.sqrt(len(bmask)))
         bmask = bmask.view(mask_size, mask_size).flip(0).view(-1)
         rmask = rmask.view(mask_size, mask_size).flip(0).view(-1)
-        rmask[rmask >= 2] = config.angle_res + 2 - rmask[rmask >= 2]
+        rmask[rmask >= 2] = angle_res + 2 - rmask[rmask >= 2]
     return img, bmask, rmask
 
 

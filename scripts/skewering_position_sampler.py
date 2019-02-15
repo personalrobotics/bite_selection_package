@@ -13,12 +13,12 @@ import shutil
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions_c6',
-                 bbox_base_dir='../data/bounding_boxes_c6/'):
+                 base_dir='../data/skewering_positions_general',
+                 bbox_base_dir='../data/bounding_boxes_general/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
 
-        project_prefix = 'food_c6'
+        project_prefix = 'food_general'
 
         self.bbox_ann_dir = os.path.join(
                 self.bbox_base_dir, 'annotations/xmls')
@@ -38,27 +38,29 @@ class SPSampler(object):
         self.is_clicked = False
 
         if project_prefix.endswith('c6'):
-            samplable_objs = [\
-                'cantaloupe', 'carrot', 'celery', 'melon', 'strawberry']
+            self.samplable = {
+                'cantaloupe', 'carrot', 'celery', 'melon', 'strawberry'}
         elif project_prefix.endswith('c7'):
-            samplable_objs = [\
+            self.samplable = {
                 'banana', 'cantaloupe', 'carrot',
-                'celery', 'egg', 'strawberry']
+                'celery', 'egg', 'strawberry'}
         elif project_prefix.endswith('c9'):
-            samplable_objs = [\
+            self.samplable = {
                 'banana', 'cantaloupe', 'carrot',
                 'celery', 'egg', 'strawberry',
-                'grape_green', 'grape_purple']
+                'grape_green', 'grape_purple'}
+        elif project_prefix.endswith('general'):
+            self.samplable = {
+                'red_grapes', 'grapes', 'cherry_tomatoes', 'broccoli',
+                'cauliflower', 'honeydew', 'banana', 'kiwi',
+                'strawberry', 'cantaloupe', 'carrots', 'celeries',
+                'apples', 'bell_pepper'}
         else:
-            samplable_objs = [
+            self.samplable = [
                 'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
                 'broccoli', 'cantalope', 'carrot', 'cauliflower', 'celery',
                 'cherry_tomato', 'egg', 'grape_purple', 'grape_green',
                 'melon', 'strawberry']
-
-        self.samplable = dict()
-        for obj_name in samplable_objs:
-            self.samplable[obj_name] = True
 
         self.check_dirs()
 
@@ -109,14 +111,14 @@ class SPSampler(object):
                 continue
             xml_file_path = os.path.join(self.bbox_ann_dir, xml_filename)
             img_file_path = os.path.join(
-                self.bbox_img_dir, xml_filename[:-4] + '.jpg')
+                self.bbox_img_dir, xml_filename[:-4] + '.png')
 
             img = cv2.imread(img_file_path)
 
             print('[{}/{}] {}'.format(
                 xidx + 1, len(xml_filenames), xml_file_path))
 
-            this_ann_line = xml_filename[:-4] + '.jpg'
+            this_ann_line = xml_filename[:-4] + '.png'
 
             num_boxes = 0
             bboxes = dict()

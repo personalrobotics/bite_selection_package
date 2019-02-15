@@ -15,7 +15,7 @@ from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import config
+from config import spnet_config as config
 
 
 class PyQtSampler(QMainWindow):

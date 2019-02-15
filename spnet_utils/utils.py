@@ -11,9 +11,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import config
-
 
 def load_label_map(label_map_filename):
     with open(label_map_filename, 'r') as f:
@@ -39,7 +36,12 @@ def load_label_map(label_map_filename):
     return label_dict
 
 
-def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
+def get_spnetplus_accuracy():
+    return 0
+
+
+def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets,
+                 angle_res, use_rotation=True, use_rot_alt=False):
     bmask_precision = 0
     bmask_recall = 0
 
@@ -67,8 +69,8 @@ def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
         bmask_f1_score = (2 * (bmask_precision * bmask_recall) /
                           (bmask_precision + bmask_recall))
 
-    if config.use_rotation:
-        if config.use_rot_alt:
+    if use_rotation:
+        if use_rot_alt:
             positives = np.logical_and(pred_labels == 1, true_labels == 1)
 
             rp = rmask_preds.data.cpu().numpy().flatten()
@@ -80,7 +82,7 @@ def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
             if len(rp_tp) == 0:
                 rmask_dist = -1
             else:
-                rmask_dist = abs(rp_tp - rt_tp) * 180 / config.angle_res
+                rmask_dist = abs(rp_tp - rt_tp) * 180 / angle_res
                 rmask_dist[rmask_dist >= 90] -= 180
                 rmask_dist = np.mean(np.abs(rmask_dist))
 
@@ -103,7 +105,7 @@ def get_accuracy(bmask_preds, bmask_targets, rmask_preds, rmask_targets):
             else:
                 rp_tp -= 1
                 rt_tp -= 1
-                rmask_dist = abs(rp_tp - rt_tp) * 180 / config.angle_res
+                rmask_dist = abs(rp_tp - rt_tp) * 180 / angle_res
                 rmask_dist[rmask_dist >= 90] -= 180
                 rmask_dist = np.mean(np.abs(rmask_dist))
 
