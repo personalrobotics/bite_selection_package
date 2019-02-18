@@ -19,27 +19,32 @@ from config import spnetplus_config as config
 class SPNetPlusDataset(data.Dataset):
     def __init__(self,
                  img_dir=config.img_dir,
+                 depth_dir=config.depth_dir,
                  ann_dir=config.ann_dir,
                  list_filepath=None,
+                 ann_filenames=None,
                  success_rate_map_path=config.success_rate_map_path,
                  train=True,
                  transform=None,
                  img_res=config.img_res):
-        assert list_filepath, 'invalid list_filepath'
-        with open(list_filepath, 'r') as f_list:
-            ann_filenames = list(map(str.strip, f_list.readlines()))
+        if ann_filenames is None:
+            assert list_filepath, 'invalid list_filepath'
+            with open(list_filepath, 'r') as f_list:
+                ann_filenames = list(map(str.strip, f_list.readlines()))
         assert ann_filenames and len(ann_filenames) > 0, 'invalid annotations'
 
         self.lfp = list_filepath
         self.afn = ann_filenames
 
         self.img_dir = img_dir
+        self.depth_dir = depth_dir
         self.ann_dir = ann_dir
         self.train = train
         self.transform = transform
         self.img_res = img_res
 
         self.img_filepaths = list()
+        self.depth_filepaths = list()
         self.success_rates = list()
         self.end_points = list()
 
@@ -56,9 +61,13 @@ class SPNetPlusDataset(data.Dataset):
         for ann_filename in ann_filenames:
             ann_filepath = os.path.join(self.ann_dir, ann_filename)
 
-            img_filename = ann_filename[:-4] + '.jpg'
+            img_filename = ann_filename[:-4] + '.png'
             img_filepath = os.path.join(self.img_dir, img_filename)
             if not os.path.exists(img_filepath):
+                continue
+
+            depth_filepath = os.path.join(self.depth_dir, img_filename)
+            if not os.path.exists(depth_filepath):
                 continue
 
             with open(ann_filepath, 'r') as f_ann:
@@ -72,22 +81,27 @@ class SPNetPlusDataset(data.Dataset):
             if p1[0] > p2[0]:
                 p1, p2 = p2, p1
 
+            sidx = 1 if ann_filename.startswith('sample') else 2
             food_identity = '_'.join(
-                ann_filename.split('.')[0].split('+')[-1].split('_')[2:-1])
+                ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
 
             self.img_filepaths.append(img_filepath)
+            self.depth_filepaths.append(depth_filepath)
             self.success_rates.append(self.success_rate_map[food_identity])
             self.end_points.append((p1, p2))
             self.num_samples += 1
 
     def __getitem__(self, idx):
-        img_filepath = self.img_filepaths[idx]
-        img_org = Image.open(img_filepath)
-        if img_org.mode != 'RGB':
-            img_org = img_org.convert('RGB')
+        if config.use_depth:
+            image_mode = 'F'
+            img_filepath = self.depth_filepaths[idx]
+        else:
+            image_mode = 'RGB'
+            img_filepath = self.img_filepaths[idx]
 
-        this_end_points = self.end_points[idx]
-        this_success_rates = self.success_rates[idx]
+        img_org = Image.open(img_filepath)
+        if config.use_rgb and img_org.mode != image_mode:
+            img_org = img_org.convert(image_mode)
 
         target_size = self.img_res
         ratio = float(target_size / max(img_org.size))
@@ -96,8 +110,11 @@ class SPNetPlusDataset(data.Dataset):
                 (target_size - new_size[1]) // 2]
         img_org = img_org.resize(new_size, Image.ANTIALIAS)
 
-        img = Image.new('RGB', (target_size, target_size))
+        img = Image.new(image_mode, (target_size, target_size))
         img.paste(img_org, pads)
+
+        this_end_points = self.end_points[idx]
+        this_success_rates = self.success_rates[idx]
 
         gt_vector = list()
         gt_vector.extend(this_end_points[0])

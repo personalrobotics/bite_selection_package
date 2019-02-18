@@ -24,9 +24,12 @@ class SPSampler(object):
                 self.bbox_base_dir, 'annotations/xmls')
         self.bbox_img_dir = os.path.join(
                 self.bbox_base_dir, 'images')
+        self.bbox_depth_dir = os.path.join(
+                self.bbox_base_dir, 'depth')
 
         self.ann_dir = os.path.join(self.base_dir, 'annotations')
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
+        self.depth_dir = os.path.join(self.base_dir, 'cropped_depth')
 
         self.label_map_path = '../data/{}_label_map.pbtxt'.format(project_prefix)
 
@@ -73,6 +76,8 @@ class SPSampler(object):
             os.makedirs(self.ann_dir)
         if not os.path.exists(self.img_dir):
             os.makedirs(self.img_dir)
+        if not os.path.exists(self.depth_dir):
+            os.makedirs(self.depth_dir)
 
     def load_label_map(self):
         with open(self.label_map_path, 'r') as f:
@@ -107,13 +112,20 @@ class SPSampler(object):
         for xidx, xml_filename in enumerate(xml_filenames):
             if not xml_filename.endswith('.xml'):
                 continue
-            if xml_filename.startswith('sample'):
-                continue
+            # if xml_filename.startswith('sample'):
+            #     continue
             xml_file_path = os.path.join(self.bbox_ann_dir, xml_filename)
             img_file_path = os.path.join(
                 self.bbox_img_dir, xml_filename[:-4] + '.png')
+            depth_file_path = os.path.join(
+                self.bbox_depth_dir, xml_filename[:-4] + '.png')
 
             img = cv2.imread(img_file_path)
+            if img is None:
+                continue
+            depth = cv2.imread(depth_file_path, flags=cv2.CV_16UC1)
+            if depth is None:
+                continue
 
             print('[{}/{}] {}'.format(
                 xidx + 1, len(xml_filenames), xml_file_path))
@@ -128,6 +140,8 @@ class SPSampler(object):
                 if node.tag == 'object':
                     obj_name = node.find('name').text
                     if obj_name not in self.samplable:
+                        continue
+                    if node.find('bndbox') is None:
                         continue
                     xmin = int(node.find('bndbox').find('xmin').text)
                     ymin = int(node.find('bndbox').find('ymin').text)
@@ -148,12 +162,19 @@ class SPSampler(object):
                     xmax = min(img.shape[1], xmax + margin)
                     ymax = min(img.shape[0], ymax + margin)
                     cropped_img = img[ymin:ymax, xmin:xmax]
+                    cropped_depth = depth[ymin:ymax, xmin:xmax]
 
                     save_path = os.path.join(
-                        self.img_dir, '{0}_{1}_{2:04d}{3:04d}.jpg'.format(
+                        self.img_dir, '{0}_{1}_{2:04d}{3:04d}.png'.format(
                             xml_filename[:-4], obj_name, xmin, ymin))
                     print(save_path)
                     cv2.imwrite(save_path, cropped_img)
+
+                    save_depth_path = os.path.join(
+                        self.depth_dir, '{0}_{1}_{2:04d}{3:04d}.png'.format(
+                            xml_filename[:-4], obj_name, xmin, ymin))
+                    print(save_depth_path)
+                    cv2.imwrite(save_depth_path, cropped_depth)
 
                     mask_path = os.path.join(
                         self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(

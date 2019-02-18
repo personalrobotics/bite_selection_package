@@ -154,10 +154,14 @@ class SPNetPlus(nn.Module):
     def __init__(self):
         super(SPNetPlus, self).__init__()
 
-        input_channels = 3
+        input_channels = 0
+        if config.use_rgb:
+            input_channels += 3
+        if config.use_depth:
+            input_channels += 1
 
         self.conv_layers_top = nn.Sequential(
-            nn.Conv2d(input_channels, 8, 5, padding=2),
+            nn.Conv2d(input_channels, 8, 7, padding=3),
             nn.BatchNorm2d(8),
             nn.ReLU(),
             nn.Conv2d(8, 16, 3, padding=1),  # 144

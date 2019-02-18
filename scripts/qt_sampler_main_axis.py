@@ -67,7 +67,7 @@ class PyQtSamplerMainAxis(QMainWindow):
         filename_list = os.listdir(self.img_dir)
 
         for item in sorted(filename_list):
-            if not item.endswith('.jpg'):
+            if not item.endswith('.png'):
                 continue
 
             item_name = item.split('.')[0]
@@ -200,7 +200,7 @@ class PyQtSamplerMainAxis(QMainWindow):
         img_filename = self.img_filename_list[self.img_idx]
         self.cur_category = img_filename.split('_')[-2]
         filepath = os.path.join(
-            self.img_dir, img_filename + '.jpg')
+            self.img_dir, img_filename + '.png')
 
         self.pixmap = QPixmap(filepath)
         self.org_img_size = np.array(
