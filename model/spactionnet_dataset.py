@@ -13,10 +13,10 @@ from PIL import Image
 
 sys.path.append(os.path.split(os.getcwd())[0])
 # import spnet_utils.transform as trans
-from config import spnetplus_config as config
+from config import spactionnet_config as config
 
 
-class SPNetPlusDataset(data.Dataset):
+class SPActionNetDataset(data.Dataset):
     def __init__(self,
                  img_dir=config.img_dir,
                  depth_dir=config.depth_dir,
@@ -149,7 +149,7 @@ class SPNetPlusDataset(data.Dataset):
 
 def test():
     print('[spplusdataset] test')
-    ds = SPNetPlusDataset(
+    ds = SPActionNetDataset(
         list_filepath=config.train_list_filepath,
         train=True)
 

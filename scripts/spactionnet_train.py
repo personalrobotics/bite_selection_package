@@ -13,17 +13,17 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from model.spnetplus import SPNetPlus, DenseSPNetPlus
-from model.spnetplus_dataset import SPNetPlusDataset
-from model.spnetplus_loss import SPNetPlusLoss
-from config import spnetplus_config as config
+from model.spactionnet import SPActionNet, DenseSPActionNet
+from model.spactionnet_dataset import SPActionNetDataset
+from model.spactionnet_loss import SPActionNetLoss
+from config import spactionnet_config as config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
-def train_spnetplus():
-    print('train_spnetplus')
+def train_spactionnet():
+    print('train_spactionnet')
     print('use cuda: {}'.format(config.use_cuda))
     print('use densenet: {}'.format(config.use_densenet))
 
@@ -64,8 +64,8 @@ def train_spnetplus():
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
-    print('load SPNetPlusDataset')
-    trainset = SPNetPlusDataset(
+    print('load SPActionNetDataset')
+    trainset = SPActionNetDataset(
         list_filepath=train_list_filepath,
         train=True,
         transform=transform)
@@ -74,7 +74,7 @@ def train_spnetplus():
         shuffle=True, num_workers=8,
         collate_fn=trainset.collate_fn)
 
-    testset = SPNetPlusDataset(
+    testset = SPActionNetDataset(
         list_filepath=test_list_filepath,
         train=False,
         transform=transform)
@@ -84,9 +84,9 @@ def train_spnetplus():
         collate_fn=testset.collate_fn)
 
     if config.use_densenet:
-        spnetplus = DenseSPNetPlus()
+        spactionnet = DenseSPActionNet()
     else:
-        spnetplus = SPNetPlus()
+        spactionnet = SPActionNet()
 
     best_loss = float('inf')
     start_epoch = 0
@@ -94,17 +94,17 @@ def train_spnetplus():
     if os.path.exists(checkpoint_path):
         print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
         checkpoint = torch.load(checkpoint_path)
-        spnetplus.load_state_dict(checkpoint['net'])
+        spactionnet.load_state_dict(checkpoint['net'])
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
 
-    spnetplus = torch.nn.DataParallel(
-        spnetplus, device_ids=range(torch.cuda.device_count()))
+    spactionnet = torch.nn.DataParallel(
+        spactionnet, device_ids=range(torch.cuda.device_count()))
     if config.use_cuda:
-        spnetplus = spnetplus.cuda()
+        spactionnet = spactionnet.cuda()
 
-    criterion = SPNetPlusLoss()
-    optimizer = optim.SGD(spnetplus.parameters(), lr=1e-3,
+    criterion = SPActionNetLoss()
+    optimizer = optim.SGD(spactionnet.parameters(), lr=1e-3,
                           momentum=0.9, weight_decay=1e-4)
 
     print('training set: {}'.format(trainloader.dataset.num_samples))
@@ -113,8 +113,8 @@ def train_spnetplus():
     for epoch in range(start_epoch, start_epoch + 10000):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
-        spnetplus.train()
-        # spnetplus.module.freeze_bn()
+        spactionnet.train()
+        # spactionnet.module.freeze_bn()
         train_loss = 0
 
         total_batches = int(math.ceil(
@@ -129,7 +129,7 @@ def train_spnetplus():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spnetplus(imgs)
+            pred_vectors = spactionnet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -145,7 +145,7 @@ def train_spnetplus():
 
         # testing
         print('\nTest')
-        spnetplus.eval()
+        spactionnet.eval()
         test_loss = 0
 
         total_batches = int(math.ceil(
@@ -160,7 +160,7 @@ def train_spnetplus():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spnetplus(imgs)
+            pred_vectors = spactionnet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
 
@@ -174,7 +174,7 @@ def train_spnetplus():
 
         # save checkpoint
         state = {
-            'net': spnetplus.module.state_dict(),
+            'net': spactionnet.module.state_dict(),
             'loss': test_loss,
             'epoch': epoch, }
         if not os.path.exists(os.path.dirname(checkpoint_path)):
@@ -185,7 +185,7 @@ def train_spnetplus():
         if test_loss < best_loss:
             print('Saving best checkpoint..')
             state = {
-                'net': spnetplus.module.state_dict(),
+                'net': spactionnet.module.state_dict(),
                 'loss': test_loss,
                 'epoch': epoch, }
             if not os.path.exists(os.path.dirname(checkpoint_path_best)):
@@ -195,4 +195,4 @@ def train_spnetplus():
 
 
 if __name__ == '__main__':
-    train_spnetplus()
+    train_spactionnet()

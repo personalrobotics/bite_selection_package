@@ -10,12 +10,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import spnetplus_config as config
+from config import spactionnet_config as config
 
 
-class SPNetPlusLoss(nn.Module):
+class SPActionNetLoss(nn.Module):
     def __init__(self):
-        super(SPNetPlusLoss, self).__init__()
+        super(SPActionNetLoss, self).__init__()
         self.smooth_l1_loss = nn.SmoothL1Loss()
 
     def forward(self, pred_vector, gt_vector):

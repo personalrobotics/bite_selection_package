@@ -6,7 +6,7 @@ import os
 use_cuda = True
 gpu_id = '0'
 
-use_rgb = False
+use_rgb = True
 use_depth = not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
@@ -20,7 +20,7 @@ project_dir = os.path.split(os.getcwd())[0]
 # apples, bell_pepper
 excluded_item = 'honeydew'
 
-project_prefix = 'food_spnetplus_{}{}{}{}'.format(
+project_prefix = 'food_spactionnet_{}{}{}{}'.format(
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
     '_dense' if use_densenet else '',
