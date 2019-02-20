@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from collections import OrderedDict
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import spactionnet_config as config
+from config import spanet_config as config
 
 
 class _DenseLayer(nn.Sequential):
@@ -51,7 +51,7 @@ class _Transition(nn.Sequential):
         self.add_module('pool', nn.AvgPool2d(kernel_size=2, stride=2))
 
 
-class DenseSPActionNet(nn.Module):
+class DenseSPANet(nn.Module):
     """Densenet-BC model class, based on
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
     Args:
@@ -66,7 +66,7 @@ class DenseSPActionNet(nn.Module):
 
     def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
                  num_init_features=64, bn_size=4, drop_rate=0.2):
-        super(DenseSPActionNet, self).__init__()
+        super(DenseSPANet, self).__init__()
 
         block_config = config.denseblock_sizes
 
@@ -150,9 +150,9 @@ class DenseSPActionNet(nn.Module):
                 layer.eval()
 
 
-class SPActionNet(nn.Module):
+class SPANet(nn.Module):
     def __init__(self):
-        super(SPActionNet, self).__init__()
+        super(SPANet, self).__init__()
 
         input_channels = 0
         if config.use_rgb:
