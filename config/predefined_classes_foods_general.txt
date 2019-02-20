@@ -1,0 +1,13 @@
+apples
+banana
+bell_pepper
+broccoli
+cantaloupe
+carrots
+cauliflower
+celeries
+cherry_tomatoes
+grapes
+honeydew
+kiwi
+strawberry

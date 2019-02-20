@@ -52,7 +52,7 @@ class _Transition(nn.Sequential):
 
 
 class DenseSPNet(nn.Module):
-    r"""Densenet-BC model class, based on
+    """Densenet-BC model class, based on
     `"Densely Connected Convolutional Networks" <https://arxiv.org/pdf/1608.06993.pdf>`_
     Args:
         growth_rate (int) - how many filters to add each layer (`k` in paper)
