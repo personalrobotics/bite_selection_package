@@ -16,9 +16,9 @@ import torchvision.utils as torch_utils
 
 sys.path.append(os.path.split(os.getcwd())[0])
 from model.spnet import SPNet, DenseSPNet
-from model.spdataset import SPDataset
-from model.spnetloss import SPNetLoss
-from config import config
+from model.spnet_dataset import SPDataset
+from model.spnet_loss import SPNetLoss
+from config import spnet_config as config
 from spnet_utils.utils import get_accuracy
 
 
@@ -151,7 +151,8 @@ def train_spnet(use_cuda=True):
             train_loss += loss.data
 
             bacc, bpre, brec, bf1, rdist = get_accuracy(
-                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks,
+                config.angle_res)
             this_bacc += bacc
             this_bpre += bpre
             this_brec += brec
@@ -234,7 +235,8 @@ def train_spnet(use_cuda=True):
             test_loss += loss.data
 
             bacc, bpre, brec, bf1, rdist = get_accuracy(
-                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks)
+                pred_bmasks, gt_bmasks, pred_rmasks, gt_rmasks,
+                config.angle_res)
             this_bacc += bacc
             this_bpre += bpre
             this_brec += brec

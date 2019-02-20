@@ -15,52 +15,30 @@ from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import spnet_config as config
+from config import spnetplus_config as config
 
 
-class PyQtSampler(QMainWindow):
+class PyQtSamplerMainAxis(QMainWindow):
     def __init__(self, for_test=False):
-        super(PyQtSampler, self).__init__()
+        super(PyQtSamplerMainAxis, self).__init__()
         self.setMouseTracking(True)
 
         if for_test:
             self.base_dir = os.path.join(
                 '../samples', config.project_prefix)
         else:
-            self.base_dir = '../data/skewering_positions_c7'
+            self.base_dir = '../data/skewering_positions_general'
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()
         self.img_idx = 0
 
-        self.mask_dir = os.path.join(self.base_dir, 'masks')
+        self.ann_dir = os.path.join(self.base_dir, 'annotations')
 
-        self.category_types = {
-            "apple": 'flat',
-            "apricot": 'flat',
-            "banana": 'any',
-            "pepper": 'flat',
-            "blackberry": 'any',
-            "broccoli": 'flat',
-            "cantaloupe": 'flat',
-            "carrot": 'flat',
-            "cauliflower": 'flat',
-            "celery": 'flat',
-            "tomato": 'any',
-            "egg": 'round',
-            "grape": 'any',
-            "green": 'any',
-            "purple": 'any',
-            "melon": 'flat',
-            "strawberry": 'flat',
-            "plate": 'none', }
         self.cur_category = None
 
         self.label = None
         self.pixmap = None
-        self.grid_size = (17, 17)
-
-        self.cur_group = None
 
         self.org_img_size = None
         self.label_size = 450
@@ -74,7 +52,7 @@ class PyQtSampler(QMainWindow):
         self.shift_pressed = False
         self.ctrl_pressed = False
 
-        self.title = 'Skewering Mask Sampler'
+        self.title = 'Main Axis Sampler'
         self.left = 150
         self.top = 100
         self.width = 840
@@ -89,19 +67,16 @@ class PyQtSampler(QMainWindow):
         filename_list = os.listdir(self.img_dir)
 
         for item in sorted(filename_list):
-            if not item.endswith('.jpg'):
+            if not item.endswith('.png'):
                 continue
 
             item_name = item.split('.')[0]
-            this_category = item_name.split('_')[-2]
-            if self.category_types[this_category] == 'none':
-                continue
 
             self.img_filename_list.append(item_name)
         print('loaded {} cropped images'.format(len(self.img_filename_list)))
 
-        if not os.path.exists(self.mask_dir):
-            os.makedirs(self.mask_dir)
+        if not os.path.exists(self.ann_dir):
+            os.makedirs(self.ann_dir)
 
     def init_ui(self):
         self.setWindowTitle(self.title)
@@ -173,11 +148,11 @@ class PyQtSampler(QMainWindow):
 
     @pyqtSlot()
     def on_btn_save_click(self):
-        self.save_grid()
+        self.save_ann()
 
     @pyqtSlot()
     def on_btn_clear_click(self):
-        self.clear_grid()
+        self.clear_ann()
 
     @pyqtSlot()
     def on_btn_next_click(self):
@@ -225,7 +200,7 @@ class PyQtSampler(QMainWindow):
         img_filename = self.img_filename_list[self.img_idx]
         self.cur_category = img_filename.split('_')[-2]
         filepath = os.path.join(
-            self.img_dir, img_filename + '.jpg')
+            self.img_dir, img_filename + '.png')
 
         self.pixmap = QPixmap(filepath)
         self.org_img_size = np.array(
@@ -233,7 +208,7 @@ class PyQtSampler(QMainWindow):
         self.rescale_image()
 
         if self.label is None:
-            self.label = OverlayLabel(self, grid_size=self.grid_size)
+            self.label = OverlayLabel(self)
             self.label.setAlignment(Qt.AlignCenter)
             self.label.setFrameShape(QFrame.Panel)
             self.label.setFrameShadow(QFrame.Sunken)
@@ -243,7 +218,7 @@ class PyQtSampler(QMainWindow):
         self.label.move(self.margin, self.margin)
         self.label.resize(self.label_size, self.label_size)
 
-        self.load_grid_from_file()
+        self.load_ann_from_file()
 
         self.set_statusbar()
         self.update()
@@ -264,9 +239,9 @@ class PyQtSampler(QMainWindow):
 
     def calculate_angle(self, sp=None, ep=None):
         if sp is None:
-            sp = self.label.angle_sp
+            sp = self.label.axis_sp
         if ep is None:
-            ep = self.label.angle_ep
+            ep = self.label.axis_ep
         pdiff = sp - ep
         return np.degrees(
             np.arctan2(pdiff[0], pdiff[1])) % 180
@@ -297,120 +272,44 @@ class PyQtSampler(QMainWindow):
         self.cur_group[hv] = True
         return True
 
-    def propagate_selection(self, x, y):
-        next_steps = [
-            [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1],
-            [x + 1, y + 1], [x - 1, y - 1], [x - 1, y + 1], [x + 1, y - 1]]
-        for item in next_steps:
-            if self.add_group_item(item[0], item[1]):
-                self.propagate_selection(item[0], item[1])
-
-    def select_group(self, pos):
-        grid_idx = self.pos_to_grid_idx(pos)
-        if grid_idx is None or self.label.grid[grid_idx[0], grid_idx[1]] == -1:
-            self.clear_group()
-            return
-
-        self.add_group_item(grid_idx[0], grid_idx[1])
-        self.propagate_selection(grid_idx[0], grid_idx[1])
-
-        for k, v in sorted(self.cur_group.items()):
-            this_idx = [k // self.grid_size[0], k % self.grid_size[0]]
-            self.label.set_highlight_at(this_idx[0], this_idx[1], 1)
-
-    def clear_group(self):
-        self.label.clear_highlight()
-        self.cur_group = None
-
-    def pos_to_grid_idx(self, pos):
-        ratio_in_label = (
-            (np.array([pos.x(), pos.y()]) - self.margin) / self.label_size)
-        if np.min(ratio_in_label) < 0 or np.max(ratio_in_label) >= 1:
-            return None
-        return list(map(int, ratio_in_label * self.grid_size))
-
-    def grid_idx_to_pos(self, grid_idx):
-        return (np.asarray(grid_idx) * self.label_size / self.grid_size +
-                self.margin)
-
-    def update_grid_by_pos(self, pos, val=0, is_left=True):
-        grid_idx = self.pos_to_grid_idx(pos)
-        if grid_idx is None:
-            return
-        self.label.set_grid_at(
-            grid_idx[0], grid_idx[1],
-            val if is_left and not self.ctrl_pressed else -1)
-
-    def update_highlighted_grids(self, angle):
-        highlight = self.label.highlight
-        for ci in range(highlight.shape[0]):
-            for ri in range(highlight.shape[1]):
-                if highlight[ri, ci] == 1:
-                    if self.category_types[self.cur_category] == 'round':
-                        this_sp = self.grid_idx_to_pos([ri, ci])
-                        this_angle = self.calculate_angle(sp=this_sp)
-                        self.label.set_grid_at(ri, ci, this_angle)
-                    else:
-                        self.label.set_grid_at(ri, ci, angle)
-
-    def clear_grid(self):
-        self.label.clear_grid()
+    def clear_ann(self):
+        self.label.clear_ann()
         self.update()
 
-    def save_grid(self):
-        if not os.path.exists(self.mask_dir):
-            os.makedirs(self.mask_dir)
-        img_name = self.img_filename_list[self.img_idx]
-        mask_filename = os.path.join(
-            self.mask_dir, img_name) + '.txt'
-
-        grid = self.label.grid
-        with open(mask_filename, 'w') as f:
-            for ci in range(grid.shape[1]):
-                for ri in range(grid.shape[0]):
-                    f.write('{0:.1f}'.format(grid[ri, ci]))
-                    if ri + 1 < grid.shape[1]:
-                        f.write(',')
-                f.write('\n')
-            f.close()
-            print('saved: {}'.format(mask_filename))
-
-    def resize_grid(self, grid, new_size):
-        nw, nh = new_size
-        ow, oh = grid.shape
-        assert ow == 17 and oh == 17, 'input is not in original resolution'
-
-        new_grid = np.zeros(new_size)
-        for wi in range(new_size[0]):
-            for hi in range(new_size[1]):
-                new_grid[wi, hi] = grid[
-                    int((wi + 0.5) / nw * ow),
-                    int((hi + 0.5) / nh * oh)]
-        return new_grid
-
-    def load_grid_from_file(self):
-        img_name = self.img_filename_list[self.img_idx]
-        mask_filename = os.path.join(
-            self.mask_dir, img_name) + '.txt'
-
-        self.clear_grid()
-        if not os.path.exists(mask_filename):
+    def save_ann(self):
+        if (self.label.axis_sp is None or len(self.label.axis_sp) == 0 or
+                self.label.axis_ep is None or len(self.label.axis_ep) == 0):
             return
 
-        new_grid = list()
-        with open(mask_filename, 'r') as f:
-            lines = f.readlines()
-            for line in lines:
-                items = line.split(',')
-                new_row = list()
-                for item in items:
-                    new_row.append(float(item.strip()))
-                new_grid.append(new_row)
-            f.close()
+        if not os.path.exists(self.ann_dir):
+            os.makedirs(self.ann_dir)
+        img_name = self.img_filename_list[self.img_idx]
+        ann_filename = os.path.join(
+            self.ann_dir, img_name) + '.txt'
 
-        new_grid = np.asarray(new_grid).transpose()
-        new_grid = self.resize_grid(new_grid, self.grid_size)
-        self.label.grid = new_grid
+        with open(ann_filename, 'w') as f:
+            this_sp = (np.array(self.label.axis_sp) - self.margin) / self.label_size
+            this_ep = (np.array(self.label.axis_ep) - self.margin) / self.label_size
+
+            f.write('{0:.3f} {1:.3f} {2:.3f} {3:.3f}\n'.format(
+                *this_sp, *this_ep))
+            f.close()
+            print('saved: {}'.format(ann_filename))
+
+    def load_ann_from_file(self):
+        img_name = self.img_filename_list[self.img_idx]
+        ann_filename = os.path.join(
+            self.ann_dir, img_name) + '.txt'
+
+        self.clear_ann()
+        if not os.path.exists(ann_filename):
+            return
+
+        with open(ann_filename, 'r') as f:
+            points = np.array(list(map(float, f.read().strip().split())))
+            self.label.axis_sp = points[:2] * self.label_size + self.margin
+            self.label.axis_ep = points[2:] * self.label_size + self.margin
+            f.close()
 
     def show_shortcuts(self, show=True):
         if show:
@@ -429,11 +328,11 @@ class PyQtSampler(QMainWindow):
         if event.key() == Qt.Key_A:
             self.show_prev_image()
         elif event.key() == Qt.Key_S:
-            self.save_grid()
+            self.save_ann()
         elif event.key() == Qt.Key_C:
-            self.clear_grid()
+            self.clear_ann()
         elif event.key() == Qt.Key_D:
-            self.save_grid()
+            self.save_ann()
             self.show_next_image()
         elif event.key() == Qt.Key_Alt:
             self.show_shortcuts()
@@ -465,106 +364,55 @@ class PyQtSampler(QMainWindow):
     # override
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            if self.shift_pressed:
-                self.label.set_angle_ep(
-                    event.pos().x() - self.margin,
-                    event.pos().y() - self.margin)
-                angle = self.calculate_angle()
-                if angle == 0:
-                    angle = 0.1
-                self.update_highlighted_grids(angle)
-                self.set_statusbar('angle: {0:.3f}'.format(angle))
-            else:
-                self.update_grid_by_pos(event.pos(), is_left=True)
+            self.label.set_axis_ep(
+                event.pos().x() - self.margin,
+                event.pos().y() - self.margin)
             self.update()
         elif event.buttons() == Qt.RightButton:
-            self.update_grid_by_pos(event.pos(), is_left=False)
+            self.label.set_axis_ep(
+                event.pos().x() - self.margin,
+                event.pos().y() - self.margin)
             self.update()
 
     # override
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            if self.shift_pressed:
-                self.label.set_angle_sp(
-                    event.pos().x() - self.margin,
-                    event.pos().y() - self.margin,
-                    angle_type=self.category_types[self.cur_category])
-                self.select_group(event.pos())
-            else:
-                self.update_grid_by_pos(event.pos(), is_left=True)
+            self.label.set_axis_sp(
+                event.pos().x() - self.margin,
+                event.pos().y() - self.margin)
         elif event.buttons() == Qt.RightButton:
-            self.update_grid_by_pos(event.pos(), is_left=False)
+            self.label.set_axis_sp(
+                event.pos().x() - self.margin,
+                event.pos().y() - self.margin)
         self.update()
 
     # override
     def mouseReleaseEvent(self, event):
-        if self.label.angle_sp is not None and self.label.angle_ep is not None:
-            angle = self.calculate_angle()
-            print('angle for this group: {}'.format(angle))
-
-        self.clear_group()
-        self.label.angle_sp = None
-        self.label.angle_ep = None
-        self.set_statusbar()
+        self.label.set_axis_ep(
+            event.pos().x() - self.margin,
+            event.pos().y() - self.margin)
         self.update()
 
 
 class OverlayLabel(QLabel):
-    def __init__(self, parent=None, grid_size=(17, 17)):
+    def __init__(self, parent=None):
         super(OverlayLabel, self).__init__(parent=parent)
-        self.grid_size = grid_size
-        self.grid = None
-        self.highlight = None
-        self.angle_sp = None
-        self.angle_ep = None
-        self.angle_type = 'flat'
+        self.axis_sp = None
+        self.axis_ep = None
 
-    def init_grid(self):
-        self.grid = np.ones(self.grid_size, dtype=np.float) * -1
+    def clear_ann(self):
+        self.axis_sp = None
+        self.axis_ep = None
 
-    def set_grid_at(self, x, y, v=0.):
-        self.grid[x, y] = v
+    def set_axis_sp(self, x, y):
+        self.axis_sp = np.array([x, y])
 
-    def clear_grid(self):
-        if self.grid is None:
-            self.init_grid()
-        else:
-            self.grid[:] = -1
-
-    def init_highlight(self):
-        self.highlight = np.zeros(self.grid_size, dtype=np.int32)
-
-    def set_highlight_at(self, x, y, v=1):
-        self.highlight[x, y] = v
-
-    def clear_highlight(self):
-        if self.highlight is None:
-            self.init_highlight()
-        else:
-            self.highlight[:] = 0
-
-    def set_angle_sp(self, x, y, angle_type='flat'):
-        self.angle_sp = np.array([x, y])
-        self.angle_type = angle_type
-
-    def clear_angle_sp(self):
-        self.angle_sp = None
-
-    def set_angle_ep(self, x, y):
-        self.angle_ep = np.array([x, y])
-
-    def clear_angle_ep(self):
-        self.angle_ep = None
+    def set_axis_ep(self, x, y):
+        self.axis_ep = np.array([x, y])
 
     # override
     def paintEvent(self, event):
         super().paintEvent(event)
-
-        if self.grid is None:
-            self.init_grid()
-
-        if self.highlight is None:
-            self.init_highlight()
 
         painter = QPainter(self)
 
@@ -594,75 +442,34 @@ class OverlayLabel(QLabel):
         painter.setPen(pen)
         painter.setRenderHint(QPainter.Antialiasing, False)
 
-        grid_w = self.width() / self.grid.shape[0]
-        grid_h = self.height() / self.grid.shape[1]
-
-        # draw grid lines
-        for wi in range(1, self.grid.shape[0]):
-            painter.drawLine(
-                grid_w * wi, 0,
-                grid_w * wi, self.width())
-
-        for hi in range(1, self.grid.shape[1]):
-            painter.drawLine(
-                0, grid_h * hi,
-                self.height(), grid_h * hi)
-
-        painter.setRenderHint(QPainter.Antialiasing, False)
-
-        rho = min(grid_w, grid_h) * 0.3
-        for wi in range(self.grid.shape[0]):
-            for hi in range(self.grid.shape[1]):
-                grid_val = self.grid[wi, hi]
-                if grid_val > -1:
-                    # draw selected grid and highlight
-                    painter.setPen(Qt.NoPen)
-                    if self.highlight[wi, hi] == 1:
-                        painter.setBrush(brush_hl)
-                    else:
-                        painter.setBrush(brush)
-
-                    painter.drawRect(
-                        grid_w * wi + 1, grid_h * hi + 1,
-                        grid_w - 1, grid_h - 1)
-
-                    # draw saved angles
-                    painter.setPen(pen_ang_grid)
-                    painter.setBrush(Qt.NoBrush)
-
-                    grid_cp = np.array([
-                        grid_w * wi + grid_w * 0.5,
-                        grid_h * hi + grid_h * 0.5])
-                    gdiff = np.array([
-                        np.sin(np.radians(grid_val)),
-                        np.cos(np.radians(grid_val))]) * rho
-                    grid_angle_sp = grid_cp - gdiff
-                    grid_angle_ep = grid_cp + gdiff
-                    painter.drawLine(
-                        grid_angle_sp[0], grid_angle_sp[1],
-                        grid_angle_ep[0], grid_angle_ep[1])
-
-        if self.angle_sp is not None and self.angle_ep is not None:
+        if (self.axis_sp is not None and len(self.axis_sp) > 0 and
+                self.axis_ep is not None and len(self.axis_ep) > 0):
             painter.setBrush(Qt.NoBrush)
             painter.setPen(pen_ang)
             painter.setRenderHint(QPainter.Antialiasing, True)
 
-            if self.angle_type != 'round':
-                popp = self.angle_sp + (self.angle_sp - self.angle_ep)
-                painter.drawLine(
-                    popp[0], popp[1],
-                    self.angle_ep[0], self.angle_ep[1])
+            painter.drawLine(
+                self.axis_sp[0], self.axis_sp[1],
+                self.axis_ep[0], self.axis_ep[1])
 
+            ch_len = 5
             painter.setPen(pen_ang_ch)
             painter.drawLine(
-                self.angle_ep[0] - rho, self.angle_ep[1],
-                self.angle_ep[0] + rho, self.angle_ep[1])
+                self.axis_sp[0] - ch_len, self.axis_sp[1],
+                self.axis_sp[0] + ch_len, self.axis_sp[1])
             painter.drawLine(
-                self.angle_ep[0], self.angle_ep[1] - rho,
-                self.angle_ep[0], self.angle_ep[1] + rho)
+                self.axis_sp[0], self.axis_sp[1] - ch_len,
+                self.axis_sp[0], self.axis_sp[1] + ch_len)
+
+            painter.drawLine(
+                self.axis_ep[0] - ch_len, self.axis_ep[1],
+                self.axis_ep[0] + ch_len, self.axis_ep[1])
+            painter.drawLine(
+                self.axis_ep[0], self.axis_ep[1] - ch_len,
+                self.axis_ep[0], self.axis_ep[1] + ch_len)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = PyQtSampler()
+    ex = PyQtSamplerMainAxis()
     sys.exit(app.exec_())

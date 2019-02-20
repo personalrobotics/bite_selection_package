@@ -17,9 +17,9 @@ import torchvision.utils as torch_utils
 
 sys.path.append(os.path.split(os.getcwd())[0])
 from model.spnet import SPNet, DenseSPNet
-from model.spdataset import SPDataset
-from model.spnetloss import SPNetLoss
-from config import config
+from model.spnet_dataset import SPDataset
+from model.spnet_loss import SPNetLoss
+from config import spnet_config as config
 from spnet_utils.utils import get_accuracy
 
 
