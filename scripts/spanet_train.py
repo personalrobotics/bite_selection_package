@@ -13,17 +13,17 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from model.spactionnet import SPActionNet
-from model.spactionnet_dataset import SPActionNetDataset
-from model.spactionnet_loss import SPActionNetLoss
-from config import spactionnet_config as config
+from model.spanet import SPANet, DenseSPANet
+from model.spanet_dataset import SPANetDataset
+from model.spanet_loss import SPANetLoss
+from config import spanet_config as config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
-def train_spactionnet():
-    print('train_spactionnet')
+def train_spanet():
+    print('train_spanet')
     print('use cuda: {}'.format(config.use_cuda))
     print('use densenet: {}'.format(config.use_densenet))
 
@@ -66,8 +66,8 @@ def train_spactionnet():
 
     exp_mode = 'full' if config.excluded_item is None else 'exclude'
 
-    print('load SPActionNetDataset')
-    trainset = SPActionNetDataset(
+    print('load SPANetDataset')
+    trainset = SPANetDataset(
         list_filepath=train_list_filepath,
         train=True,
         exp_mode=exp_mode,
@@ -77,7 +77,7 @@ def train_spactionnet():
         shuffle=True, num_workers=8,
         collate_fn=trainset.collate_fn)
 
-    testset = SPActionNetDataset(
+    testset = SPANetDataset(
         list_filepath=test_list_filepath,
         train=False,
         exp_mode=exp_mode,
@@ -88,9 +88,9 @@ def train_spactionnet():
         collate_fn=testset.collate_fn)
 
     if config.use_densenet:
-        spactionnet = DenseSPActionNet()
+        spanet = DenseSPANet()
     else:
-        spactionnet = SPActionNet()
+        spanet = SPANet()
 
     best_loss = float('inf')
     start_epoch = 0
@@ -98,17 +98,17 @@ def train_spactionnet():
     if os.path.exists(checkpoint_path):
         print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
         checkpoint = torch.load(checkpoint_path)
-        spactionnet.load_state_dict(checkpoint['net'])
+        spanet.load_state_dict(checkpoint['net'])
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
 
-    spactionnet = torch.nn.DataParallel(
-        spactionnet, device_ids=range(torch.cuda.device_count()))
+    spanet = torch.nn.DataParallel(
+        spanet, device_ids=range(torch.cuda.device_count()))
     if config.use_cuda:
-        spactionnet = spactionnet.cuda()
+        spanet = spanet.cuda()
 
-    criterion = SPActionNetLoss()
-    optimizer = optim.SGD(spactionnet.parameters(), lr=1e-3,
+    criterion = SPANetLoss()
+    optimizer = optim.SGD(spanet.parameters(), lr=1e-3,
                           momentum=0.9, weight_decay=1e-4)
 
     print('training set: {}'.format(trainloader.dataset.num_samples))
@@ -117,8 +117,8 @@ def train_spactionnet():
     for epoch in range(start_epoch, start_epoch + 10000):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
-        spactionnet.train()
-        # spactionnet.module.freeze_bn()
+        spanet.train()
+        # spanet.module.freeze_bn()
         train_loss = 0
 
         total_batches = int(math.ceil(
@@ -133,7 +133,7 @@ def train_spactionnet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spactionnet(imgs)
+            pred_vectors, _ = spanet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -149,7 +149,7 @@ def train_spactionnet():
 
         # testing
         print('\nTest')
-        spactionnet.eval()
+        spanet.eval()
         test_loss = 0
 
         total_batches = int(math.ceil(
@@ -164,7 +164,7 @@ def train_spactionnet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spactionnet(imgs)
+            pred_vectors, _ = spanet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
 
@@ -178,7 +178,7 @@ def train_spactionnet():
 
         # save checkpoint
         state = {
-            'net': spactionnet.module.state_dict(),
+            'net': spanet.module.state_dict(),
             'loss': test_loss,
             'epoch': epoch, }
         if not os.path.exists(os.path.dirname(checkpoint_path)):
@@ -189,7 +189,7 @@ def train_spactionnet():
         if test_loss < best_loss:
             print('Saving best checkpoint..')
             state = {
-                'net': spactionnet.module.state_dict(),
+                'net': spanet.module.state_dict(),
                 'loss': test_loss,
                 'epoch': epoch, }
             if not os.path.exists(os.path.dirname(checkpoint_path_best)):
@@ -199,4 +199,4 @@ def train_spactionnet():
 
 
 if __name__ == '__main__':
-    train_spactionnet()
+    train_spanet()

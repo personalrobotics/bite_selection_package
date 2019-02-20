@@ -278,7 +278,7 @@ class PyQtSamplerMainAxis(QMainWindow):
 
     def save_ann(self):
         if (self.label.axis_sp is None or len(self.label.axis_sp) == 0 or
-            self.label.axis_ep is None or len(self.label.axis_ep) == 0):
+                self.label.axis_ep is None or len(self.label.axis_ep) == 0):
             return
 
         if not os.path.exists(self.ann_dir):
@@ -443,7 +443,7 @@ class OverlayLabel(QLabel):
         painter.setRenderHint(QPainter.Antialiasing, False)
 
         if (self.axis_sp is not None and len(self.axis_sp) > 0 and
-            self.axis_ep is not None and len(self.axis_ep) > 0):
+                self.axis_ep is not None and len(self.axis_ep) > 0):
             painter.setBrush(Qt.NoBrush)
             painter.setPen(pen_ang)
             painter.setRenderHint(QPainter.Antialiasing, True)

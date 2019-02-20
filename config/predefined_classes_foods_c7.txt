@@ -1,6 +1,0 @@
-banana
-cantaloupe
-carrot
-celery
-egg
-strawberry

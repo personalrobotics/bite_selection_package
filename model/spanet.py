@@ -10,12 +10,12 @@ import torch.nn.functional as F
 from collections import OrderedDict
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import spactionnet_config as config
+from config import spanet_config as config
 
 
 class SPActionNet(nn.Module):
     def __init__(self):
-        super(SPActionNet, self).__init__()
+        super(SPANet, self).__init__()
 
         input_channels = 0
         if config.use_rgb:
