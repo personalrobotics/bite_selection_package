@@ -32,6 +32,11 @@ You can also use other annotation tools. Here are some suggestions:
 * http://www.cs.toronto.edu/polyrnn/
 
 
+## Generating 2D bounding boxes in Unreal Engine
+https://github.com/personalrobotics/unrealcv
+https://github.com/personalrobotics/UnrealCV_ROS
+
+
 ## Generating skewering positions and rotations
 To generate cropped images and training and test list files for RetinaNet, run `run_skewering_position_sampler.sh` with `crop` option:
 ```
