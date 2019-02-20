@@ -10,15 +10,24 @@ use_rgb = True
 use_depth = not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
-use_densenet = False
-denseblock_sizes = [3, 6]
+use_densenet = True
+
+# Pretrained block configs:
+# densenet121 (6, 12, 24, 16)
+# densenet169 (6, 12, 32, 32)
+# densenet201 (6, 12, 48, 32)
+# densenet161 (6, 12, 36, 24)
+block_config = [6, 12, 24, 16]
 
 project_dir = os.path.split(os.getcwd())[0]
 
-# grapes, cherry_tomatoes, broccoli, cauliflower, honeydew,
-# banana, kiwi, strawberry, cantaloupe, carrots, celeries,
-# apples, bell_pepper
-excluded_item = 'honeydew'
+# apples, banana, bell_pepper, broccoli, cantaloupe, carrots, cauliflower,
+# celeries, cherry_tomatoes, grapes, honeydew, kiwi, strawberry
+
+# trained:
+# apples, bell_pepper, broccoli, cantaloupe, carrots, cherry_tomatoes,
+# grapes, honeydew
+excluded_item = 'broccoli'
 
 project_prefix = 'food_spanet_{}{}{}{}'.format(
     'rgb' if use_rgb else '',

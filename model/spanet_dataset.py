@@ -4,12 +4,13 @@ from __future__ import print_function
 import sys
 import os
 import json
+import random
 
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 sys.path.append(os.path.split(os.getcwd())[0])
 # import spnet_utils.transform as trans
@@ -25,7 +26,7 @@ class SPANetDataset(data.Dataset):
                  ann_filenames=None,
                  success_rate_map_path=config.success_rate_map_path,
                  train=True,
-                 exp_mode='exclude',
+                 exp_mode='exclude',  # 'exclude', 'test', others
                  transform=None,
                  img_res=config.img_res):
         if ann_filenames is None:
@@ -132,9 +133,12 @@ class SPANetDataset(data.Dataset):
         gt_vector = torch.Tensor(gt_vector)
 
         # Data augmentation
-        # if self.train:
-        #     img, gt_bmask, gt_rmask = trans.random_flip_w_mask(
-        #         img, gt_bmask, gt_rmask)
+        if self.train:
+            if config.use_rgb and random.random() > 0.5:
+                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
+                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
+                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
+                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
 
         if self.transform is not None:
             img = self.transform(img)

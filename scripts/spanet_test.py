@@ -135,7 +135,7 @@ def test_spanet():
             img = img.cuda()
             gt_vector = gt_vector.cuda()
 
-        pred_vector, feature_map = spactionnet(img)
+        pred_vector, feature_map = spanet(img)
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
@@ -159,6 +159,7 @@ def test_spanet():
             f_ann.write('\n')
             f_ann.close()
 
+    print(checkpoint_path_best)
     print('Average loss: {0:6.3f}'.format(
         test_loss / total_test_samples))
 
