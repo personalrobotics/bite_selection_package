@@ -33,8 +33,8 @@ You can also use other annotation tools. Here are some suggestions:
 
 
 ## Generating 2D bounding boxes in Unreal Engine
-https://github.com/personalrobotics/unrealcv
-https://github.com/personalrobotics/UnrealCV_ROS
+* https://github.com/personalrobotics/unrealcv
+* https://github.com/personalrobotics/UnrealCV_ROS
 
 
 ## Generating skewering positions and rotations
