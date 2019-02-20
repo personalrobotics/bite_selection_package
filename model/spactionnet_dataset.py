@@ -25,6 +25,7 @@ class SPActionNetDataset(data.Dataset):
                  ann_filenames=None,
                  success_rate_map_path=config.success_rate_map_path,
                  train=True,
+                 exp_mode='exclude',
                  transform=None,
                  img_res=config.img_res):
         if ann_filenames is None:
@@ -47,6 +48,7 @@ class SPActionNetDataset(data.Dataset):
         self.depth_filepaths = list()
         self.success_rates = list()
         self.end_points = list()
+        self.food_identities = list()
 
         self.num_samples = 0
 
@@ -59,6 +61,16 @@ class SPActionNetDataset(data.Dataset):
         self.success_rate_map = map_configs['success_rates']
 
         for ann_filename in ann_filenames:
+            sidx = 1 if ann_filename.startswith('sample') else 2
+            food_identity = '_'.join(
+                ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
+            if exp_mode == 'exclude':
+                if food_identity == config.excluded_item:
+                    continue
+            elif exp_mode == 'test':
+                if food_identity != config.excluded_item:
+                    continue
+
             ann_filepath = os.path.join(self.ann_dir, ann_filename)
 
             img_filename = ann_filename[:-4] + '.png'
@@ -81,14 +93,11 @@ class SPActionNetDataset(data.Dataset):
             if p1[0] > p2[0]:
                 p1, p2 = p2, p1
 
-            sidx = 1 if ann_filename.startswith('sample') else 2
-            food_identity = '_'.join(
-                ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
-
             self.img_filepaths.append(img_filepath)
             self.depth_filepaths.append(depth_filepath)
             self.success_rates.append(self.success_rate_map[food_identity])
             self.end_points.append((p1, p2))
+            self.food_identities.append(food_identity)
             self.num_samples += 1
 
     def __getitem__(self, idx):

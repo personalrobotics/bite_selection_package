@@ -4,7 +4,7 @@ import os
 
 
 use_cuda = True
-gpu_id = '0'
+gpu_id = '1'
 
 use_rgb = True
 use_depth = not use_rgb
@@ -18,7 +18,7 @@ project_dir = os.path.split(os.getcwd())[0]
 # grapes, cherry_tomatoes, broccoli, cauliflower, honeydew,
 # banana, kiwi, strawberry, cantaloupe, carrots, celeries,
 # apples, bell_pepper
-excluded_item = 'honeydew'
+excluded_item = 'broccoli'
 
 project_prefix = 'food_spactionnet_{}{}{}{}'.format(
     'rgb' if use_rgb else '',

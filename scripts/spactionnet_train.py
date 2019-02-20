@@ -13,7 +13,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from model.spactionnet import SPActionNet, DenseSPActionNet
+from model.spactionnet import SPActionNet
 from model.spactionnet_dataset import SPActionNetDataset
 from model.spactionnet_loss import SPActionNetLoss
 from config import spactionnet_config as config
@@ -48,26 +48,29 @@ def train_spactionnet():
     checkpoint_path = config.checkpoint_filename
     checkpoint_path_best = config.checkpoint_best_filename
 
-    sample_dir_name = os.path.join('samples', config.project_prefix)
-    sample_dir = os.path.join(
-        config.project_dir, sample_dir_name)
+    # sample_dir_name = os.path.join('samples', config.project_prefix)
+    # sample_dir = os.path.join(
+    #     config.project_dir, sample_dir_name)
 
-    sample_img_dir = os.path.join(sample_dir, 'cropped_images')
-    sample_ann_dir = os.path.join(sample_dir, 'masks')
-    if os.path.exists(sample_dir):
-        shutil.rmtree(sample_dir)
-    os.makedirs(sample_dir)
-    os.makedirs(sample_img_dir)
-    os.makedirs(sample_ann_dir)
+    # sample_img_dir = os.path.join(sample_dir, 'cropped_images')
+    # sample_ann_dir = os.path.join(sample_dir, 'masks')
+    # if os.path.exists(sample_dir):
+    #     shutil.rmtree(sample_dir)
+    # os.makedirs(sample_dir)
+    # os.makedirs(sample_img_dir)
+    # os.makedirs(sample_ann_dir)
 
     transform = transforms.Compose([
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    exp_mode = 'full' if config.excluded_item is None else 'exclude'
+
     print('load SPActionNetDataset')
     trainset = SPActionNetDataset(
         list_filepath=train_list_filepath,
         train=True,
+        exp_mode=exp_mode,
         transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
@@ -77,6 +80,7 @@ def train_spactionnet():
     testset = SPActionNetDataset(
         list_filepath=test_list_filepath,
         train=False,
+        exp_mode=exp_mode,
         transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
@@ -129,7 +133,7 @@ def train_spactionnet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spactionnet(imgs)
+            pred_vectors, _ = spactionnet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -160,7 +164,7 @@ def train_spactionnet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spactionnet(imgs)
+            pred_vectors, _ = spactionnet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
 
