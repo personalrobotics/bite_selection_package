@@ -4,12 +4,13 @@ from __future__ import print_function
 import sys
 import os
 import json
+import random
 
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 sys.path.append(os.path.split(os.getcwd())[0])
 # import spnet_utils.transform as trans
@@ -25,6 +26,7 @@ class SPANetDataset(data.Dataset):
                  ann_filenames=None,
                  success_rate_map_path=config.success_rate_map_path,
                  train=True,
+                 exp_mode='exclude',  # 'exclude', 'test', others
                  transform=None,
                  img_res=config.img_res):
         if ann_filenames is None:
@@ -47,6 +49,7 @@ class SPANetDataset(data.Dataset):
         self.depth_filepaths = list()
         self.success_rates = list()
         self.end_points = list()
+        self.food_identities = list()
 
         self.num_samples = 0
 
@@ -59,6 +62,16 @@ class SPANetDataset(data.Dataset):
         self.success_rate_map = map_configs['success_rates']
 
         for ann_filename in ann_filenames:
+            sidx = 1 if ann_filename.startswith('sample') else 2
+            food_identity = '_'.join(
+                ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
+            if exp_mode == 'exclude':
+                if food_identity == config.excluded_item:
+                    continue
+            elif exp_mode == 'test':
+                if food_identity != config.excluded_item:
+                    continue
+
             ann_filepath = os.path.join(self.ann_dir, ann_filename)
 
             img_filename = ann_filename[:-4] + '.png'
@@ -81,14 +94,11 @@ class SPANetDataset(data.Dataset):
             if p1[0] > p2[0]:
                 p1, p2 = p2, p1
 
-            sidx = 1 if ann_filename.startswith('sample') else 2
-            food_identity = '_'.join(
-                ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
-
             self.img_filepaths.append(img_filepath)
             self.depth_filepaths.append(depth_filepath)
             self.success_rates.append(self.success_rate_map[food_identity])
             self.end_points.append((p1, p2))
+            self.food_identities.append(food_identity)
             self.num_samples += 1
 
     def __getitem__(self, idx):
@@ -123,9 +133,12 @@ class SPANetDataset(data.Dataset):
         gt_vector = torch.Tensor(gt_vector)
 
         # Data augmentation
-        # if self.train:
-        #     img, gt_bmask, gt_rmask = trans.random_flip_w_mask(
-        #         img, gt_bmask, gt_rmask)
+        if self.train:
+            if config.use_rgb and random.random() > 0.5:
+                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
+                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.4, 2.5))
+                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.4, 2.0))
+                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.4, 1.5))
 
         if self.transform is not None:
             img = self.transform(img)

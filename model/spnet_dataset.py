@@ -5,11 +5,12 @@ import sys
 import os
 import numpy as np
 import pandas
+import random
 
 import torch
 import torch.utils.data as data
 
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageFilter
 
 sys.path.append(os.path.split(os.getcwd())[0])
 import spnet_utils.transform as trans
@@ -128,6 +129,11 @@ class SPDataset(data.Dataset):
         if self.train:
             img, gt_bmask, gt_rmask = trans.random_flip_w_mask(
                 img, gt_bmask, gt_rmask)
+            if random.random() > 0.5:
+                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
+                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
+                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
+                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
 
         img = self.transform(img)
         if config.use_identity:

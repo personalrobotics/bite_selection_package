@@ -40,38 +40,37 @@ def test_spanet():
     checkpoint_path_best = config.checkpoint_best_filename
 
     sample_dir_name = os.path.join('samples', config.project_prefix)
-    sample_dir = os.path.join(
-        config.project_dir, sample_dir_name)
+    sample_dir = os.path.join(config.project_dir, sample_dir_name)
 
     sample_image_dir = os.path.join(sample_dir, 'image')
+    sample_ann_dir = os.path.join(sample_dir, 'ann')
     sample_feature_dir = os.path.join(sample_dir, 'feature')
     if os.path.exists(sample_dir):
         shutil.rmtree(sample_dir)
     os.makedirs(sample_image_dir)
+    os.makedirs(sample_ann_dir)
     os.makedirs(sample_feature_dir)
 
     transform = transforms.Compose([
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    exp_mode = 'normal'
+    if config.excluded_item:
+        exp_mode = 'test'
+
     print('load SPANetDataset')
     trainset = SPANetDataset(
         list_filepath=train_list_filepath,
-        train=True,
+        train=False,
+        exp_mode=exp_mode,
         transform=transform)
-    trainloader = torch.utils.data.DataLoader(
-        trainset, batch_size=config.train_batch_size,
-        shuffle=True, num_workers=8,
-        collate_fn=trainset.collate_fn)
 
     testset = SPANetDataset(
         list_filepath=test_list_filepath,
         train=False,
+        exp_mode=exp_mode,
         transform=transform)
-    testloader = torch.utils.data.DataLoader(
-        testset, batch_size=config.test_batch_size,
-        shuffle=True, num_workers=8,
-        collate_fn=testset.collate_fn)
 
     if config.use_densenet:
         spanet = DenseSPANet()
@@ -85,77 +84,88 @@ def test_spanet():
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
 
-    spanet = torch.nn.DataParallel(
-        spanet, device_ids=range(torch.cuda.device_count()))
+    # spanet = torch.nn.DataParallel(
+    #     spanet, device_ids=range(torch.cuda.device_count()))
     if config.use_cuda:
         spanet = spanet.cuda()
 
     criterion = SPANetLoss()
 
-    print('training set: {}'.format(trainloader.dataset.num_samples))
-    print('test set: {}'.format(testloader.dataset.num_samples))
+    print('training set: {}'.format(trainset.num_samples))
+    print('test set: {}'.format(testset.num_samples))
 
-    import IPython; IPython.embed()
-    return
-
-    # training
-    print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
-    spanet.train()
-    # spanet.module.freeze_bn()
-    train_loss = 0
-
-    total_batches = int(math.ceil(
-        trainloader.dataset.num_samples / trainloader.batch_size))
-
-    for batch_idx, batch_items in enumerate(trainloader):
-        imgs = batch_items[0]
-        gt_vectors = batch_items[1]
-
-        if config.use_cuda:
-            imgs = imgs.cuda()
-            gt_vectors = gt_vectors.cuda()
-
-        optimizer.zero_grad()
-        pred_vectors = spanet(imgs)
-
-        loss = criterion(pred_vectors, gt_vectors)
-
-        train_loss += loss.data
-
-        if batch_idx % 20 == 0:
-            print('[{0}| {1:3d}/{2:3d}] train_loss: {3:6.3f} '
-                  '| avg_loss: {4:6.3f}'.format(
-                epoch, batch_idx, total_batches, loss.data,
-                train_loss / (batch_idx + 1)))
-
-    # testing
-    print('\nTest')
     spanet.eval()
+
+    total_test_samples = trainset.num_samples + testset.num_samples
     test_loss = 0
 
-    total_batches = int(math.ceil(
-        testloader.dataset.num_samples / testloader.batch_size))
-
-    for batch_idx, batch_items in enumerate(testloader):
-        imgs = batch_items[0]
-        gt_vectors = batch_items[1]
-
+    # over training set
+    for idx in range(trainset.num_samples):
+        img, gt_vector = trainset[idx]
+        img = torch.stack([img])
+        gt_vector = torch.stack([gt_vector])
         if config.use_cuda:
-            imgs = imgs.cuda()
-            gt_vectors = gt_vectors.cuda()
+            img = img.cuda()
+            gt_vector = gt_vector.cuda()
 
-        optimizer.zero_grad()
-        pred_vectors = spanet(imgs)
-
-        loss = criterion(pred_vectors, gt_vectors)
-
+        pred_vector, feature_map = spanet(img)
+        loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
-        if batch_idx % 20 == 0:
-            print('[{0}| {1:3d}/{2:3d}] test_loss: {3:6.3f} '
-                  '| avg_loss: {4:6.3f}'.format(
-                epoch, batch_idx, total_batches, loss.data,
-                test_loss / (batch_idx + 1)))
+        print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
+            idx + 1, total_test_samples, loss.data))
+        print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
+        print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
+
+        # save this sample
+        img_save_path = os.path.join(
+            sample_image_dir, 'sample_{0:04d}.png'.format(idx))
+        pil_img = transforms.ToPILImage()(img.cpu()[0])
+        pil_img.save(img_save_path)
+        ann_save_path = os.path.join(
+            sample_ann_dir, 'sample_{0:04d}.txt'.format(idx))
+        with open(ann_save_path, 'w') as f_ann:
+            f_ann.write(' '.join(list(map(
+                str, pred_vector.cpu().detach().numpy()[0, :4]))))
+            f_ann.write('\n')
+            f_ann.close()
+
+    # over test set
+    for idx in range(testset.num_samples):
+        img, gt_vector = testset[idx]
+        img = torch.stack([img])
+        gt_vector = torch.stack([gt_vector])
+        if config.use_cuda:
+            img = img.cuda()
+            gt_vector = gt_vector.cuda()
+
+        pred_vector, feature_map = spanet(img)
+        loss = criterion(pred_vector, gt_vector)
+        test_loss += loss.data
+
+        print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
+            trainset.num_samples + idx + 1, total_test_samples, loss.data))
+        print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
+        print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
+
+        # save this sample
+        img_save_path = os.path.join(
+            sample_image_dir, 'sample_{0:04d}.png'.format(
+                trainset.num_samples + idx))
+        pil_img = transforms.ToPILImage()(img.cpu()[0])
+        pil_img.save(img_save_path)
+        ann_save_path = os.path.join(
+            sample_ann_dir, 'sample_{0:04d}.txt'.format(
+                trainset.num_samples + idx))
+        with open(ann_save_path, 'w') as f_ann:
+            f_ann.write(' '.join(list(map(
+                str, pred_vector.cpu().detach().numpy()[0, :4]))))
+            f_ann.write('\n')
+            f_ann.close()
+
+    print(checkpoint_path_best)
+    print('Average loss: {0:6.3f}'.format(
+        test_loss / total_test_samples))
 
 
 if __name__ == '__main__':

@@ -64,10 +64,13 @@ def train_spanet():
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    exp_mode = 'full' if config.excluded_item is None else 'exclude'
+
     print('load SPANetDataset')
     trainset = SPANetDataset(
         list_filepath=train_list_filepath,
         train=True,
+        exp_mode=exp_mode,
         transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
@@ -77,6 +80,7 @@ def train_spanet():
     testset = SPANetDataset(
         list_filepath=test_list_filepath,
         train=False,
+        exp_mode=exp_mode,
         transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
@@ -129,7 +133,7 @@ def train_spanet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spanet(imgs)
+            pred_vectors, _ = spanet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -160,7 +164,7 @@ def train_spanet():
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors = spanet(imgs)
+            pred_vectors, _ = spanet(imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
 
@@ -182,6 +186,7 @@ def train_spanet():
         torch.save(state, checkpoint_path)
 
         test_loss /= len(testloader)
+        print('Avg test_loss: {0:.6f}'.format(test_loss))
         if test_loss < best_loss:
             print('Saving best checkpoint..')
             state = {
