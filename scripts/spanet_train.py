@@ -186,6 +186,7 @@ def train_spanet():
         torch.save(state, checkpoint_path)
 
         test_loss /= len(testloader)
+        print('Avg test_loss: {0:.6f}'.format(test_loss))
         if test_loss < best_loss:
             print('Saving best checkpoint..')
             state = {

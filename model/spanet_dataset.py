@@ -136,9 +136,9 @@ class SPANetDataset(data.Dataset):
         if self.train:
             if config.use_rgb and random.random() > 0.5:
                 img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
-                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
-                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
-                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
+                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.4, 2.5))
+                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.4, 2.0))
+                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.4, 1.5))
 
         if self.transform is not None:
             img = self.transform(img)

@@ -55,17 +55,21 @@ def test_spanet():
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    exp_mode = 'normal'
+    if config.excluded_item:
+        exp_mode = 'test'
+
     print('load SPANetDataset')
     trainset = SPANetDataset(
         list_filepath=train_list_filepath,
         train=False,
-        exp_mode='test',
+        exp_mode=exp_mode,
         transform=transform)
 
     testset = SPANetDataset(
         list_filepath=test_list_filepath,
         train=False,
-        exp_mode='test',
+        exp_mode=exp_mode,
         transform=transform)
 
     if config.use_densenet:

@@ -17,17 +17,13 @@ use_densenet = True
 # densenet169 (6, 12, 32, 32)
 # densenet201 (6, 12, 48, 32)
 # densenet161 (6, 12, 36, 24)
-block_config = [6, 12, 24, 16]
+block_config = [6, 12, 24]
 
 project_dir = os.path.split(os.getcwd())[0]
 
 # apples, banana, bell_pepper, broccoli, cantaloupe, carrots, cauliflower,
 # celeries, cherry_tomatoes, grapes, honeydew, kiwi, strawberry
-
-# trained:
-# apples, bell_pepper, broccoli, cantaloupe, carrots, cherry_tomatoes,
-# grapes, honeydew
-excluded_item = 'broccoli'
+excluded_item = None
 
 project_prefix = 'food_spanet_{}{}{}{}'.format(
     'rgb' if use_rgb else '',
@@ -40,7 +36,7 @@ img_res = 9 * 16  # 144
 # [p1_x, p1_y, p2_x, p2_y, a1, a2, a3, a4, a5, a6]
 final_vector_size = 10
 
-train_batch_size = 8
+train_batch_size = 32
 test_batch_size = 4
 
 dataset_dir = os.path.join(project_dir, 'data')
