@@ -9,8 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import config
+from ..config import config
 
 
 class SPNetLoss(nn.Module):
