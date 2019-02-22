@@ -9,7 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 
-sys.path.append(os.path.split(os.getcwd())[0])
+sys.path.append(
+    os.path.join(os.path.dirname(os.path.realpath(__file__)), '../'))
 from config import spnet_config as config
 
 
