@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from __future__ import print_function
 from __future__ import division
 
@@ -9,16 +11,17 @@ import xml.etree.ElementTree as ET
 import sys
 import random
 import shutil
+import collections
 
 
 class SPSampler(object):
     def __init__(self,
-                 base_dir='../data/skewering_positions_general',
-                 bbox_base_dir='../data/bounding_boxes_general/'):
+                 base_dir='../data/skewering_positions_all',
+                 bbox_base_dir='../data/bounding_boxes_all/'):
         self.base_dir = base_dir
         self.bbox_base_dir = bbox_base_dir
 
-        project_prefix = 'food_general'
+        project_prefix = 'food_all'
 
         self.bbox_ann_dir = os.path.join(
                 self.bbox_base_dir, 'annotations/xmls')
@@ -31,7 +34,8 @@ class SPSampler(object):
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.depth_dir = os.path.join(self.base_dir, 'cropped_depth')
 
-        self.label_map_path = '../data/{}_label_map.pbtxt'.format(project_prefix)
+        self.label_map_path = os.path.join(
+            bbox_base_dir, '{}_label_map.pbtxt'.format(project_prefix))
 
         self.listdataset = list()
         self.listdataset_train_path = '../data/{}_ann_train.txt'.format(project_prefix)
@@ -58,6 +62,37 @@ class SPSampler(object):
                 'cauliflower', 'honeydew', 'banana', 'kiwi',
                 'strawberry', 'cantaloupe', 'carrots', 'celeries',
                 'apples', 'bell_pepper'}
+        elif project_prefix.endswith('all'):
+            self.samplable = {
+                'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
+                'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
+                'honeydew', 'kiwi', 'melon', 'strawberry'}
+            self.interm_map = {
+                'apple': 'apple',
+                'apricot': None,
+                'banana': 'banana',
+                'bell_pepper': 'bell_pepper',
+                'blackberry': None,
+                'broccoli': 'broccoli',
+                'cantaloupe': 'cantaloupe',
+                'carrot': 'carrot',
+                'celery': 'celery',
+                'cherry_tomato': 'cherry_tomato',
+                'egg': None,
+                'grape_purple': 'grape',
+                'grape_green': 'grape',
+                'melon': 'melon',
+                'strawberry': 'strawberry',
+                'red_grapes': 'grape',
+                'grapes': 'grape',
+                'cherry_tomatoes': 'cherry_tomato',
+                'cauliflower': 'cauliflower',
+                'honeydew': 'honeydew',
+                'kiwi': 'kiwi',
+                'cantalope': 'cantaloupe',
+                'carrots': 'carrot',
+                'celeries': 'celery',
+                'apples': 'apple',}
         else:
             self.samplable = [
                 'apple', 'apricot', 'banana', 'bell_pepper', 'blackberry',
@@ -124,21 +159,22 @@ class SPSampler(object):
             if img is None:
                 continue
             depth = cv2.imread(depth_file_path, flags=cv2.CV_16UC1)
-            if depth is None:
-                continue
+            # if depth is None:
+            #     continue
 
             print('[{}/{}] {}'.format(
                 xidx + 1, len(xml_filenames), xml_file_path))
 
-            this_ann_line = xml_filename[:-4] + '.png'
+            # this_ann_line = xml_filename[:-4] + '.png'
 
             num_boxes = 0
-            bboxes = dict()
+            bboxes = collections.defaultdict(list)
             tree = ET.parse(xml_file_path)
             root = tree.getroot()
             for node in root:
                 if node.tag == 'object':
                     obj_name = node.find('name').text
+                    obj_name = self.interm_map[obj_name]
                     if obj_name not in self.samplable:
                         continue
                     if node.find('bndbox') is None:
@@ -161,49 +197,50 @@ class SPSampler(object):
                     ymin = max(0, ymin - margin)
                     xmax = min(img.shape[1], xmax + margin)
                     ymax = min(img.shape[0], ymax + margin)
-                    cropped_img = img[ymin:ymax, xmin:xmax]
-                    cropped_depth = depth[ymin:ymax, xmin:xmax]
 
+                    cropped_img = img[ymin:ymax, xmin:xmax]
                     save_path = os.path.join(
                         self.img_dir, '{0}_{1}_{2:04d}{3:04d}.png'.format(
                             xml_filename[:-4], obj_name, xmin, ymin))
                     print(save_path)
                     cv2.imwrite(save_path, cropped_img)
 
-                    save_depth_path = os.path.join(
-                        self.depth_dir, '{0}_{1}_{2:04d}{3:04d}.png'.format(
-                            xml_filename[:-4], obj_name, xmin, ymin))
-                    print(save_depth_path)
-                    cv2.imwrite(save_depth_path, cropped_depth)
+                    if depth is not None:
+                        cropped_depth = depth[ymin:ymax, xmin:xmax]
+                        save_depth_path = os.path.join(
+                            self.depth_dir, '{0}_{1}_{2:04d}{3:04d}.png'.format(
+                                xml_filename[:-4], obj_name, xmin, ymin))
+                        print(save_depth_path)
+                        cv2.imwrite(save_depth_path, cropped_depth)
 
-                    mask_path = os.path.join(
-                        self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
-                            xml_filename[:-4], obj_name, xmin, ymin))
-                    mask_org_path = os.path.join(
-                        self.mask_org_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
-                            xml_filename[:-4], obj_name, xmin, ymin))
-                    if os.path.exists(mask_org_path):
-                        shutil.copy(mask_org_path, mask_path)
+                    # mask_path = os.path.join(
+                    #     self.mask_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                    #         xml_filename[:-4], obj_name, xmin, ymin))
+                    # mask_org_path = os.path.join(
+                    #     self.mask_org_dir, '{0}_{1}_{2:04d}{3:04d}.txt'.format(
+                    #         xml_filename[:-4], obj_name, xmin, ymin))
+                    # if os.path.exists(mask_org_path):
+                    #     shutil.copy(mask_org_path, mask_path)
 
-                    this_ann_line += ' {} {} {} {} {} {}'.format(
-                        xmin, ymin, xmax, ymax,
-                        label_dict[obj_name], bidx)
-                    num_boxes += 1
+                    # this_ann_line += ' {} {} {} {} {} {}'.format(
+                    #     xmin, ymin, xmax, ymax,
+                    #     label_dict[obj_name], bidx)
+                    # num_boxes += 1
 
-            if num_boxes > 0:
-                self.listdataset.append(this_ann_line)
+            # if num_boxes > 0:
+            #     self.listdataset.append(this_ann_line)
 
-        random.shuffle(self.listdataset)
+        # random.shuffle(self.listdataset)
 
-        num_trainset = int(len(self.listdataset) * 0.9)
-        with open(self.listdataset_train_path, 'w') as f:
-            for idx in range(0, num_trainset):
-                f.write('{}\n'.format(self.listdataset[idx]))
-            f.close()
-        with open(self.listdataset_test_path, 'w') as f:
-            for idx in range(num_trainset, len(self.listdataset)):
-                f.write('{}\n'.format(self.listdataset[idx]))
-            f.close()
+        # num_trainset = int(len(self.listdataset) * 0.9)
+        # with open(self.listdataset_train_path, 'w') as f:
+        #     for idx in range(0, num_trainset):
+        #         f.write('{}\n'.format(self.listdataset[idx]))
+        #     f.close()
+        # with open(self.listdataset_test_path, 'w') as f:
+        #     for idx in range(num_trainset, len(self.listdataset)):
+        #         f.write('{}\n'.format(self.listdataset[idx]))
+        #     f.close()
 
         print('-- generate_cropped_images finished ------------------------\n')
 

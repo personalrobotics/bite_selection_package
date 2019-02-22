@@ -25,15 +25,6 @@ project_dir = os.path.split(os.getcwd())[0]
 # celeries, cherry_tomatoes, grapes, honeydew, kiwi, strawberry
 excluded_item = None
 
-project_keyword = 'all'
-
-project_prefix = 'food_spanet_{}_{}{}{}{}'.format(
-    project_keyword,
-    'rgb' if use_rgb else '',
-    'd' if use_depth else '',
-    '_dense' if use_densenet else '',
-    '_wo_{}'.format(excluded_item) if excluded_item else '')
-
 img_res = 9 * 16  # 144
 
 # [p1_x, p1_y, p2_x, p2_y, a1, a2, a3, a4, a5, a6]
@@ -42,23 +33,31 @@ final_vector_size = 10
 train_batch_size = 32
 test_batch_size = 4
 
+###############################################################################
+
+project_keyword = 'spanet'
+
+project_prefix = 'food_{}_{}{}{}{}'.format(
+    project_keyword,
+    'rgb' if use_rgb else '',
+    'd' if use_depth else '',
+    '_dense' if use_densenet else '',
+    '_wo_{}'.format(excluded_item) if excluded_item else '')
+
 dataset_dir = os.path.join(
     project_dir, 'data/skewering_positions_{}'.format(project_keyword))
 
-img_dir = os.path.join(
-    dataset_dir, sub_dir, 'cropped_images')
-depth_dir = os.path.join(
-    dataset_dir, sub_dir, 'cropped_depth')
-ann_dir = os.path.join(
-    dataset_dir, sub_dir, 'annotations')
+img_dir = os.path.join(dataset_dir, 'cropped_images')
+depth_dir = os.path.join(dataset_dir, 'cropped_depth')
+ann_dir = os.path.join(dataset_dir, 'annotations')
 success_rate_map_path = os.path.join(
     dataset_dir,
     'identity_to_success_rate_map_{}.json'.format(project_keyword))
 
-train_list_filepath = os.path.join(
-    dataset_dir, sub_dir, 'train.txt')
-test_list_filepath = os.path.join(
-    dataset_dir, sub_dir, 'test.txt')
+train_list_filepath = os.path.join(dataset_dir, 'train.txt')
+test_list_filepath = os.path.join(dataset_dir, 'test.txt')
+
+###############################################################################
 
 pretrained_dir = os.path.join(project_dir, 'pretrained')
 pretrained_filename = os.path.join(
