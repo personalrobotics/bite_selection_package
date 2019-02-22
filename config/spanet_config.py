@@ -7,10 +7,10 @@ use_cuda = True
 gpu_id = '0'
 
 use_rgb = True
-use_depth = not use_rgb
+use_depth = False  # not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
-use_densenet = True
+use_densenet = False
 
 # Pretrained block configs:
 # densenet121 (6, 12, 24, 16)
@@ -25,7 +25,10 @@ project_dir = os.path.split(os.getcwd())[0]
 # celeries, cherry_tomatoes, grapes, honeydew, kiwi, strawberry
 excluded_item = None
 
-project_prefix = 'food_spanet_{}{}{}{}'.format(
+project_keyword = 'all'
+
+project_prefix = 'food_spanet_{}_{}{}{}{}'.format(
+    project_keyword,
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
     '_dense' if use_densenet else '',
@@ -39,11 +42,9 @@ final_vector_size = 10
 train_batch_size = 32
 test_batch_size = 4
 
-dataset_dir = os.path.join(project_dir, 'data')
-sub_dir = 'skewering_positions_general'
+dataset_dir = os.path.join(
+    project_dir, 'data/skewering_positions_{}'.format(project_keyword))
 
-label_map_filename = os.path.join(
-    dataset_dir, 'food_general_label_map.pbtxt')
 img_dir = os.path.join(
     dataset_dir, sub_dir, 'cropped_images')
 depth_dir = os.path.join(
@@ -51,7 +52,8 @@ depth_dir = os.path.join(
 ann_dir = os.path.join(
     dataset_dir, sub_dir, 'annotations')
 success_rate_map_path = os.path.join(
-    dataset_dir, 'identity_to_success_rate_map.json')
+    dataset_dir,
+    'identity_to_success_rate_map_{}.json'.format(project_keyword))
 
 train_list_filepath = os.path.join(
     dataset_dir, sub_dir, 'train.txt')
