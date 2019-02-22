@@ -10,7 +10,7 @@ import torch.nn.functional as F
 from collections import OrderedDict
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import config
+from config import spnet_config as config
 
 
 class _DenseLayer(nn.Sequential):
@@ -64,36 +64,20 @@ class DenseSPNet(nn.Module):
         num_classes (int) - number of classification classes
     """
 
-    def __init__(self, growth_rate=32, block_config=(6, 12, 24, 16),
+    def __init__(self, growth_rate=32, block_config=config.block_config,
                  num_init_features=64, bn_size=4, drop_rate=0.2):
         super(DenseSPNet, self).__init__()
 
-        if config.use_identity:
-            input_channels = 4
-        else:
-            input_channels = 3
+        input_channels = 3
 
-        if config.denseblock_version == 2:
-            num_init_features = 32
-            # First convolution
-            self.features = nn.Sequential(OrderedDict([
-                ('conv0', nn.Conv2d(input_channels, num_init_features,
-                    kernel_size=3, padding=1)),
-                ('norm0', nn.BatchNorm2d(num_init_features)),
-                ('relu0', nn.ReLU(inplace=True)),
-                ('pool0', nn.MaxPool2d(2)),
-            ]))
-            block_config = [3, 6, 6]
-        else:
-            # First convolution
-            self.features = nn.Sequential(OrderedDict([
-                ('conv0', nn.Conv2d(input_channels, num_init_features,
-                    kernel_size=7, stride=2, padding=3, bias=False)),
-                ('norm0', nn.BatchNorm2d(num_init_features)),
-                ('relu0', nn.ReLU(inplace=True)),
-                ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
-            ]))
-            block_config = config.denseblock_sizes
+        # First convolution
+        self.features = nn.Sequential(OrderedDict([
+            ('conv0', nn.Conv2d(input_channels, num_init_features,
+                kernel_size=7, stride=2, padding=3, bias=False)),
+            ('norm0', nn.BatchNorm2d(num_init_features)),
+            ('relu0', nn.ReLU(inplace=True)),
+            ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
+        ]))
 
         # Each denseblock
         num_features = num_init_features
@@ -122,34 +106,16 @@ class DenseSPNet(nn.Module):
             ('6', nn.Conv2d(self.mask_ch, 1, 1, padding=0)),
         ]))
 
-        if config.use_rot_alt:
-            self.final_layers_rot = nn.Sequential(OrderedDict([
-                ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('1', nn.ReLU()),
-                ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('3', nn.ReLU()),
-                ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('5', nn.ReLU()),
-                ('d', nn.Dropout(p=0.2)),
-                ('6', nn.Conv2d(self.mask_ch, 1, 1, padding=0)),
-            ]))
-        else:
-            self.final_layers_rot = nn.Sequential(OrderedDict([
-                ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('1', nn.ReLU()),
-                ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('3', nn.ReLU()),
-                ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
-                ('5', nn.ReLU()),
-                ('d', nn.Dropout(p=0.2)),
-                ('6', nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0)),
-            ]))
-
-        # Final batch norm
-        # self.features.add_module('norm5', nn.BatchNorm2d(num_features))
-
-        # Linear layer
-        # self.classifier = nn.Linear(num_features, num_classes)
+        self.final_layers_rot = nn.Sequential(OrderedDict([
+            ('0', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('1', nn.ReLU()),
+            ('2', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('3', nn.ReLU()),
+            ('4', nn.Conv2d(self.mask_ch, self.mask_ch, 3, padding=1)),
+            ('5', nn.ReLU()),
+            ('d', nn.Dropout(p=0.2)),
+            ('6', nn.Conv2d(self.mask_ch, config.angle_res + 1, 1, padding=0)),
+        ]))
 
         # Official init from torch repo.
         for m in self.modules():
@@ -164,8 +130,6 @@ class DenseSPNet(nn.Module):
     def forward(self, x):
         features = self.features(x)
         out = F.relu(features, inplace=True)
-        # out = F.avg_pool2d(out, kernel_size=7, stride=1).view(features.size(0), -1)
-        # out = self.classifier(out)
 
         out = F.relu(self.final_conv(out))
         out = F.dropout(out, p=0.4, training=self.training)
@@ -176,12 +140,8 @@ class DenseSPNet(nn.Module):
             out.size(0), config.mask_size ** 2)
 
         rmask = self.final_layers_rot(out)
-        if config.use_rot_alt:
-            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-                out.size(0), config.mask_size ** 2)
-        else:
-            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-                out.size(0), config.mask_size ** 2, config.angle_res + 1)
+        rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+            out.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
 
@@ -196,26 +156,20 @@ class SPNet(nn.Module):
     def __init__(self):
         super(SPNet, self).__init__()
 
-        if config.use_identity:
-            input_channels = 4
-        else:
-            input_channels = 3
+        input_channels = 3
 
         self.conv_layers_top = nn.Sequential(
             nn.Conv2d(input_channels, 8, 3, padding=1),
             nn.BatchNorm2d(8),
             nn.ReLU(),
-
             nn.Conv2d(8, 16, 3, padding=1),
             nn.BatchNorm2d(16),
             nn.MaxPool2d(2),
             nn.ReLU(),
-
             nn.Conv2d(16, 32, 3, padding=1),
             nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
             nn.ReLU(),
-
             nn.Conv2d(32, 64, 3, padding=1),
             nn.BatchNorm2d(64),
             nn.MaxPool2d(2),
@@ -237,26 +191,15 @@ class SPNet(nn.Module):
             nn.Conv2d(64, 1, 1, padding=0),
         )
 
-        if config.use_rot_alt:
-            self.final_layers_rot = nn.Sequential(
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, 1, 1, padding=0),
-            )
-        else:
-            self.final_layers_rot = nn.Sequential(
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, 64, 3, padding=1),
-                nn.ReLU(),
-                nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
-            )
+        self.final_layers_rot = nn.Sequential(
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, config.angle_res + 1, 1, padding=0),
+        )
 
     def forward(self, x):
         x = self.conv_layers_top(x)
@@ -271,12 +214,8 @@ class SPNet(nn.Module):
             x.size(0), config.mask_size ** 2)
 
         rmask = self.final_layers_rot(x)
-        if config.use_rot_alt:
-            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-                x.size(0), config.mask_size ** 2)
-        else:
-            rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
-                x.size(0), config.mask_size ** 2, config.angle_res + 1)
+        rmask = rmask.permute(0, 2, 3, 1).contiguous().view(
+            x.size(0), config.mask_size ** 2, config.angle_res + 1)
 
         return bmask, rmask
 
