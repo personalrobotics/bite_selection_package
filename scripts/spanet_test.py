@@ -101,14 +101,16 @@ def test_spanet():
 
     # over training set
     for idx in range(trainset.num_samples):
-        img, gt_vector = trainset[idx]
-        img = torch.stack([img])
+        rgb, depth, gt_vector = trainset[idx]
+        rgb = torch.stack([rgb]) if rgb is not None else None
+        depth = torch.stack([depth]) if depth is not None else None
         gt_vector = torch.stack([gt_vector])
         if config.use_cuda:
-            img = img.cuda()
+            rgb = rgb.cuda() if rgb is not None else None
+            depth = depth.cuda() if depth is not None else None
             gt_vector = gt_vector.cuda()
 
-        pred_vector, feature_map = spanet(img)
+        pred_vector, feature_map = spanet(rgb, depth)
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
@@ -116,11 +118,13 @@ def test_spanet():
             idx + 1, total_test_samples, loss.data))
         print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
         print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
+        print('')
 
         # save this sample
+        sample_img = rgb if rgb is not None else depth
         img_save_path = os.path.join(
             sample_image_dir, 'sample_{0:04d}.png'.format(idx))
-        pil_img = transforms.ToPILImage()(img.cpu()[0])
+        pil_img = transforms.ToPILImage()(sample_img.cpu()[0])
         pil_img.save(img_save_path)
         ann_save_path = os.path.join(
             sample_ann_dir, 'sample_{0:04d}.txt'.format(idx))
@@ -132,14 +136,16 @@ def test_spanet():
 
     # over test set
     for idx in range(testset.num_samples):
-        img, gt_vector = testset[idx]
-        img = torch.stack([img])
+        rgb, depth, gt_vector = testset[idx]
+        rgb = torch.stack([rgb]) if rgb is not None else None
+        depth = torch.stack([depth]) if depth is not None else None
         gt_vector = torch.stack([gt_vector])
         if config.use_cuda:
-            img = img.cuda()
+            rgb = rgb.cuda() if rgb is not None else None
+            depth = depth.cuda() if depth is not None else None
             gt_vector = gt_vector.cuda()
 
-        pred_vector, feature_map = spanet(img)
+        pred_vector, feature_map = spanet(rgb, depth)
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
@@ -147,12 +153,14 @@ def test_spanet():
             trainset.num_samples + idx + 1, total_test_samples, loss.data))
         print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
         print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
+        print('')
 
         # save this sample
+        sample_img = rgb if rgb is not None else depth
         img_save_path = os.path.join(
             sample_image_dir, 'sample_{0:04d}.png'.format(
                 trainset.num_samples + idx))
-        pil_img = transforms.ToPILImage()(img.cpu()[0])
+        pil_img = transforms.ToPILImage()(sample_img.cpu()[0])
         pil_img.save(img_save_path)
         ann_save_path = os.path.join(
             sample_ann_dir, 'sample_{0:04d}.txt'.format(

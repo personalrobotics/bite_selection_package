@@ -80,7 +80,7 @@ class SPANetDataset(data.Dataset):
                 continue
 
             depth_filepath = os.path.join(self.depth_dir, img_filename)
-            if not os.path.exists(depth_filepath):
+            if config.use_depth and not os.path.exists(depth_filepath):
                 continue
 
             with open(ann_filepath, 'r') as f_ann:
@@ -101,18 +101,7 @@ class SPANetDataset(data.Dataset):
             self.food_identities.append(food_identity)
             self.num_samples += 1
 
-    def __getitem__(self, idx):
-        if config.use_depth:
-            image_mode = 'F'
-            img_filepath = self.depth_filepaths[idx]
-        else:
-            image_mode = 'RGB'
-            img_filepath = self.img_filepaths[idx]
-
-        img_org = Image.open(img_filepath)
-        if config.use_rgb and img_org.mode != image_mode:
-            img_org = img_org.convert(image_mode)
-
+    def resize_img(self, img_org, image_mode='RGB'):
         target_size = self.img_res
         ratio = float(target_size / max(img_org.size))
         new_size = tuple([int(x * ratio) for x in img_org.size])
@@ -122,6 +111,22 @@ class SPANetDataset(data.Dataset):
 
         img = Image.new(image_mode, (target_size, target_size))
         img.paste(img_org, pads)
+        return img
+
+    def __getitem__(self, idx):
+        depth_img, rgb_img = None, None
+        if config.use_depth:
+            depth_filepath = self.depth_filepaths[idx]
+            depth_img = Image.open(depth_filepath)
+            if depth_img.mode != 'F':
+                depth_img = depth_img.convert('F')
+            depth_img = self.resize_img(depth_img, 'F')
+        if config.use_rgb:
+            rgb_filepath = self.img_filepaths[idx]
+            rgb_img = Image.open(rgb_filepath)
+            if rgb_img.mode != 'RGB':
+                rgb_img = rgb_img.convert('RGB')
+            rgb_img = self.resize_img(rgb_img, 'RGB')
 
         this_end_points = self.end_points[idx]
         this_success_rates = self.success_rates[idx]
@@ -135,26 +140,35 @@ class SPANetDataset(data.Dataset):
         # Data augmentation
         if self.train:
             if config.use_rgb and random.random() > 0.5:
-                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
-                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.4, 2.5))
-                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.4, 2.0))
-                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.4, 1.5))
+                rgb_img = ImageEnhance.Color(rgb_img).enhance(
+                    random.uniform(0, 1))
+                rgb_img = ImageEnhance.Brightness(rgb_img).enhance(
+                    random.uniform(0.4, 2.5))
+                rgb_img = ImageEnhance.Contrast(rgb_img).enhance(
+                    random.uniform(0.4, 2.0))
+                rgb_img = ImageEnhance.Sharpness(rgb_img).enhance(
+                    random.uniform(0.4, 1.5))
 
-        if self.transform is not None:
-            img = self.transform(img)
-        else:
-            temp_transform = transforms.Compose([
+        if self.transform is None:
+            self.transform = transforms.Compose([
                 transforms.ToTensor()])
-            img = temp_transform(img)
+        if config.use_rgb:
+            rgb_img = self.transform(rgb_img)
+        if config.use_depth:
+            depth_img = self.transform(depth_img)
 
-        return img, gt_vector
+        return rgb_img, depth_img, gt_vector
 
     def collate_fn(self, batch):
-        imgs = [x[0] for x in batch]
-        vectors = [x[1] for x in batch]
+        rgb_imgs = [x[0] for x in batch]
+        depth_imgs = [x[1] for x in batch]
+        vectors = [x[2] for x in batch]
 
-        return (torch.stack(imgs),
-                torch.stack(vectors))
+        rgb_imgs = torch.stack(rgb_imgs) if rgb_imgs[0] is not None else None
+        depth_imgs = torch.stack(depth_imgs) if depth_imgs[0] is not None else None
+        vectors = torch.stack(vectors)
+
+        return (rgb_imgs, depth_imgs, vectors)
 
     def __len__(self):
         return self.num_samples

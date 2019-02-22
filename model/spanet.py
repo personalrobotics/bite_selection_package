@@ -135,20 +135,33 @@ class SPANet(nn.Module):
     def __init__(self):
         super(SPANet, self).__init__()
 
-        input_channels = 0
-        if config.use_rgb:
-            input_channels += 3
-        if config.use_depth:
-            input_channels += 1
-
-        self.conv_layers_top = nn.Sequential(
-            nn.Conv2d(input_channels, 8, 7, padding=3),
+        self.conv_init_rgb = nn.Sequential(
+            nn.Conv2d(3, 8, 7, padding=3),
             nn.BatchNorm2d(8),
             nn.ReLU(),
             nn.Conv2d(8, 16, 3, padding=1),  # 144
             nn.BatchNorm2d(16),
             nn.MaxPool2d(2),
             nn.ReLU(),
+        )
+
+        self.conv_init_depth = nn.Sequential(
+            nn.Conv2d(1, 8, 11, padding=5),
+            nn.BatchNorm2d(8),
+            nn.ReLU(),
+            nn.Conv2d(8, 16, 3, padding=1),  # 144
+            nn.BatchNorm2d(16),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+        )
+
+        self.conv_merge = nn.Sequential(
+            nn.Conv2d(32, 16, 3, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+        )
+
+        self.conv_layers_top = nn.Sequential(
             nn.Conv2d(16, 32, 3, padding=1),  # 72
             nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
@@ -182,9 +195,20 @@ class SPANet(nn.Module):
 
         self.final = nn.Linear(n_features, config.final_vector_size)
 
-    def forward(self, x):
-        out = self.conv_layers_top(x)
+    def forward(self, rgb, depth):
+        out_rgb, out_depth = None, None
+        if config.use_rgb:
+            out_rgb = self.conv_init_rgb(rgb)
+        if config.use_depth:
+            out_depth = self.conv_init_depth(depth)
 
+        if config.use_rgb and config.use_depth:
+            merged = torch.cat((out_rgb, out_depth), 1)
+            out = self.conv_merge(merged)
+        else:
+            out = out_rgb if out_rgb is not None else out_depth
+
+        out = self.conv_layers_top(out)
         for _ in range(3):
             out = self.conv_layers_bot(out) + out
 
@@ -193,6 +217,8 @@ class SPANet(nn.Module):
         out = out.view(-1, 9 * 9 * 128)
         out = self.linear_layers(out)
         out = self.final(out)
+
+        out = out.sigmoid()
         return out, feat_map
 
     def freeze_bn(self):
