@@ -3,16 +3,13 @@
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
 import sys
 import os
-import shutil
 import math
 
 import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
-import torchvision.utils as torch_utils
 
 sys.path.append(os.path.split(os.getcwd())[0])
 from model.spnet import SPNet, DenseSPNet
@@ -25,35 +22,11 @@ from spnet_utils.utils import get_accuracy
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
-def train_spnet(use_cuda=True):
+def train_spnet(use_cuda=config.use_cuda):
     print('train_spnet')
     print('use cuda: {}'.format(use_cuda))
-    print('use identity: {}'.format(config.use_identity))
     print('use rotation: {}'.format(config.use_rotation))
-    print('use rot_alt: {}'.format(config.use_rot_alt))
     print('use densenet: {}'.format(config.use_densenet))
-
-    img_base_dir = config.cropped_img_dir
-
-    train_list = config.train_list_filename
-    test_list = config.test_list_filename
-
-    checkpoint_path = config.checkpoint_filename
-    checkpoint_path_best = config.checkpoint_best_filename
-
-    sample_dir_name = os.path.join('samples', config.project_prefix)
-    sample_dir = os.path.join(
-        config.project_dir, sample_dir_name)
-
-    img_dir = os.path.join(sample_dir, 'cropped_images')
-    ann_dir = os.path.join(sample_dir, 'masks')
-    if os.path.exists(sample_dir):
-        shutil.rmtree(sample_dir)
-    os.makedirs(sample_dir)
-    os.makedirs(img_dir)
-    os.makedirs(ann_dir)
-
-    img_size = config.cropped_img_res
 
     transform = transforms.Compose([
         transforms.ToTensor()])
@@ -90,10 +63,12 @@ def train_spnet(use_cuda=True):
         spnet = DenseSPNet()
     else:
         spnet = SPNet()
-    # print(spnet)
 
     best_loss = float('inf')
     start_epoch = 0
+
+    checkpoint_path = config.checkpoint_filename
+    checkpoint_path_best = config.checkpoint_best_filename
 
     if os.path.exists(checkpoint_path):
         print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
@@ -172,38 +147,6 @@ def train_spnet(use_cuda=True):
                     this_bf1 / (batch_idx + 1),
                     this_rdist / (batch_idx + 1)))
 
-                # # save a sample ground truth data
-                # img_path_base = os.path.join(
-                #     img_dir, 'train_{0:04d}_apple_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # mask_path_base = os.path.join(
-                #     ann_dir, 'train_{0:04d}_apple_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # sample_img_path = img_path_base + '.jpg'
-                # sample_mask_path = mask_path_base + '.txt'
-
-                # test_img = imgs[0].cpu()
-                # torch_utils.save_image(test_img[:3], sample_img_path)
-
-                # negatives = gt_bmasks[0].data.cpu().numpy() == 0
-                # rmask = gt_rmasks[0].data.cpu().numpy()
-
-                # # rmask = np.argmax(rmask, axis=1) - 1
-                # rmask -= 1
-                # rmask = rmask * 180 / config.angle_res
-                # rmask[rmask < 0] = 0
-                # rmask[negatives] = -1
-                # rmask = rmask.reshape(config.mask_size, config.mask_size)
-
-                # with open(sample_mask_path, 'w') as f:
-                #     for ri in range(config.mask_size):
-                #         for ci in range(config.mask_size):
-                #             f.write('{0:.1f}'.format(rmask[ri][ci]))
-                #             if ci < config.mask_size - 1:
-                #                 f.write(',')
-                #         f.write('\n')
-                #     f.close()
-
         # testing
         print('\nTest')
         spnet.eval()
@@ -255,36 +198,6 @@ def train_spnet(use_cuda=True):
                     this_brec / (batch_idx + 1),
                     this_bf1 / (batch_idx + 1),
                     this_rdist / (batch_idx + 1)))
-
-                # # save a sample prediction
-                # img_path_base = os.path.join(
-                #     img_dir, 'test_{0:04d}_apple_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # mask_path_base = os.path.join(
-                #     ann_dir, 'test_{0:04d}_apple_{1:04d}'.format(
-                #         epoch, batch_idx))
-                # sample_img_path = img_path_base + '.jpg'
-                # sample_mask_path = mask_path_base + '.txt'
-
-                # test_img = imgs[0].cpu()
-                # utils.save_image(test_img[:3], sample_img_path)
-
-                # negatives = pred_bmasks[0].data.cpu().numpy() < 0
-                # rmask = pred_rmasks[0].data.cpu().numpy()
-                # rmask = np.argmax(rmask, axis=1) - 1
-                # rmask = rmask * 180 / config.angle_res
-                # rmask[rmask < 0] = 0
-                # rmask[negatives] = -1
-                # rmask = rmask.reshape(config.mask_size, config.mask_size)
-
-                # with open(sample_mask_path, 'w') as f:
-                #     for ri in range(config.mask_size):
-                #         for ci in range(config.mask_size):
-                #             f.write('{0:.1f}'.format(rmask[ri][ci]))
-                #             if ci < config.mask_size - 1:
-                #                 f.write(',')
-                #         f.write('\n')
-                #     f.close()
 
         # save checkpoint
         state = {
