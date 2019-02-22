@@ -125,15 +125,17 @@ def train_spanet():
             trainloader.dataset.num_samples / trainloader.batch_size))
 
         for batch_idx, batch_items in enumerate(trainloader):
-            imgs = batch_items[0]
-            gt_vectors = batch_items[1]
+            rgb_imgs = batch_items[0]
+            depth_imgs = batch_items[1]
+            gt_vectors = batch_items[2]
 
             if config.use_cuda:
-                imgs = imgs.cuda()
+                rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
+                depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -156,15 +158,17 @@ def train_spanet():
             testloader.dataset.num_samples / testloader.batch_size))
 
         for batch_idx, batch_items in enumerate(testloader):
-            imgs = batch_items[0]
-            gt_vectors = batch_items[1]
+            rgb_imgs = batch_items[0]
+            depth_imgs = batch_items[1]
+            gt_vectors = batch_items[2]
 
             if config.use_cuda:
-                imgs = imgs.cuda()
+                rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
+                depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
 
             loss = criterion(pred_vectors, gt_vectors)
 
