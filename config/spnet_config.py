@@ -13,6 +13,9 @@ block_config = [3, 6]
 
 project_dir = os.path.split(os.getcwd())[0]
 
+# cantaloupe, carrot, celery, melon, strawberry
+excluded_item = None
+
 num_classes = 6
 mask_size = 17  # grid_shape: (17, 17)
 angle_res = 18

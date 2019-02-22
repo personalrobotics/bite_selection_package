@@ -32,28 +32,24 @@ def train_spnet(use_cuda=config.use_cuda):
         transforms.ToTensor()])
         # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
+    exp_mode = 'full' if config.excluded_item is None else 'exclude'
+
     print('load SPDataset')
     trainset = SPDataset(
-        cropped_img_dir=config.cropped_img_dir,
-        mask_dir=config.mask_dir,
         list_filename=config.train_list_filename,
-        label_map_filename=config.label_map_filename,
         train=True,
-        transform=transform,
-        cropped_img_res=config.cropped_img_res)
+        exp_mode=exp_mode,
+        transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
         collate_fn=trainset.collate_fn)
 
     testset = SPDataset(
-        cropped_img_dir=config.cropped_img_dir,
-        mask_dir=config.mask_dir,
         list_filename=config.test_list_filename,
-        label_map_filename=config.label_map_filename,
         train=False,
-        transform=transform,
-        cropped_img_res=config.cropped_img_res)
+        exp_mode=exp_mode,
+        transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
         shuffle=True, num_workers=8,
