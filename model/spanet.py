@@ -73,35 +73,35 @@ class DenseSPANet(nn.Module):
                  num_init_features=64, bn_size=4, drop_rate=0.2):
         super(DenseSPANet, self).__init__()
 
-        input_channels = 0
-        if config.use_rgb:
-            input_channels += 3
-        if config.use_depth:
-            input_channels += 1
-
         # First convolution
-        self.features = nn.Sequential(OrderedDict([
-            ('conv0', nn.Conv2d(input_channels, num_init_features,
+        self.features_rgb = nn.Sequential(OrderedDict([
+            ('conv0', nn.Conv2d(3, num_init_features,
                 kernel_size=7, stride=2, padding=3, bias=False)),
             ('norm0', nn.BatchNorm2d(num_init_features)),
             ('relu0', nn.ReLU(inplace=True)),
             ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
         ]))
+        self._feature_layers(
+            self.features_rgb, num_init_features, block_config, bn_size,
+            growth_rate, drop_rate)
 
-        # Each denseblock
-        num_features = num_init_features
-        for i, num_layers in enumerate(block_config):
-            block = _DenseBlock(num_layers=num_layers, num_input_features=num_features,
-                                bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
-            self.features.add_module('denseblock%d' % (i + 1), block)
-            num_features = num_features + num_layers * growth_rate
-            if i != len(block_config) - 1:
-                trans = _Transition(num_input_features=num_features, num_output_features=num_features // 2)
-                self.features.add_module('transition%d' % (i + 1), trans)
-                num_features = num_features // 2
+        self.features_depth = nn.Sequential(OrderedDict([
+            ('conv0', nn.Conv2d(1, num_init_features,
+                kernel_size=7, stride=2, padding=3, bias=False)),
+            ('norm0', nn.BatchNorm2d(num_init_features)),
+            ('relu0', nn.ReLU(inplace=True)),
+            ('pool0', nn.MaxPool2d(kernel_size=3, stride=2, padding=1)),
+        ]))
+        num_features = self._feature_layers(
+            self.features_depth, num_init_features, block_config, bn_size,
+            growth_rate, drop_rate)
 
-        # Final batch norm
-        self.features.add_module('norm5', nn.BatchNorm2d(num_features))
+        self.conv_merge = nn.Sequential(OrderedDict([
+            ('merge_conv', nn.Conv2d(
+                num_features * 2, num_features, 3, padding=1)),
+            ('merge_norm', nn.BatchNorm2d(num_features)),
+            ('merge_relu', nn.ReLU(inplace=True)),
+        ]))
 
         # Linear layer
         self.final = nn.Linear(num_features, config.final_vector_size)
@@ -116,11 +116,42 @@ class DenseSPANet(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.constant_(m.bias, 0)
 
-    def forward(self, x):
-        features = self.features(x)
-        out = F.relu(features, inplace=True)
+    def _feature_layers(self, features, num_features, block_config,
+                        bn_size, growth_rate, drop_rate):
+        # Each denseblock
+        for i, num_layers in enumerate(block_config):
+            block = _DenseBlock(
+                num_layers=num_layers, num_input_features=num_features,
+                bn_size=bn_size, growth_rate=growth_rate, drop_rate=drop_rate)
+            features.add_module('denseblock%d' % (i + 1), block)
+            num_features = num_features + num_layers * growth_rate
+            if i != len(block_config) - 1:
+                trans = _Transition(
+                    num_input_features=num_features,
+                    num_output_features=num_features // 2)
+                features.add_module('transition%d' % (i + 1), trans)
+                num_features = num_features // 2
+
+        # Final batch norm
+        features.add_module('norm5', nn.BatchNorm2d(num_features))
+        features.add_module('relu5', nn.ReLU(inplace=True)),
+        return num_features
+
+    def forward(self, rgb, depth):
+        out_rgb, out_depth = None, None
+        if config.use_rgb:
+            out_rgb = self.features_rgb(rgb)
+        if config.use_depth:
+            out_depth = self.features_depth(depth)
+
+        if config.use_rgb and config.use_depth:
+            merged = torch.cat((out_rgb, out_depth), 1)
+            out = self.conv_merge(merged)
+        else:
+            out = out_rgb if out_rgb is not None else out_depth
+
         feat_map = out.clone().detach()
-        out = F.adaptive_avg_pool2d(out, (1, 1)).view(features.size(0), -1)
+        out = F.adaptive_avg_pool2d(out, (1, 1)).view(out.size(0), -1)
         out = self.final(out)
         return out, feat_map
 

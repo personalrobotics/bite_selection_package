@@ -4,20 +4,20 @@ import os
 
 
 use_cuda = True
-gpu_id = '0'
+gpu_id = '1'
 
 use_rgb = True
 use_depth = False  # not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
-use_densenet = False
+use_densenet = True
 
 # Pretrained block configs:
 # densenet121 (6, 12, 24, 16)
 # densenet169 (6, 12, 32, 32)
 # densenet201 (6, 12, 48, 32)
 # densenet161 (6, 12, 36, 24)
-block_config = [6, 12, 24]
+block_config = [3, 6, 12]
 
 project_dir = os.path.split(os.getcwd())[0]
 
