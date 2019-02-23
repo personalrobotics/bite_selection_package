@@ -15,7 +15,7 @@ from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
 sys.path.append(os.path.split(os.getcwd())[0])
-from config import spnetplus_config as config
+from config import spanet_config as config
 
 
 class PyQtSamplerMainAxis(QMainWindow):
@@ -25,9 +25,9 @@ class PyQtSamplerMainAxis(QMainWindow):
 
         if for_test:
             self.base_dir = os.path.join(
-                '../samples', config.project_prefix)
+                '../samples', 'food_spanet_rgb')
         else:
-            self.base_dir = '../data/skewering_positions_general'
+            self.base_dir = '../data/skewering_positions_all'
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()

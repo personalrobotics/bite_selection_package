@@ -22,6 +22,10 @@ from config import spanet_config as config
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
+def arr2str(vec, format_str='.3f'):
+    return ' '.join(['{{0:{}}}'.format(format_str).format(x) for x in vec])
+
+
 def test_spanet():
     print('test_spanet')
     print('use cuda: {}'.format(config.use_cuda))
@@ -36,20 +40,19 @@ def test_spanet():
         print('cannot find {}'.format(train_list_filepath))
         return
 
-    checkpoint_path = config.checkpoint_filename
-    checkpoint_path_best = config.checkpoint_best_filename
-
     sample_dir_name = os.path.join('samples', config.project_prefix)
     sample_dir = os.path.join(config.project_dir, sample_dir_name)
 
-    sample_image_dir = os.path.join(sample_dir, 'image')
-    sample_ann_dir = os.path.join(sample_dir, 'ann')
+    sample_image_dir = os.path.join(sample_dir, 'cropped_images')
+    sample_ann_dir = os.path.join(sample_dir, 'annotations')
     sample_feature_dir = os.path.join(sample_dir, 'feature')
+    sample_vector_dir = os.path.join(sample_dir, 'vector')
     if os.path.exists(sample_dir):
         shutil.rmtree(sample_dir)
     os.makedirs(sample_image_dir)
     os.makedirs(sample_ann_dir)
     os.makedirs(sample_feature_dir)
+    os.makedirs(sample_vector_dir)
 
     transform = transforms.Compose([
         transforms.ToTensor()])
@@ -77,9 +80,10 @@ def test_spanet():
     else:
         spanet = SPANet()
 
+    checkpoint_path = config.checkpoint_best_filename
     if os.path.exists(checkpoint_path):
-        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path_best))
-        checkpoint = torch.load(checkpoint_path_best)
+        print('Resuming from checkpoint \"{}\"'.format(checkpoint_path))
+        checkpoint = torch.load(checkpoint_path)
         spanet.load_state_dict(checkpoint['net'])
         best_loss = checkpoint['loss']
         start_epoch = checkpoint['epoch']
@@ -96,43 +100,61 @@ def test_spanet():
 
     spanet.eval()
 
-    total_test_samples = trainset.num_samples + testset.num_samples
     test_loss = 0
 
-    # over training set
-    for idx in range(trainset.num_samples):
-        rgb, depth, gt_vector = trainset[idx]
-        rgb = torch.stack([rgb]) if rgb is not None else None
-        depth = torch.stack([depth]) if depth is not None else None
-        gt_vector = torch.stack([gt_vector])
-        if config.use_cuda:
-            rgb = rgb.cuda() if rgb is not None else None
-            depth = depth.cuda() if depth is not None else None
-            gt_vector = gt_vector.cuda()
+    total_test_samples = testset.num_samples
+    trainset_len = 0
 
-        pred_vector, feature_map = spanet(rgb, depth)
-        loss = criterion(pred_vector, gt_vector)
-        test_loss += loss.data
+    if config.excluded_item:
+        trainset_len = trainset.num_samples
+        total_test_samples += trainset_len
 
-        print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
-            idx + 1, total_test_samples, loss.data))
-        print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
-        print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
-        print('')
+        # over training set
+        for idx in range(trainset.num_samples):
+            rgb, depth, gt_vector = trainset[idx]
+            rgb = torch.stack([rgb]) if rgb is not None else None
+            depth = torch.stack([depth]) if depth is not None else None
+            gt_vector = torch.stack([gt_vector])
+            if config.use_cuda:
+                rgb = rgb.cuda() if rgb is not None else None
+                depth = depth.cuda() if depth is not None else None
+                gt_vector = gt_vector.cuda()
 
-        # save this sample
-        sample_img = rgb if rgb is not None else depth
-        img_save_path = os.path.join(
-            sample_image_dir, 'sample_{0:04d}.png'.format(idx))
-        pil_img = transforms.ToPILImage()(sample_img.cpu()[0])
-        pil_img.save(img_save_path)
-        ann_save_path = os.path.join(
-            sample_ann_dir, 'sample_{0:04d}.txt'.format(idx))
-        with open(ann_save_path, 'w') as f_ann:
-            f_ann.write(' '.join(list(map(
-                str, pred_vector.cpu().detach().numpy()[0, :4]))))
-            f_ann.write('\n')
-            f_ann.close()
+            pred_vector, feature_map = spanet(rgb, depth)
+            loss = criterion(pred_vector, gt_vector)
+            test_loss += loss.data
+
+            print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
+                idx + 1, total_test_samples, loss.data))
+            pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
+            gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
+            print(pred_vector_str)
+            print(gt_vector_str)
+            print('')
+
+            # save this sample
+            sample_img = rgb if rgb is not None else depth
+            img_save_path = os.path.join(
+                sample_image_dir, 'sample_{0:04d}.png'.format(idx))
+            pil_img = transforms.ToPILImage()(sample_img.cpu()[0])
+            pil_img.save(img_save_path)
+
+            ann_save_path = os.path.join(
+                sample_ann_dir, 'sample_{0:04d}.txt'.format(idx))
+            with open(ann_save_path, 'w') as f_ann:
+                f_ann.write(' '.join(list(map(
+                    str, pred_vector.cpu().detach().numpy()[0, :4]))))
+                f_ann.write('\n')
+                f_ann.close()
+
+            vec_save_path = os.path.join(
+                sample_vector_dir, 'sample_{0:04d}.txt'.format(idx))
+            with open(vec_save_path, 'w') as f_vec:
+                f_vec.write(pred_vector_str)
+                f_vec.write('\n')
+                f_vec.write(gt_vector_str)
+                f_vec.write('\n')
+                f_vec.close()
 
     # over test set
     for idx in range(testset.num_samples):
@@ -150,28 +172,41 @@ def test_spanet():
         test_loss += loss.data
 
         print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
-            trainset.num_samples + idx + 1, total_test_samples, loss.data))
-        print(['{0:.3f}'.format(x) for x in pred_vector.cpu().data.numpy()[0]])
-        print(['{0:.3f}'.format(x) for x in gt_vector.cpu().data.numpy()[0]])
+            trainset_len + idx + 1, total_test_samples, loss.data))
+
+        pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
+        gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
+        print(pred_vector_str)
+        print(gt_vector_str)
         print('')
 
         # save this sample
         sample_img = rgb if rgb is not None else depth
         img_save_path = os.path.join(
             sample_image_dir, 'sample_{0:04d}.png'.format(
-                trainset.num_samples + idx))
+                trainset_len + idx))
         pil_img = transforms.ToPILImage()(sample_img.cpu()[0])
         pil_img.save(img_save_path)
+
         ann_save_path = os.path.join(
             sample_ann_dir, 'sample_{0:04d}.txt'.format(
-                trainset.num_samples + idx))
+                trainset_len + idx))
         with open(ann_save_path, 'w') as f_ann:
             f_ann.write(' '.join(list(map(
                 str, pred_vector.cpu().detach().numpy()[0, :4]))))
             f_ann.write('\n')
             f_ann.close()
 
-    print(checkpoint_path_best)
+        vec_save_path = os.path.join(
+            sample_vector_dir, 'sample_{0:04d}.txt'.format(idx))
+        with open(vec_save_path, 'w') as f_vec:
+            f_vec.write(pred_vector_str)
+            f_vec.write('\n')
+            f_vec.write(gt_vector_str)
+            f_vec.write('\n')
+            f_vec.close()
+
+    print(checkpoint_path)
     print('Average loss: {0:6.3f}'.format(
         test_loss / total_test_samples))
 
