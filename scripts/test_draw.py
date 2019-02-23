@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 
 import os
+import sys
 import numpy as np
 
 from PIL import Image, ImageDraw, ImageFont
-
-
-sample_dir = '../samples/food_spanet_rgb'
-save_dir = os.path.join(sample_dir, 'visualizations')
 
 
 def draw_point(draw, point, psize, fill, width):
@@ -38,8 +35,8 @@ def draw_vectors(draw, pred, gt):
 
 
 def draw_scores(draw, img_size, margin, pred, gt):
-    fnt_title = ImageFont.truetype('Roboto-Regular.ttf', 15)
-    fnt = ImageFont.truetype('Roboto-Regular.ttf', 20)
+    fnt_title = ImageFont.truetype('../resource/Roboto-Regular.ttf', 15)
+    fnt = ImageFont.truetype('../resource/Roboto-Regular.ttf', 20)
     lr_margin = 5
     tb_margin = 3
     cell_offset = (img_size[0] - lr_margin * 2) / 7.0
@@ -112,6 +109,8 @@ def generate_visualizations():
 
     image_dir = os.path.join(sample_dir, 'cropped_images')
     vector_dir = os.path.join(sample_dir, 'vector')
+    assert os.path.isdir(image_dir), 'cannot find source image directory'
+    assert os.path.isdir(vector_dir), 'cannot find source vector directory'
 
     image_names = os.listdir(image_dir)
 
@@ -133,4 +132,13 @@ def generate_visualizations():
 
 
 if __name__ == '__main__':
+    sample_dir = '../samples/food_spanet_rgb'
+    if len(sys.argv) == 2:
+        sample_dir = sys.argv[1]
+    sample_dir = os.path.expanduser(sample_dir)
+    assert os.path.exists(sample_dir), 'cannot find the sample directory'
+
+    save_dir = os.path.join(sample_dir, 'visualizations')
+
     generate_visualizations()
+    print('finished')

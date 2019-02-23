@@ -14,8 +14,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import (
     Qt, pyqtSlot)
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import spanet_config as config
+from bite_selection_package.config import spanet_config as config
 
 
 class PyQtSamplerMainAxis(QMainWindow):

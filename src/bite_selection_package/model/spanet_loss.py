@@ -6,8 +6,7 @@ import os
 
 import torch.nn as nn
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import spanet_config as config
+from bite_selection_package.config import spanet_config as config
 
 
 class SPANetLoss(nn.Module):
