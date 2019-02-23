@@ -3,107 +3,64 @@
 import os
 
 
-presets = list()
-presets.append({
-    'gpu_id': '0',
-    'valid_denseblock_sizes_idx': 0,
-    'angle_res': 9})
-presets.append({
-    'gpu_id': '1',
-    'valid_denseblock_sizes_idx': 1,
-    'angle_res': 9})
-presets.append({
-    'gpu_id': '1',
-    'valid_denseblock_sizes_idx': 0,
-    'angle_res': 18})
-presets.append({
-    'gpu_id': '3',
-    'valid_denseblock_sizes_idx': 1,
-    'angle_res': 18})
-presets.append({
-    'gpu_id': '1',
-    'valid_denseblock_sizes_idx': 0,
-    'angle_res': 36})
-presets.append({
-    'gpu_id': '1',
-    'valid_denseblock_sizes_idx': 1,
-    'angle_res': 36})
-presets.append({
-    'gpu_id': '2',
-    'valid_denseblock_sizes_idx': 0,
-    'angle_res': 90})
-presets.append({
-    'gpu_id': '3',
-    'valid_denseblock_sizes_idx': 1,
-    'angle_res': 90})
-presets.append({
-    'gpu_id': '2',
-    'valid_denseblock_sizes_idx': 3,
-    'angle_res': 60})
+use_cuda = True
+gpu_id = '0'
 
-pidx = 2
-
-gpu_id = presets[pidx]['gpu_id']
-
-use_identity = False
 use_rotation = True
-use_rot_alt = False
-use_densenet = True
-denseblock_version = 1
 
-valid_denseblock_sizes = [[3, 6], [6, 12], [12, 12], [3, 3]]
-denseblock_sizes = valid_denseblock_sizes[
-    presets[pidx]['valid_denseblock_sizes_idx']]
+use_densenet = True
+block_config = [3, 6]
 
 project_dir = os.path.split(os.getcwd())[0]
 
+# cantaloupe, carrot, celery, melon, strawberry
+excluded_item = None
+
 num_classes = 6
 mask_size = 17  # grid_shape: (17, 17)
-angle_res = presets[pidx]['angle_res']
-
-project_prefix = 'food_spnet_c{}'.format(num_classes)
-if use_identity:
-    project_prefix += '_identity'
-if use_densenet:
-    if denseblock_version == 2:
-        project_prefix += '_dense_v2'
-    else:
-        project_prefix += '_dense_{}_{}'.format(*denseblock_sizes)
-if not use_rotation:
-    project_prefix += '_loc_only'
-else:
-    if use_rot_alt:
-        project_prefix += '_rot_alt'
-    else:
-        project_prefix += '_a_{}'.format(angle_res)
-
-###############################################################################
-# pw tests: 0.02, 0.03, 0.04, 0.05, 0.08, 0.10, 0.20, 0.30, 0.40
-p_weight = 0.08
-# gpu_id = '3'
-# project_prefix = 'food_spnet_pw_{0:02d}'.format(int(p_weight * 100))
-###############################################################################
+angle_res = 18
 
 cropped_img_res = mask_size * 8  # 136
+
+# pw tests: 0.02, 0.03, 0.04, 0.05, 0.08, 0.10, 0.20, 0.30, 0.40
+p_weight = 0.08
 
 train_batch_size = 32
 test_batch_size = 4
 
+###############################################################################
+
+project_keyword = 'spnet_all'  # 'c{}'.format(num_classes)
+
+project_prefix = 'food_{}'.format(project_keyword)
+if use_densenet:
+    project_prefix += '_dense_{}_{}'.format(*block_config)
+if use_rotation:
+    project_prefix += '_a_{}'.format(angle_res)
+else:
+    project_prefix += '_loc_only'
+
 dataset_dir = os.path.join(project_dir, 'data')
 
 label_map_filename = os.path.join(
-    dataset_dir, 'food_c{}_label_map.pbtxt'.format(num_classes))
-img_dir = os.path.join(
-    dataset_dir, 'bounding_boxes_c{}/images'.format(num_classes))
+    dataset_dir, 'bounding_boxes_{}/food_{}_label_map.pbtxt'.format(
+        project_keyword, project_keyword))
+
 cropped_img_dir = os.path.join(
-    dataset_dir, 'skewering_positions_c{}/cropped_images'.format(num_classes))
+    dataset_dir,
+    'skewering_positions_{}/cropped_images'.format(project_keyword))
 mask_dir = os.path.join(
-    dataset_dir, 'skewering_positions_c{}/masks'.format(num_classes))
+    dataset_dir,
+    'skewering_positions_{}/masks'.format(project_keyword))
 
 train_list_filename = os.path.join(
-    dataset_dir, 'food_c{}_ann_train.txt'.format(num_classes))
+    dataset_dir, 'bounding_boxes_{}/food_{}_ann_train.txt'.format(
+        project_keyword, project_keyword))
 test_list_filename = os.path.join(
-    dataset_dir, 'food_c{}_ann_test.txt'.format(num_classes))
+    dataset_dir, 'bounding_boxes_{}/food_{}_ann_test.txt'.format(
+        project_keyword, project_keyword))
+
+###############################################################################
 
 pretrained_dir = os.path.join(project_dir, 'pretrained')
 pretrained_filename = os.path.join(

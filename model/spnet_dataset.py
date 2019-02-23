@@ -12,9 +12,10 @@ import torch.utils.data as data
 
 from PIL import Image, ImageEnhance, ImageFilter
 
-import ..spnet_utils.transform as trans
-from ..spnet_utils.utils import load_label_map
-from ..config import config
+sys.path.append(os.path.split(os.getcwd())[0])
+import spnet_utils.transform as trans
+from spnet_utils.utils import load_label_map
+from config import spnet_config as config
 
 
 class SPDataset(data.Dataset):
@@ -24,6 +25,7 @@ class SPDataset(data.Dataset):
                  list_filename=config.train_list_filename,
                  label_map_filename=config.label_map_filename,
                  train=True,
+                 exp_mode='nothing',  # 'exclude', 'test', others
                  transform=None,
                  cropped_img_res=config.cropped_img_res):
 
@@ -58,6 +60,14 @@ class SPDataset(data.Dataset):
                 cls = int(splited[5 + isize * bidx])
                 cidx = splited[6 + isize * bidx]
 
+                food_identity = self.label_map[cls]
+                if exp_mode == 'exclude':
+                    if food_identity == config.excluded_item:
+                        continue
+                elif exp_mode == 'test':
+                    if food_identity != config.excluded_item:
+                        continue
+
                 cropped_filename = os.path.join(
                     self.cropped_img_dir, '{0}_{1}_{2:04d}{3:04d}.jpg'.format(
                         this_img_filename[:-4], self.label_map[cls],
@@ -87,11 +97,6 @@ class SPDataset(data.Dataset):
                 this_rmask[this_rmask > 0] /= 180 / config.angle_res
                 this_rmask = np.round(this_rmask).astype(np.long) + 1
                 this_rmask[this_rmask > config.angle_res] = 1
-
-                # this_rmask[this_rmask <= 0] = 0
-                # this_rmask = np.asarray(
-                #     this_rmask / (180 / config.angle_res), dtype=long)
-                # this_rmask[this_rmask > config.angle_res - 1] = config.angle_res - 1
 
                 self.cropped_filenames.append(cropped_filename)
                 self.labels.append(cls)
@@ -127,18 +132,18 @@ class SPDataset(data.Dataset):
         # Data augmentation
         if self.train:
             img, gt_bmask, gt_rmask = trans.random_flip_w_mask(
-                img, gt_bmask, gt_rmask)
+                img, gt_bmask, gt_rmask, config.angle_res)
             if random.random() > 0.5:
-                img = ImageEnhance.Color(img).enhance(random.uniform(0, 1))
-                img = ImageEnhance.Brightness(img).enhance(random.uniform(0.5, 2))
-                img = ImageEnhance.Contrast(img).enhance(random.uniform(0.5, 1.5))
-                img = ImageEnhance.Sharpness(img).enhance(random.uniform(0.5, 1.5))
+                img = ImageEnhance.Color(img).enhance(
+                    random.uniform(0, 1))
+                img = ImageEnhance.Brightness(img).enhance(
+                    random.uniform(0.4, 2))
+                img = ImageEnhance.Contrast(img).enhance(
+                    random.uniform(0.4, 1.5))
+                img = ImageEnhance.Sharpness(img).enhance(
+                    random.uniform(0.4, 1.5))
 
         img = self.transform(img)
-        if config.use_identity:
-            label_ch = torch.ones(target_size, target_size) * (label + 1) * 30
-            label_ch = label_ch.view(1, target_size, target_size)
-            img = torch.cat((img, label_ch), 0)
 
         return img, gt_bmask, gt_rmask
 
