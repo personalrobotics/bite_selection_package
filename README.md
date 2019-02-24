@@ -23,7 +23,7 @@ To test SPNet, please run the tutorial script, `examples/spnet_tutorial.py`:
 cd ./examples
 ./spnet_tutorial.py
 ```
-<img src="https://github.com/personalrobotics/bite_selection_package/blob/enhancement/package_structure/examples/test_result.png?raw=true" width="450">
+<img src="https://github.com/personalrobotics/bite_selection_package/blob/master/examples/test_result.png?raw=true" width="450">
 
 ## Collecting images
 To collect images for training, please check this [image collection script](https://github.com/personalrobotics/image_collector).
