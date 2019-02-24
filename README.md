@@ -75,4 +75,6 @@ cd ./bite_selection_package
 catkin build bite_selection_package
 source $(catkin locate)/devel/setup.bash
 
+cd ./examples
+./spnet_tutorial.py
 ```
