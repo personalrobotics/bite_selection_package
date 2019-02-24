@@ -65,3 +65,14 @@ We used [RetinaNet](https://github.com/personalrobotics/pytorch_retinanet) for o
 ./spnet_train.sh
 ```
 The training script will train `SPNet` with the cropped images and annotations in the directories specified in `src/bite_selection_package/config/spnet_config.py` and save its checkpoint file as `checkpoints/food_spnet_<keyword>_ckpt.pth`.
+
+### Test SPNet
+```
+cd YOUR_CATKIN_WS/src
+git clone https://github.com/personalrobotics/bite_selection_package.git
+cd ./bite_selection_package
+./load_checkpoint.sh
+catkin build bite_selection_package
+source $(catkin locate)/devel/setup.bash
+
+```
