@@ -12,4 +12,5 @@
 
   <depend>python</depend>
 
+  <exec_depend>torch</exec_depend>
 </package>

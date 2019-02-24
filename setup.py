@@ -6,5 +6,9 @@ d = generate_distutils_setup(
         'bite_selection_package'
     ],
     package_dir={'': 'src'},
+    install_requires=[
+        'torch>=0.4.1',
+        'torchvision>=0.2.1'
+    ]
 )
 setup(**d)
