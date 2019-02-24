@@ -1,8 +1,3 @@
-samples/
-checkpoint/
-data/*.*txt
-
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -113,6 +108,8 @@ venv.bak/
 
 # local_configs
 config/
-checkpoints/
+checkpoint/
 processed/
-
+samples/
+data/
+logs/

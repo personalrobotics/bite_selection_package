@@ -12,11 +12,10 @@ import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from model.spanet import SPANet, DenseSPANet
-from model.spanet_dataset import SPANetDataset
-from model.spanet_loss import SPANetLoss
-from config import spanet_config as config
+from bite_selection_package.model.spanet import SPANet, DenseSPANet
+from bite_selection_package.model.spanet_dataset import SPANetDataset
+from bite_selection_package.model.spanet_loss import SPANetLoss
+from bite_selection_package.config import spanet_config as config
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id

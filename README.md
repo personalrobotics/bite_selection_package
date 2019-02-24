@@ -1,21 +1,40 @@
 # bite_selection_package
 
 ## Dependencies
-This project uses `numpy`, `matplotlib`, `opencv`, `lxml` and `pyqt`. The setup script below will automatically install `lxml` and `pyqt`, but please check if you have `opencv` and `matplotlib` before you run skewering position sampler.
+This project uses `catkin`, `numpy`, `matplotlib`, `opencv`, `lxml` and `pyqt5`. The setup script below will automatically install `lxml` and `pyqt5`, but please check if you have `opencv` and `matplotlib` before you run skewering position sampler.
 
-This project supports Linux and MacOS. If you are using Windows, please do not use helper scripts, and setup and run each program manually.
+Labeling part of this project supports Linux and MacOS. If you are using Windows, please do not use helper scripts, and setup and run each program manually.
 
+In order to use the neural network models, SPNet or SPANet, please clone this project in the catkin workspace and build before you run training or test scripts.
+
+
+## Installation
+```
+cd YOUR_CATKIN_WS/src
+git clone https://github.com/personalrobotics/bite_selection_package.git
+cd ./bite_selection_package
+./load_checkpoint.sh
+catkin build bite_selection_package
+source $(catkin locate)/devel/setup.bash
+```
+
+To test SPNet, please run the tutorial script, `examples/spnet_tutorial.py`:
+```
+cd ./examples
+./spnet_tutorial.py
+```
+<img src="https://github.com/personalrobotics/bite_selection_package/blob/enhancement/package_structure/examples/test_result.png?raw=true" width="450">
 
 ## Collecting images
 To collect images for training, please check this [image collection script](https://github.com/personalrobotics/image_collector).
 
 
 ## Generating 2D bounding boxes by using labelImg
-To build labelImg, run `setup_labelImg.sh` with a python version (python2 or python3) you want to use. For example,
+To build labelImg, run `setup_labelImg.sh`. **Note**: Labeling tools in this project only support python3 with PyQt5. Please use caution before running this script if you are using python2 + pyqt4 on your system.
 ```
-./setup_labelImg.sh python3
+./setup_labelImg.sh
 ```
-It will install pyqt-dev-tools and python-lxml, and build labelImg.
+It will install python3-dev, python3-pip, pyqt5-dev-tools, and lxml for python3 and build labelImg.
 
 If you successfully built labelImg, you can start it by typing:
 ```
@@ -38,11 +57,18 @@ You can also use other annotation tools. Here are some suggestions:
 
 
 ## Generating skewering positions and rotations
-To generate cropped images and training and test list files for RetinaNet, run `run_skewering_position_sampler.sh` with `crop` option:
+To generate cropped images for training SPNet or SPANet, run `skewering_position_sampler`:
 ```
-./run_skewering_position_sampler.sh crop
+cd ./scripts
+./skewering_position_sampler.py <keyword>
 ```
-- `crop`: generating cropped images from images and annotations in `data/bounding_boxes`
+This script will generate cropped images from images and annotations in `data/bounding_boxes_<keyword>` and save them in `data/skewering_positions_<keyword>`.
+
+To generate mask annotations for SPNet, use `PyQtSampler`:
+```
+cd ./scripts
+./qt_sampler.py
+```
 
 
 ## RetinaNet: Object Detection Network
@@ -51,14 +77,9 @@ We used [RetinaNet](https://github.com/personalrobotics/pytorch_retinanet) for o
 
 ## SPNet: CNNs for Estimating Skewering Positions
 
-### Preprocess Skewering Dataset
-```
-./preprocess_spdataset.sh
-```
-This script will resize and pad all the images in `data/skewering_positions/` and save them in `data/processed/`.
-
 ### Training SPNet
 ```
 ./spnet_train.sh
 ```
-The training script will train `SPNet` with the cropped images and annotations in `data/processed/` and save its checkpoint file as `checkpoints/spnet_ckpt.pth`.
+The training script will train `SPNet` with the cropped images and annotations in the directories specified in `src/bite_selection_package/config/spnet_config.py` and save its checkpoint file as `checkpoints/food_spnet_<keyword>_ckpt.pth`.
+

@@ -11,12 +11,11 @@ import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from model.spnet import SPNet, DenseSPNet
-from model.spnet_dataset import SPDataset
-from model.spnet_loss import SPNetLoss
-from config import spnet_config as config
-from spnet_utils.utils import get_accuracy
+from bite_selection_package.model.spnet import SPNet, DenseSPNet
+from bite_selection_package.model.spnet_dataset import SPDataset
+from bite_selection_package.model.spnet_loss import SPNetLoss
+from bite_selection_package.config import spnet_config as config
+from bite_selection_package.utils.utils import get_accuracy
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id

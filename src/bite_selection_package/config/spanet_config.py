@@ -4,7 +4,7 @@ import os
 
 
 use_cuda = True
-gpu_id = '1'
+gpu_id = '0'
 
 use_rgb = True
 use_depth = False  # not use_rgb

@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import division
+from __future__ import absolute_import
 
 import math
 import sys
@@ -9,8 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-sys.path.append(os.path.split(os.getcwd())[0])
-from config import spnet_config as config
+from bite_selection_package.config import spnet_config as config
 
 
 class SPNetLoss(nn.Module):

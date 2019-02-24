@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bite_selection_package</name>
+  <version>0.1.0</version>
+  <description>Food manipulation project</description>
+  <license>UNRELEASED</license>
+
+  <maintainer email="yskim041@gmail.com">Youngsun Kim</maintainer>
+  <author email="yskim041@gmail.com">Youngsun Kim</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>python</depend>
+
+  <exec_depend>torch</exec_depend>
+</package>

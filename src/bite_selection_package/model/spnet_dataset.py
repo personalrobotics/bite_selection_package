@@ -1,5 +1,6 @@
 from __future__ import division
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 import os
@@ -12,10 +13,9 @@ import torch.utils.data as data
 
 from PIL import Image, ImageEnhance, ImageFilter
 
-sys.path.append(os.path.split(os.getcwd())[0])
-import spnet_utils.transform as trans
-from spnet_utils.utils import load_label_map
-from config import spnet_config as config
+import bite_selection_package.utils.transform as trans
+from bite_selection_package.utils.utils import load_label_map
+from bite_selection_package.config import spnet_config as config
 
 
 class SPDataset(data.Dataset):
