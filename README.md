@@ -8,7 +8,7 @@ Labeling part of this project supports Linux and MacOS. If you are using Windows
 In order to use the neural network models, SPNet or SPANet, please clone this project in the catkin workspace and build before you run training or test scripts.
 
 
-### Installation
+## Installation
 ```
 cd YOUR_CATKIN_WS/src
 git clone https://github.com/personalrobotics/bite_selection_package.git
