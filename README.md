@@ -1,9 +1,11 @@
 # bite_selection_package
 
 ## Dependencies
-This project uses `numpy`, `matplotlib`, `opencv`, `lxml` and `pyqt5`. The setup script below will automatically install `lxml` and `pyqt5`, but please check if you have `opencv` and `matplotlib` before you run skewering position sampler.
+This project uses `catkin`, `numpy`, `matplotlib`, `opencv`, `lxml` and `pyqt5`. The setup script below will automatically install `lxml` and `pyqt5`, but please check if you have `opencv` and `matplotlib` before you run skewering position sampler.
 
-This project supports Linux and MacOS. If you are using Windows, please do not use helper scripts, and setup and run each program manually.
+Labeling part of this project supports Linux and MacOS. If you are using Windows, please do not use helper scripts, and setup and run each program manually.
+
+In order to use the neural network models, SPNet or SPANet, please clone this project in the catkin workspace and build before you run training or test scripts.
 
 
 ## Collecting images

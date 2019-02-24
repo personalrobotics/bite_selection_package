@@ -15,7 +15,7 @@ from bite_selection_package.model.spnet import SPNet, DenseSPNet
 from bite_selection_package.model.spnet_dataset import SPDataset
 from bite_selection_package.model.spnet_loss import SPNetLoss
 from bite_selection_package.config import spnet_config as config
-from bite_selection_package.spnet_utils.utils import get_accuracy
+from bite_selection_package.utils.utils import get_accuracy
 
 
 os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
