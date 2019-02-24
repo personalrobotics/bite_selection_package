@@ -60,7 +60,7 @@ You can also use other annotation tools. Here are some suggestions:
 To generate cropped images for training SPNet or SPANet, run `skewering_position_sampler`:
 ```
 cd ./scripts
-./skewering_position_sampler.py <keyword>
+./generate_cropped_images.py <keyword>
 ```
 This script will generate cropped images from images and annotations in `data/bounding_boxes_<keyword>` and save them in `data/skewering_positions_<keyword>`.
 
