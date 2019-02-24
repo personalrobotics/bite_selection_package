@@ -13,7 +13,6 @@ import torchvision.transforms as transforms
 
 from PIL import Image, ImageEnhance, ImageFilter
 
-# import bite_selection_package.utils.transform as trans
 from bite_selection_package.config import spanet_config as config
 
 
