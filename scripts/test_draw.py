@@ -3,6 +3,8 @@
 import os
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -46,6 +48,9 @@ def draw_scores(draw, img_size, margin, pred, gt):
     pred_top = img_size[1] + vertical_offset
     gt_top = img_size[1] + vertical_offset * 2
 
+    pred_argmax = np.argmax(pred)
+    gt_argmax = np.argmax(gt)
+
     titles = ['', 'v0', 'v90', 'tv0', 'tv90', 'ta0', 'ta90']
     pred_strs = ['pred'] + list(map(str, pred))
     gt_strs = ['gt'] + list(map(str, gt))
@@ -55,14 +60,16 @@ def draw_scores(draw, img_size, margin, pred, gt):
             (col_x, title_top),
             titles[idx], font=fnt_title, fill=(15, 15, 15, 255))
         if idx > 0:
+            pred_outline = None if idx - 1 != pred_argmax else (0, 0, 0, 255)
             draw.rectangle(
                 (col_x - 7, pred_top, col_x + cell_offset - 10, pred_top + 23),
                 fill=(250, 0, 0, int(float(pred_strs[idx]) * 150)),
-                outline=None)
+                outline=pred_outline)
+            gt_outline = None if idx - 1 != gt_argmax else (0, 0, 0, 255)
             draw.rectangle(
                 (col_x - 7, gt_top, col_x + cell_offset - 10, gt_top + 23),
                 fill=(0, 250, 0, int(float(gt_strs[idx]) * 150)),
-                outline=None)
+                outline=gt_outline)
         draw.text(
             (col_x, pred_top),
             pred_strs[idx], font=fnt, fill=(0, 0, 0, 255))
@@ -71,17 +78,17 @@ def draw_scores(draw, img_size, margin, pred, gt):
             gt_strs[idx], font=fnt, fill=(0, 0, 0, 255))
 
 
-def test_draw(img_path, pred_vector, gt_vector):
+def test_draw(img_path, feature_path, pred_vector, gt_vector):
     img_org = Image.open(img_path)
     if img_org is None:
         return
-    new_size = 600
+    new_size = 500
     img_org = img_org.resize((new_size, new_size), resample=Image.BILINEAR)
 
     img_size = img_org.size
 
     margin = 80
-    img = Image.new('RGBA', (img_size[0], img_size[1] + margin),
+    img = Image.new('RGBA', (img_size[0] * 2, img_size[1] + margin),
                     color=(255, 255, 255))
 
     img.paste(img_org)
@@ -94,7 +101,29 @@ def test_draw(img_path, pred_vector, gt_vector):
 
     pred_scores = pred_vector[4:]
     gt_scores = gt_vector[4:]
-    draw_scores(draw, img_size, margin, pred_scores, gt_scores)
+    draw_scores(draw, (new_size * 2, new_size), margin,
+                pred_scores, gt_scores)
+
+    feature = np.load(feature_path)
+
+    ft_arr = np.mean(abs(feature[0]), axis=0)
+    ft_arr -= np.min(ft_arr)
+    ft_arr /= np.max(ft_arr)
+
+    cm_hot = mpl.cm.get_cmap('viridis_r')
+    ft_img = cm_hot(ft_arr)
+    ft_img = np.uint8(ft_img * 255)
+
+    ft_img = Image.fromarray(ft_img)
+    ft_img = ft_img.resize((33, 33), resample=Image.BILINEAR)
+    ft_img = ft_img.resize((new_size, new_size))
+
+    ft_img.putalpha(255)
+    img_org.putalpha(80)
+    ft_img = Image.alpha_composite(ft_img, img_org)
+    # ft_img.show()
+
+    img.paste(ft_img, (new_size, 0))
 
     del draw
 
@@ -109,8 +138,10 @@ def generate_visualizations():
 
     image_dir = os.path.join(sample_dir, 'cropped_images')
     vector_dir = os.path.join(sample_dir, 'vector')
+    feature_dir = os.path.join(sample_dir, 'feature')
     assert os.path.isdir(image_dir), 'cannot find source image directory'
     assert os.path.isdir(vector_dir), 'cannot find source vector directory'
+    assert os.path.isdir(feature_dir), 'cannot find source feature directory'
 
     image_names = os.listdir(image_dir)
 
@@ -118,6 +149,8 @@ def generate_visualizations():
         image_path = os.path.join(image_dir, image_name)
         vector_path = os.path.join(
             vector_dir, image_name[:-4] + '.txt')
+        feature_path = os.path.join(
+            feature_dir, image_name[:-4] + '.npy')
 
         with open(vector_path, 'r') as f_vec:
             lines = list(map(str.strip, f_vec.readlines()))
@@ -125,10 +158,10 @@ def generate_visualizations():
         if lines is None or len(lines) == 0:
             return
 
-        pred_vector = list(map(float, lines[0].split()))
-        gt_vector = list(map(float, lines[1].split()))
+        pred_vector = list(map(float, lines[0].replace('|', '').split()))
+        gt_vector = list(map(float, lines[1].replace('|', '').split()))
 
-        test_draw(image_path, pred_vector, gt_vector)
+        test_draw(image_path, feature_path, pred_vector, gt_vector)
 
 
 if __name__ == '__main__':
