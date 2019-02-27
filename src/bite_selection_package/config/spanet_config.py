@@ -1,16 +1,16 @@
 ''' general configurations'''
 
 import os
+import torch
 
-
-use_cuda = True
+use_cuda = torch.cuda.is_available()
 gpu_id = '0'
 
 use_rgb = True
 use_depth = False  # not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
-use_densenet = True
+use_densenet = False
 
 # Pretrained block configs:
 # densenet121 (6, 12, 24, 16)

@@ -167,56 +167,56 @@ class SPANet(nn.Module):
         super(SPANet, self).__init__()
 
         self.conv_init_rgb = nn.Sequential(
-            nn.Conv2d(3, 8, 7, padding=3),
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-            nn.Conv2d(8, 16, 3, padding=1),  # 144
+            nn.Conv2d(3, 16, 7, padding=3),
             nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1),  # 144
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_init_depth = nn.Sequential(
-            nn.Conv2d(1, 8, 11, padding=5),
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-            nn.Conv2d(8, 16, 3, padding=1),  # 144
+            nn.Conv2d(1, 16, 11, padding=5),
             nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1),  # 144
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_merge = nn.Sequential(
-            nn.Conv2d(32, 16, 3, padding=1),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(64, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
         )
 
         self.conv_layers_top = nn.Sequential(
-            nn.Conv2d(16, 32, 3, padding=1),  # 72
-            nn.BatchNorm2d(32),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, 3, padding=1),  # 36
+            nn.Conv2d(32, 64, 3, padding=1),  # 72
             nn.BatchNorm2d(64),
             nn.MaxPool2d(2),
             nn.ReLU(),
-            nn.Conv2d(64, 128, 3, padding=1),  # 18
+            nn.Conv2d(64, 128, 3, padding=1),  # 36
             nn.BatchNorm2d(128),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            nn.Conv2d(128, 256, 3, padding=1),  # 18
+            nn.BatchNorm2d(256),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_layers_bot = nn.Sequential(
-            nn.Conv2d(128, 128, 3, padding=1),  # 9
-            nn.BatchNorm2d(128),
+            nn.Conv2d(256, 256, 3, padding=1),  # 9
+            nn.BatchNorm2d(256),
             nn.ReLU(),
         )
 
-        n_features = 4096
+        n_features = 2048
 
         self.linear_layers = nn.Sequential(
-            nn.Linear(9 * 9 * 128, n_features),
+            nn.Linear(9 * 9 * 256, n_features),
             nn.BatchNorm1d(n_features),
             nn.ReLU(),
             nn.Linear(n_features, n_features),
@@ -245,7 +245,7 @@ class SPANet(nn.Module):
 
         feat_map = out.clone().detach()
 
-        out = out.view(-1, 9 * 9 * 128)
+        out = out.view(-1, 9 * 9 * 256)
         out = self.linear_layers(out)
         out = self.final(out)
 

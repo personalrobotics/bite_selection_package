@@ -1,9 +1,9 @@
 ''' general configurations'''
 
 import os
+import torch
 
-
-use_cuda = True
+use_cuda = torch.cuda.is_available()
 gpu_id = '0'
 
 use_rotation = True
