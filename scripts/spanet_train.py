@@ -131,7 +131,7 @@ def train_spanet():
     print('training set: {}'.format(trainloader.dataset.num_samples))
     print('test set: {}'.format(testloader.dataset.num_samples))
 
-    for epoch in range(start_epoch, start_epoch + 100):
+    for epoch in range(start_epoch, start_epoch + 400):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
         spanet.train()
@@ -224,8 +224,8 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
-    ap.add_argument('-e', '--exc_id', default=0, type=int,
-                    help="idx of an item to exclude")
+    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
+                    type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
     if args.gpu_id == '-1':

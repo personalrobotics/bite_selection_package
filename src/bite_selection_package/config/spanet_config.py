@@ -25,7 +25,8 @@ items = [None,
          'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
          'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
          'honeydew', 'kiwi', 'melon', 'strawberry']
-excluded_item = items[0]
+excluded_item_idx = 0
+excluded_item = items[excluded_item_idx]
 
 
 img_res = 9 * 16  # 144

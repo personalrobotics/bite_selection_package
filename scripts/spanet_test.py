@@ -260,7 +260,8 @@ def test_spanet():
             f_vec.close()
 
         feat_save_path = os.path.join(
-            sample_feature_dir, 'sample_{0:04d}.npy'.format(idx))
+            sample_feature_dir, 'sample_{0:04d}.npy'.format(
+                trainset_len + idx))
         np.save(feat_save_path, feature_map)
 
     print(checkpoint_path)
@@ -280,8 +281,8 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
-    ap.add_argument('-e', '--exc_id', default=0, type=int,
-                    help="idx of an item to exclude")
+    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
+                    type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
     if args.gpu_id == '-1':
