@@ -1,6 +1,5 @@
 from __future__ import print_function
 from __future__ import division
-from __future__ import absolute_import
 
 import sys
 import os
@@ -9,8 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
-
-from bite_selection_package.config import spanet_config as config
 
 
 class _DenseLayer(nn.Sequential):
@@ -69,9 +66,13 @@ class DenseSPANet(nn.Module):
     # densenet169 (6, 12, 32, 32)
     # densenet201 (6, 12, 48, 32)
     # densenet161 (6, 12, 36, 24)
-    def __init__(self, growth_rate=32, block_config=config.block_config,
-                 num_init_features=64, bn_size=4, drop_rate=0.2):
+    def __init__(self, growth_rate=32, block_config=[3, 6, 12],
+                 num_init_features=64, bn_size=4, drop_rate=0.2,
+                 final_vector_size=10, use_rgb=True, use_depth=False):
         super(DenseSPANet, self).__init__()
+
+        self.use_rgb = use_rgb
+        self.use_depth = use_depth
 
         # First convolution
         self.features_rgb = nn.Sequential(OrderedDict([
@@ -104,7 +105,7 @@ class DenseSPANet(nn.Module):
         ]))
 
         # Linear layer
-        self.final = nn.Linear(num_features, config.final_vector_size)
+        self.final = nn.Linear(num_features, final_vector_size)
 
         # Official init from torch repo.
         for m in self.modules():
@@ -139,12 +140,12 @@ class DenseSPANet(nn.Module):
 
     def forward(self, rgb, depth):
         out_rgb, out_depth = None, None
-        if config.use_rgb:
+        if self.use_rgb:
             out_rgb = self.features_rgb(rgb)
-        if config.use_depth:
+        if self.use_depth:
             out_depth = self.features_depth(depth)
 
-        if config.use_rgb and config.use_depth:
+        if self.use_rgb and self.use_depth:
             merged = torch.cat((out_rgb, out_depth), 1)
             out = self.conv_merge(merged)
         else:
@@ -163,60 +164,64 @@ class DenseSPANet(nn.Module):
 
 
 class SPANet(nn.Module):
-    def __init__(self):
+    def __init__(self, final_vector_size=10,
+                 use_rgb=True, use_depth=False):
         super(SPANet, self).__init__()
 
+        self.use_rgb = use_rgb
+        self.use_depth = use_depth
+
         self.conv_init_rgb = nn.Sequential(
-            nn.Conv2d(3, 8, 7, padding=3),
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-            nn.Conv2d(8, 16, 3, padding=1),  # 144
+            nn.Conv2d(3, 16, 7, padding=3),
             nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1),  # 144
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_init_depth = nn.Sequential(
-            nn.Conv2d(1, 8, 11, padding=5),
-            nn.BatchNorm2d(8),
-            nn.ReLU(),
-            nn.Conv2d(8, 16, 3, padding=1),  # 144
+            nn.Conv2d(1, 16, 11, padding=5),
             nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, 3, padding=1),  # 144
+            nn.BatchNorm2d(32),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_merge = nn.Sequential(
-            nn.Conv2d(32, 16, 3, padding=1),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(64, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
         )
 
         self.conv_layers_top = nn.Sequential(
-            nn.Conv2d(16, 32, 3, padding=1),  # 72
-            nn.BatchNorm2d(32),
-            nn.MaxPool2d(2),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, 3, padding=1),  # 36
+            nn.Conv2d(32, 64, 3, padding=1),  # 72
             nn.BatchNorm2d(64),
             nn.MaxPool2d(2),
             nn.ReLU(),
-            nn.Conv2d(64, 128, 3, padding=1),  # 18
+            nn.Conv2d(64, 128, 3, padding=1),  # 36
             nn.BatchNorm2d(128),
+            nn.MaxPool2d(2),
+            nn.ReLU(),
+            nn.Conv2d(128, 256, 3, padding=1),  # 18
+            nn.BatchNorm2d(256),
             nn.MaxPool2d(2),
             nn.ReLU(),
         )
 
         self.conv_layers_bot = nn.Sequential(
-            nn.Conv2d(128, 128, 3, padding=1),  # 9
-            nn.BatchNorm2d(128),
+            nn.Conv2d(256, 256, 3, padding=1),  # 9
+            nn.BatchNorm2d(256),
             nn.ReLU(),
         )
 
-        n_features = 4096
+        n_features = 2048
 
         self.linear_layers = nn.Sequential(
-            nn.Linear(9 * 9 * 128, n_features),
+            nn.Linear(9 * 9 * 256, n_features),
             nn.BatchNorm1d(n_features),
             nn.ReLU(),
             nn.Linear(n_features, n_features),
@@ -224,16 +229,16 @@ class SPANet(nn.Module):
             nn.ReLU(),
         )
 
-        self.final = nn.Linear(n_features, config.final_vector_size)
+        self.final = nn.Linear(n_features, final_vector_size)
 
     def forward(self, rgb, depth):
         out_rgb, out_depth = None, None
-        if config.use_rgb:
+        if self.use_rgb:
             out_rgb = self.conv_init_rgb(rgb)
-        if config.use_depth:
+        if self.use_depth:
             out_depth = self.conv_init_depth(depth)
 
-        if config.use_rgb and config.use_depth:
+        if self.use_rgb and self.use_depth:
             merged = torch.cat((out_rgb, out_depth), 1)
             out = self.conv_merge(merged)
         else:
@@ -245,7 +250,7 @@ class SPANet(nn.Module):
 
         feat_map = out.clone().detach()
 
-        out = out.view(-1, 9 * 9 * 128)
+        out = out.view(-1, 9 * 9 * 256)
         out = self.linear_layers(out)
         out = self.final(out)
 
