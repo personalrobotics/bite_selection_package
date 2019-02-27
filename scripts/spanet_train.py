@@ -94,7 +94,7 @@ def train_spanet():
         ann_dir=config.ann_dir,
         success_rate_map_path=config.success_rate_map_path,
         img_res=config.img_res,
-        list_filepath=train_list_filepath,
+        list_filepath=test_list_filepath,
         train=False,
         exp_mode=exp_mode,
         excluded_item=config.excluded_item,

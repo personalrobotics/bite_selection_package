@@ -65,15 +65,27 @@ def test_spanet():
 
     print('load SPANetDataset')
     trainset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=train_list_filepath,
         train=False,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
 
     testset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=test_list_filepath,
         train=False,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
 
     if config.use_densenet:
@@ -268,8 +280,17 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
+    ap.add_argument('-e', '--exc_id', default=0, type=int,
+                    help="idx of an item to exclude")
     args = ap.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+    if args.gpu_id == '-1':
+        config.use_cuda = False
+    else:
+        config.use_cuda = True
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
+    config.excluded_item = config.items[args.exc_id]
+    config.set_project_prefix()
 
     test_spanet()
