@@ -78,10 +78,7 @@ def draw_scores(draw, img_size, margin, pred, gt):
             gt_strs[idx], font=fnt, fill=(0, 0, 0, 255))
 
 
-def test_draw(img_path, feature_path, pred_vector, gt_vector):
-    img_org = Image.open(img_path)
-    if img_org is None:
-        return
+def test_draw(img_org, save_path, feature_path, pred_vector, gt_vector):
     new_size = 500
     img_org = img_org.resize((new_size, new_size), resample=Image.BILINEAR)
 
@@ -127,7 +124,6 @@ def test_draw(img_path, feature_path, pred_vector, gt_vector):
 
     del draw
 
-    save_path = os.path.join(save_dir, os.path.basename(img_path))
     img.save(save_path)
     print(save_path)
 
@@ -144,6 +140,45 @@ def generate_visualizations():
     assert os.path.isdir(feature_dir), 'cannot find source feature directory'
 
     image_names = os.listdir(image_dir)
+    num_images = len(image_names)
+
+    acc_midpoint_err = list()
+    acc_action_top1 = 0
+    acc_action_valid = 0
+    acc_action_dist = list()
+    acc_rotation_err = list()
+
+    ## calculate test accuracies ##############################################
+    def calc_accuracies(pred_vector, gt_vector, img_size):
+        nonlocal acc_midpoint_err
+        nonlocal acc_action_top1, acc_action_valid, acc_action_dist
+        nonlocal acc_rotation_err
+
+        pv = pred_vector
+        pv_p1, pv_p2, pv_sr = pv[:2], pv[2:4], pv[4:]
+        gv = gt_vector
+        gv_p1, gv_p2, gv_sr = gv[:2], gv[2:4], gv[4:]
+
+        pv_mp = (pv_p1 + pv_p2) * 0.5 * img_size
+        gv_mp = (gv_p1 + gv_p2) * 0.5 * img_size
+
+        pv_diff = abs(pv_p1 - pv_p2)
+        gv_diff = abs(gv_p1 - gv_p2)
+
+        pv_rot = np.arctan2(pv_diff[1], pv_diff[0])
+        gv_rot = np.arctan2(gv_diff[1], gv_diff[0])
+
+        rot_err = abs(pv_rot - gv_rot)
+        acc_rotation_err.append(np.degrees(rot_err))
+
+        this_midpoint_err = np.sqrt(np.sum((pv_mp - gv_mp) ** 2))
+        acc_midpoint_err.append(this_midpoint_err)
+
+        if np.argmax(pv_sr) == np.argmax(gv_sr):
+            acc_action_top1 += 1
+        if np.max(pv_sr) > max(np.max(gv_sr) - 0.2, 0.4):
+            acc_action_valid += 1
+    ###########################################################################
 
     for image_name in image_names:
         image_path = os.path.join(image_dir, image_name)
@@ -152,16 +187,43 @@ def generate_visualizations():
         feature_path = os.path.join(
             feature_dir, image_name[:-4] + '.npy')
 
+        img_org = Image.open(image_path)
+        if img_org is None:
+            return
+
         with open(vector_path, 'r') as f_vec:
             lines = list(map(str.strip, f_vec.readlines()))
             f_vec.close()
         if lines is None or len(lines) == 0:
             return
 
-        pred_vector = list(map(float, lines[0].replace('|', '').split()))
-        gt_vector = list(map(float, lines[1].replace('|', '').split()))
+        pred_vector = np.asarray(
+            list(map(float, lines[0].replace('|', '').split())))
+        gt_vector = np.asarray(
+            list(map(float, lines[1].replace('|', '').split())))
 
-        test_draw(image_path, feature_path, pred_vector, gt_vector)
+        calc_accuracies(pred_vector, gt_vector, img_org.size)
+
+        # save_path = os.path.join(save_dir, os.path.basename(image_path))
+        # test_draw(img_org, save_path, feature_path, pred_vector, gt_vector)
+
+    print(sample_dir)
+    print('Accuracy - Action Top 1: {0:6.4f}'.format(
+        acc_action_top1 / num_images))
+    print('Accuracy - Action valid: {0:6.4f}'.format(
+        acc_action_valid / num_images))
+    print('Accuracy - Midpoint error: {0:6.4f} px, (std: {1:6.4f}, max: {2:6.4f})'.format(
+        np.mean(acc_midpoint_err),
+        np.std(acc_midpoint_err),
+        np.max(acc_midpoint_err)))
+    print('Accuracy - Midpoint error: {0:6.4f} cm, (std: {1:6.4f}, max: {2:6.4f})'.format(
+        np.mean(acc_midpoint_err) / 144. * 5.,
+        np.std(acc_midpoint_err) / 144. * 5.,
+        np.max(acc_midpoint_err) / 144. * 5.))
+    print('Accuracy - Rotation error: {0:6.4f} degrees, (std: {1:6.4f}, max: {2:6.4f}'.format(
+        np.mean(acc_rotation_err),
+        np.std(acc_rotation_err),
+        np.max(acc_rotation_err)))
 
 
 if __name__ == '__main__':
