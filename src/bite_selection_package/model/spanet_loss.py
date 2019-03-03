@@ -1,24 +1,21 @@
 from __future__ import print_function
 from __future__ import division
-from __future__ import absolute_import
 
 import sys
 import os
 
 import torch.nn as nn
 
-from bite_selection_package.config import spanet_config as config
-
 
 class SPANetLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, final_vector_size=10):
         super(SPANetLoss, self).__init__()
         self.smooth_l1_loss = nn.SmoothL1Loss()
-        self.mse_loss = nn.MSELoss()
+        self.final_vector_size = final_vector_size
 
     def forward(self, pred_vector, gt_vector):
-        pred_vector = pred_vector.view(-1, config.final_vector_size)
-        gt_vector = gt_vector.view(-1, config.final_vector_size)
+        pred_vector = pred_vector.view(-1, self.final_vector_size)
+        gt_vector = gt_vector.view(-1, self.final_vector_size)
 
         loss = self.smooth_l1_loss(pred_vector, gt_vector)
         return loss

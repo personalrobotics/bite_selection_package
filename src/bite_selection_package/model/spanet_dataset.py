@@ -1,11 +1,11 @@
 from __future__ import division
 from __future__ import print_function
-from __future__ import absolute_import
 
 import sys
 import os
 import json
 import random
+import numpy as np
 
 import torch
 import torch.utils.data as data
@@ -13,26 +13,23 @@ import torchvision.transforms as transforms
 
 from PIL import Image, ImageEnhance, ImageFilter
 
-from bite_selection_package.config import spanet_config as config
-
 
 class SPANetDataset(data.Dataset):
-    def __init__(self,
-                 img_dir=config.img_dir,
-                 depth_dir=config.depth_dir,
-                 ann_dir=config.ann_dir,
-                 list_filepath=None,
-                 ann_filenames=None,
-                 success_rate_map_path=config.success_rate_map_path,
-                 train=True,
+    def __init__(self, img_dir, depth_dir, ann_dir,
+                 success_rate_map_path, img_res,
+                 list_filepath=None, ann_filenames=None, train=True,
                  exp_mode='exclude',  # 'exclude', 'test', others
+                 excluded_item=None,
                  transform=None,
-                 img_res=config.img_res):
+                 use_rgb=True, use_depth=False):
         if ann_filenames is None:
             assert list_filepath, 'invalid list_filepath'
             with open(list_filepath, 'r') as f_list:
                 ann_filenames = list(map(str.strip, f_list.readlines()))
         assert ann_filenames and len(ann_filenames) > 0, 'invalid annotations'
+
+        print('{}: {}, {}'.format(
+            'train' if train else 'test', exp_mode, excluded_item))
 
         self.lfp = list_filepath
         self.afn = ann_filenames
@@ -50,6 +47,9 @@ class SPANetDataset(data.Dataset):
         self.end_points = list()
         self.food_identities = list()
 
+        self.use_rgb = use_rgb
+        self.use_depth = use_depth
+
         self.num_samples = 0
 
         with open(success_rate_map_path, 'r') as f_srm:
@@ -58,18 +58,28 @@ class SPANetDataset(data.Dataset):
         assert srm_str, 'cannot load success rate map'
         map_configs = json.loads(srm_str)
         self.action_keys = map_configs['action_keys']
-        self.success_rate_map = map_configs['success_rates']
+        self.success_rate_maps = {
+            'unknown': map_configs['success_rates'],
+            'isolated': map_configs['success_rates_isolated'],
+            'wall': map_configs['success_rates_wall']}
 
         for ann_filename in ann_filenames:
             sidx = 1 if ann_filename.startswith('sample') else 2
             food_identity = '_'.join(
                 ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
             if exp_mode == 'exclude':
-                if food_identity == config.excluded_item:
+                if food_identity == excluded_item:
                     continue
             elif exp_mode == 'test':
-                if food_identity != config.excluded_item:
+                if food_identity != excluded_item:
                     continue
+
+            if ann_filename.find('isolated') >= 0:
+                loc_type = 'isolated'
+            elif ann_filename.find('wall') >= 0:
+                loc_type = 'wall'
+            else:
+                loc_type = 'unknown'
 
             ann_filepath = os.path.join(self.ann_dir, ann_filename)
 
@@ -79,7 +89,7 @@ class SPANetDataset(data.Dataset):
                 continue
 
             depth_filepath = os.path.join(self.depth_dir, img_filename)
-            if config.use_depth and not os.path.exists(depth_filepath):
+            if self.use_depth and not os.path.exists(depth_filepath):
                 continue
 
             with open(ann_filepath, 'r') as f_ann:
@@ -88,14 +98,22 @@ class SPANetDataset(data.Dataset):
             if values is None or len(values) != 4:
                 continue
 
+            values = np.asarray(values)
+            values[values <= 0.0] = 0.01
+            values[values >= 1.0] = 0.99
             p1 = values[:2]
             p2 = values[2:]
             if p1[0] > p2[0]:
                 p1, p2 = p2, p1
 
+            success_rate = np.asarray(
+                self.success_rate_maps[loc_type][food_identity])
+            success_rate[success_rate <= 0.0] = 0.01
+            success_rate[success_rate >= 1.0] = 0.99
+
             self.img_filepaths.append(img_filepath)
             self.depth_filepaths.append(depth_filepath)
-            self.success_rates.append(self.success_rate_map[food_identity])
+            self.success_rates.append(success_rate)
             self.end_points.append((p1, p2))
             self.food_identities.append(food_identity)
             self.num_samples += 1
@@ -114,13 +132,13 @@ class SPANetDataset(data.Dataset):
 
     def __getitem__(self, idx):
         depth_img, rgb_img = None, None
-        if config.use_depth:
+        if self.use_depth:
             depth_filepath = self.depth_filepaths[idx]
             depth_img = Image.open(depth_filepath)
             if depth_img.mode != 'F':
                 depth_img = depth_img.convert('F')
             depth_img = self.resize_img(depth_img, 'F')
-        if config.use_rgb:
+        if self.use_rgb:
             rgb_filepath = self.img_filepaths[idx]
             rgb_img = Image.open(rgb_filepath)
             if rgb_img.mode != 'RGB':
@@ -138,7 +156,7 @@ class SPANetDataset(data.Dataset):
 
         # Data augmentation
         if self.train:
-            if config.use_rgb and random.random() > 0.5:
+            if self.use_rgb and random.random() > 0.5:
                 rgb_img = ImageEnhance.Color(rgb_img).enhance(
                     random.uniform(0, 1))
                 rgb_img = ImageEnhance.Brightness(rgb_img).enhance(
@@ -151,9 +169,9 @@ class SPANetDataset(data.Dataset):
         if self.transform is None:
             self.transform = transforms.Compose([
                 transforms.ToTensor()])
-        if config.use_rgb:
+        if self.use_rgb:
             rgb_img = self.transform(rgb_img)
-        if config.use_depth:
+        if self.use_depth:
             depth_img = self.transform(depth_img)
 
         return rgb_img, depth_img, gt_vector
@@ -175,6 +193,8 @@ class SPANetDataset(data.Dataset):
 
 def test():
     print('[spanet_dataset] test')
+    from bite_selection_package.config import spanet_config as config
+
     ds = SPANetDataset(
         list_filepath=config.train_list_filepath,
         train=True)

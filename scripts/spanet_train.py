@@ -2,11 +2,13 @@
 
 from __future__ import division
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 import os
 import shutil
 import math
+import argparse
 
 import torch
 import torch.optim as optim
@@ -16,9 +18,6 @@ from bite_selection_package.model.spanet import SPANet, DenseSPANet
 from bite_selection_package.model.spanet_dataset import SPANetDataset
 from bite_selection_package.model.spanet_loss import SPANetLoss
 from bite_selection_package.config import spanet_config as config
-
-
-os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
 def train_spanet():
@@ -31,7 +30,14 @@ def train_spanet():
 
     if not os.path.exists(train_list_filepath):
         print('list files are missing. generating list files.')
-        ann_filenames = os.listdir(config.ann_dir)
+        ann_filenames_all = os.listdir(config.ann_dir)
+        ann_filenames = list()
+        for filename in ann_filenames_all:
+            img_filename = os.path.join(config.img_dir, filename[:-4] + '.png')
+            if not os.path.exists(img_filename):
+                continue
+            ann_filenames.append(filename)
+
         train_len = int(len(ann_filenames) * 0.9)
         with open(train_list_filepath, 'w') as f_train:
             for idx in range(train_len):
@@ -67,9 +73,15 @@ def train_spanet():
 
     print('load SPANetDataset')
     trainset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=train_list_filepath,
         train=True,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
@@ -77,9 +89,15 @@ def train_spanet():
         collate_fn=trainset.collate_fn)
 
     testset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=test_list_filepath,
         train=False,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
@@ -113,7 +131,7 @@ def train_spanet():
     print('training set: {}'.format(trainloader.dataset.num_samples))
     print('test set: {}'.format(testloader.dataset.num_samples))
 
-    for epoch in range(start_epoch, start_epoch + 10000):
+    for epoch in range(start_epoch, start_epoch + 400):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
         spanet.train()
@@ -203,4 +221,20 @@ def train_spanet():
 
 
 if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
+                    help="target gpu index to run this model")
+    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
+                    type=int, help="idx of an item to exclude")
+    args = ap.parse_args()
+
+    if args.gpu_id == '-1':
+        config.use_cuda = False
+    else:
+        config.use_cuda = True
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
+    config.excluded_item = config.items[args.exc_id]
+    config.set_project_prefix()
+
     train_spanet()
