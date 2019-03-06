@@ -204,23 +204,23 @@ def generate_visualizations():
 
         calc_accuracies(pred_vector, gt_vector, img_org.size)
 
-        # save_path = os.path.join(save_dir, os.path.basename(image_path))
-        # test_draw(img_org, save_path, feature_path, pred_vector, gt_vector)
+        save_path = os.path.join(save_dir, os.path.basename(image_path))
+        test_draw(img_org, save_path, feature_path, pred_vector, gt_vector)
 
     print(sample_dir)
-    print('Accuracy - Action Top 1: {0:6.4f}'.format(
+    print('Accuracy - Action Top 1: {0:6.3f}'.format(
         acc_action_top1 / num_images))
-    print('Accuracy - Action valid: {0:6.4f}'.format(
+    print('Accuracy - Action valid: {0:6.3f}'.format(
         acc_action_valid / num_images))
-    print('Accuracy - Midpoint error: {0:6.4f} px, (std: {1:6.4f}, max: {2:6.4f})'.format(
+    print('Accuracy - Midpoint error: {0:6.2f} px, (std: {1:6.2f}, max: {2:6.2f})'.format(
         np.mean(acc_midpoint_err),
         np.std(acc_midpoint_err),
         np.max(acc_midpoint_err)))
-    print('Accuracy - Midpoint error: {0:6.4f} cm, (std: {1:6.4f}, max: {2:6.4f})'.format(
+    print('Accuracy - Midpoint error: {0:6.2f} cm, (std: {1:6.2f}, max: {2:6.2f})'.format(
         np.mean(acc_midpoint_err) / 144. * 5.,
         np.std(acc_midpoint_err) / 144. * 5.,
         np.max(acc_midpoint_err) / 144. * 5.))
-    print('Accuracy - Rotation error: {0:6.4f} degrees, (std: {1:6.4f}, max: {2:6.4f}'.format(
+    print('Accuracy - Rotation error: {0:6.2f} degrees, (std: {1:6.2f}, max: {2:6.2f}'.format(
         np.mean(acc_rotation_err),
         np.std(acc_rotation_err),
         np.max(acc_rotation_err)))
