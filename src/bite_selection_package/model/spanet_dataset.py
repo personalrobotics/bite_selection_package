@@ -6,6 +6,7 @@ import sys
 import os
 import json
 import random
+import numpy as np
 
 import torch
 import torch.utils.data as data
@@ -88,6 +89,9 @@ class SPANetDataset(data.Dataset):
             if values is None or len(values) != 4:
                 continue
 
+            values = np.asarray(values)
+            values[values <= 0.0] = 0.01
+            values[values >= 1.0] = 0.99
             p1 = values[:2]
             p2 = values[2:]
             if p1[0] > p2[0]:

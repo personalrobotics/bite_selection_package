@@ -7,6 +7,8 @@ import sys
 import os
 import shutil
 import math
+import numpy as np
+import argparse
 
 import torch
 import torch.optim as optim
@@ -18,11 +20,10 @@ from bite_selection_package.model.spanet_loss import SPANetLoss
 from bite_selection_package.config import spanet_config as config
 
 
-os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
-
-
 def arr2str(vec, format_str='.3f'):
-    return ' '.join(['{{0:{}}}'.format(format_str).format(x) for x in vec])
+    points = ' '.join(['{{0:{}}}'.format(format_str).format(x) for x in vec[:4]])
+    actions = ' '.join(['{{0:{}}}'.format(format_str).format(x) for x in vec[4:]])
+    return points + ' | ' + actions
 
 
 def test_spanet():
@@ -104,6 +105,34 @@ def test_spanet():
     total_test_samples = testset.num_samples
     trainset_len = 0
 
+    acc_midpoint_err = list()
+    acc_action_top1 = 0
+    acc_action_valid = 0
+    acc_action_dist = list()
+    acc_rotation_err = list()
+
+    # calculate test accuracies
+    def calc_accuracies(pred_vector, gt_vector):
+        nonlocal acc_midpoint_err
+        nonlocal acc_action_top1, acc_action_valid, acc_action_dist
+        nonlocal acc_rotation_err
+
+        pv = pred_vector.cpu().detach()[0]
+        pv_p1, pv_p2, pv_sr = pv[:2], pv[2:4], pv[4:]
+        gv = gt_vector.cpu().detach()[0]
+        gv_p1, gv_p2, gv_sr = gv[:2], gv[2:4], gv[4:]
+
+        pv_midpoint = (pv_p1 + pv_p2) * 0.5
+        gv_midpoint = (gv_p1 + gv_p2) * 0.5
+
+        this_midpoint_err = ((pv_midpoint - gv_midpoint) ** 2).sum().sqrt().item()
+        acc_midpoint_err.append(this_midpoint_err)
+
+        if pv_sr.argmax() == gv_sr.argmax():
+            acc_action_top1 += 1
+        if pv_sr.max() > max(gv_sr.max() - 0.2, 0.4):
+            acc_action_valid += 1
+
     if config.excluded_item:
         trainset_len = trainset.num_samples
         total_test_samples += trainset_len
@@ -123,13 +152,16 @@ def test_spanet():
             loss = criterion(pred_vector, gt_vector)
             test_loss += loss.data
 
-            print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
-                idx + 1, total_test_samples, loss.data))
-            pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
-            gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
-            print(pred_vector_str)
-            print(gt_vector_str)
-            print('')
+            calc_accuracies(pred_vector, gt_vector)
+
+            if idx % 10 == 0:
+                print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
+                    idx + 1, total_test_samples, loss.data))
+                pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
+                gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
+                print(pred_vector_str)
+                print(gt_vector_str)
+                print('')
 
             # save this sample
             sample_img = rgb if rgb is not None else depth
@@ -170,14 +202,16 @@ def test_spanet():
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
-        print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
-            trainset_len + idx + 1, total_test_samples, loss.data))
+        calc_accuracies(pred_vector, gt_vector)
 
-        pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
-        gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
-        print(pred_vector_str)
-        print(gt_vector_str)
-        print('')
+        if idx % 10 == 0:
+            print('[{0:3d}/{1:3d}] loss: {2:6.3f}'.format(
+                trainset_len + idx + 1, total_test_samples, loss.data))
+            pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
+            gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
+            print(pred_vector_str)
+            print(gt_vector_str)
+            print('')
 
         # save this sample
         sample_img = rgb if rgb is not None else depth
@@ -208,7 +242,22 @@ def test_spanet():
     print(checkpoint_path)
     print('Average loss: {0:6.3f}'.format(
         test_loss / total_test_samples))
+    print('Accuracy - Action Top 1: {0:6.3f}'.format(
+        acc_action_top1 / total_test_samples))
+    print('Accuracy - Action valid: {0:6.3f}'.format(
+        acc_action_valid / total_test_samples))
+    print('Accuracy - Midpoint error: {0:6.3f}, (std: {2:6.3f}, max: {1:6.3f})'.format(
+        np.mean(acc_midpoint_err),
+        np.std(acc_midpoint_err),
+        np.max(acc_midpoint_err)))
 
 
 if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
+                    help="target gpu index to run this model")
+    args = ap.parse_args()
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
     test_spanet()

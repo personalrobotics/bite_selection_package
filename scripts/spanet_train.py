@@ -7,6 +7,7 @@ import sys
 import os
 import shutil
 import math
+import argparse
 
 import torch
 import torch.optim as optim
@@ -16,9 +17,6 @@ from bite_selection_package.model.spanet import SPANet, DenseSPANet
 from bite_selection_package.model.spanet_dataset import SPANetDataset
 from bite_selection_package.model.spanet_loss import SPANetLoss
 from bite_selection_package.config import spanet_config as config
-
-
-os.environ['CUDA_VISIBLE_DEVICES'] = config.gpu_id
 
 
 def train_spanet():
@@ -203,4 +201,11 @@ def train_spanet():
 
 
 if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
+                    help="target gpu index to run this model")
+    args = ap.parse_args()
+
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
     train_spanet()

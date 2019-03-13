@@ -10,7 +10,7 @@ use_rgb = True
 use_depth = False  # not use_rgb
 assert use_rgb or use_depth, 'invalid configuration'
 
-use_densenet = True
+use_densenet = False
 
 # Pretrained block configs:
 # densenet121 (6, 12, 24, 16)
@@ -21,9 +21,11 @@ block_config = [3, 6, 12]
 
 project_dir = os.path.split(os.getcwd())[0]
 
-# apples, banana, bell_pepper, broccoli, cantaloupe, carrots, cauliflower,
-# celeries, cherry_tomatoes, grapes, honeydew, kiwi, strawberry
+# apple, banana, bell_pepper, broccoli, cantaloupe, carrot, cauliflower
+# celery, cherry_tomato, grape, honeydew, kiwi, melon, strawberry
+excluded_item = 'strawberry'
 excluded_item = None
+
 
 img_res = 9 * 16  # 144
 
