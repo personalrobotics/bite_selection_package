@@ -165,11 +165,12 @@ class DenseSPANet(nn.Module):
 
 class SPANet(nn.Module):
     def __init__(self, final_vector_size=10,
-                 use_rgb=True, use_depth=False):
+                 use_rgb=True, use_depth=False, use_wall=True):
         super(SPANet, self).__init__()
 
         self.use_rgb = use_rgb
         self.use_depth = use_depth
+        self.use_wall = use_wall
 
         self.conv_init_rgb = nn.Sequential(
             nn.Conv2d(3, 16, 7, padding=3),
@@ -220,8 +221,13 @@ class SPANet(nn.Module):
 
         n_features = 2048
 
+        if self.use_wall:
+            n_flattened = 9 * 9 * 256 + 2
+        else:
+            n_flattened = 9 * 9 * 256
+
         self.linear_layers = nn.Sequential(
-            nn.Linear(9 * 9 * 256 + 2, n_features),
+            nn.Linear(n_flattened, n_features),
             nn.BatchNorm1d(n_features),
             nn.ReLU(),
             nn.Linear(n_features, n_features),
@@ -251,6 +257,7 @@ class SPANet(nn.Module):
         feat_map = out.clone().detach()
 
         out = out.view(-1, 9 * 9 * 256)
+
         # Add Wall Detector
         if loc_type == 'wall':
             onehot = torch.tensor([[0., 1.]]).repeat(out.size()[0], 1)
@@ -260,7 +267,9 @@ class SPANet(nn.Module):
         if out.is_cuda:
             onehot = onehot.cuda()
 
-        out = torch.cat((out, onehot), dim=1)
+        if self.use_wall:
+            out = torch.cat((out, onehot), dim=1)
+
         out = self.linear_layers(out)
         out = self.final(out)
 

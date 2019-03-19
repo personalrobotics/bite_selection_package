@@ -107,7 +107,7 @@ def train_spanet():
     if config.use_densenet:
         spanet = DenseSPANet()
     else:
-        spanet = SPANet()
+        spanet = SPANet(use_wall=config.use_wall)
 
     best_loss = float('inf')
     start_epoch = 0

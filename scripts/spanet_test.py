@@ -91,7 +91,7 @@ def test_spanet():
     if config.use_densenet:
         spanet = DenseSPANet()
     else:
-        spanet = SPANet()
+        spanet = SPANet(use_wall=config.use_wall)
 
     checkpoint_path = config.checkpoint_best_filename
     if os.path.exists(checkpoint_path):
@@ -152,7 +152,7 @@ def test_spanet():
 
         # over training set
         for idx in range(trainset.num_samples):
-            rgb, depth, gt_vector = trainset[idx]
+            rgb, depth, gt_vector, loc_type = trainset[idx]
             rgb = torch.stack([rgb]) if rgb is not None else None
             depth = torch.stack([depth]) if depth is not None else None
             gt_vector = torch.stack([gt_vector])
@@ -161,7 +161,7 @@ def test_spanet():
                 depth = depth.cuda() if depth is not None else None
                 gt_vector = gt_vector.cuda()
 
-            pred_vector, feature_map = spanet(rgb, depth)
+            pred_vector, feature_map = spanet(rgb, depth, loc_type)
             loss = criterion(pred_vector, gt_vector)
             test_loss += loss.data
 
@@ -208,7 +208,7 @@ def test_spanet():
 
     # over test set
     for idx in range(testset.num_samples):
-        rgb, depth, gt_vector = testset[idx]
+        rgb, depth, gt_vector, loc_type = testset[idx]
         rgb = torch.stack([rgb]) if rgb is not None else None
         depth = torch.stack([depth]) if depth is not None else None
         gt_vector = torch.stack([gt_vector])
@@ -217,7 +217,7 @@ def test_spanet():
             depth = depth.cuda() if depth is not None else None
             gt_vector = gt_vector.cuda()
 
-        pred_vector, feature_map = spanet(rgb, depth)
+        pred_vector, feature_map = spanet(rgb, depth, loc_type)
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
