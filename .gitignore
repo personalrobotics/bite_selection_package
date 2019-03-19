@@ -112,4 +112,5 @@ checkpoint/
 processed/
 samples/
 data/
+data
 logs/

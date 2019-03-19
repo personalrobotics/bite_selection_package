@@ -21,7 +21,7 @@ class SPANetDataset(data.Dataset):
                  exp_mode='exclude',  # 'exclude', 'test', others
                  excluded_item=None,
                  transform=None,
-                 use_rgb=True, use_depth=False):
+                 use_rgb=True, use_depth=False, use_wall=True):
         if ann_filenames is None:
             assert list_filepath, 'invalid list_filepath'
             with open(list_filepath, 'r') as f_list:
@@ -44,6 +44,7 @@ class SPANetDataset(data.Dataset):
         self.img_filepaths = list()
         self.depth_filepaths = list()
         self.success_rates = list()
+        self.loc_types = list()
         self.end_points = list()
         self.food_identities = list()
 
@@ -74,7 +75,9 @@ class SPANetDataset(data.Dataset):
                 if food_identity != excluded_item:
                     continue
 
-            if ann_filename.find('isolated') >= 0:
+            if not use_wall:
+                loc_type = 'unknown'
+            elif ann_filename.find('isolated') >= 0:
                 loc_type = 'isolated'
             elif ann_filename.find('wall') >= 0:
                 loc_type = 'wall'
@@ -116,6 +119,7 @@ class SPANetDataset(data.Dataset):
             self.success_rates.append(success_rate)
             self.end_points.append((p1, p2))
             self.food_identities.append(food_identity)
+            self.loc_types.append(loc_type)
             self.num_samples += 1
 
     def resize_img(self, img_org, image_mode='RGB'):
@@ -174,7 +178,7 @@ class SPANetDataset(data.Dataset):
         if self.use_depth:
             depth_img = self.transform(depth_img)
 
-        return rgb_img, depth_img, gt_vector
+        return rgb_img, depth_img, gt_vector, self.loc_types[idx]
 
     def collate_fn(self, batch):
         rgb_imgs = [x[0] for x in batch]

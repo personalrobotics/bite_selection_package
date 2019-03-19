@@ -4,10 +4,11 @@ import os
 
 
 use_cuda = True
-gpu_id = '0'
+gpu_id = '1'
 
 use_rgb = True
 use_depth = False  # not use_rgb
+use_wall = True
 assert use_rgb or use_depth, 'invalid configuration'
 
 use_densenet = False
@@ -45,6 +46,7 @@ project_prefix = 'food_{}_{}{}{}{}'.format(
     project_keyword,
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
+    'w' if use_wall else '',
     '_dense' if use_densenet else '',
     '_wo_{}'.format(excluded_item) if excluded_item else '')
 
