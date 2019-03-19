@@ -2,6 +2,7 @@
 
 from __future__ import division
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 import os
@@ -64,15 +65,27 @@ def test_spanet():
 
     print('load SPANetDataset')
     trainset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=train_list_filepath,
         train=False,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
 
     testset = SPANetDataset(
+        img_dir=config.img_dir,
+        depth_dir=config.depth_dir,
+        ann_dir=config.ann_dir,
+        success_rate_map_path=config.success_rate_map_path,
+        img_res=config.img_res,
         list_filepath=test_list_filepath,
         train=False,
         exp_mode=exp_mode,
+        excluded_item=config.excluded_item,
         transform=transform)
 
     if config.use_densenet:
@@ -152,6 +165,8 @@ def test_spanet():
             loss = criterion(pred_vector, gt_vector)
             test_loss += loss.data
 
+            feature_map = feature_map.cpu().data.numpy()
+
             calc_accuracies(pred_vector, gt_vector)
 
             if idx % 10 == 0:
@@ -186,6 +201,10 @@ def test_spanet():
                 f_vec.write(gt_vector_str)
                 f_vec.write('\n')
                 f_vec.close()
+
+            feat_save_path = os.path.join(
+                sample_feature_dir, 'sample_{0:04d}.npy'.format(idx))
+            np.save(feat_save_path, feature_map)
 
     # over test set
     for idx in range(testset.num_samples):
@@ -231,13 +250,19 @@ def test_spanet():
             f_ann.close()
 
         vec_save_path = os.path.join(
-            sample_vector_dir, 'sample_{0:04d}.txt'.format(idx))
+            sample_vector_dir, 'sample_{0:04d}.txt'.format(
+                trainset_len + idx))
         with open(vec_save_path, 'w') as f_vec:
             f_vec.write(pred_vector_str)
             f_vec.write('\n')
             f_vec.write(gt_vector_str)
             f_vec.write('\n')
             f_vec.close()
+
+        feat_save_path = os.path.join(
+            sample_feature_dir, 'sample_{0:04d}.npy'.format(
+                trainset_len + idx))
+        np.save(feat_save_path, feature_map)
 
     print(checkpoint_path)
     print('Average loss: {0:6.3f}'.format(
@@ -256,8 +281,17 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
+    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
+                    type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
-    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+    if args.gpu_id == '-1':
+        config.use_cuda = False
+    else:
+        config.use_cuda = True
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
+
+    config.excluded_item = config.items[args.exc_id]
+    config.set_project_prefix()
 
     test_spanet()

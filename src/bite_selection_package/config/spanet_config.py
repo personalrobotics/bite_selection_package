@@ -21,18 +21,19 @@ block_config = [3, 6, 12]
 
 project_dir = os.path.split(os.getcwd())[0]
 
-# apple, banana, bell_pepper, broccoli, cantaloupe, carrot, cauliflower
-# celery, cherry_tomato, grape, honeydew, kiwi, melon, strawberry
-excluded_item = 'strawberry'
-excluded_item = None
-
+items = [None,
+         'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
+         'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
+         'honeydew', 'kiwi', 'melon', 'strawberry']
+excluded_item_idx = 0
+excluded_item = items[excluded_item_idx]
 
 img_res = 9 * 16  # 144
 
 # [p1_x, p1_y, p2_x, p2_y, a1, a2, a3, a4, a5, a6]
 final_vector_size = 10
 
-train_batch_size = 32
+train_batch_size = 33
 test_batch_size = 4
 
 ###############################################################################
@@ -70,3 +71,25 @@ checkpoint_filename = os.path.join(
 
 checkpoint_best_filename = os.path.join(
     project_dir, 'checkpoint/{}_ckpt_best.pth'.format(project_prefix))
+
+###############################################################################
+
+def set_project_prefix():
+    global project_prefix, pretrained_filename
+    global checkpoint_filename, checkpoint_best_filename
+
+    project_prefix = 'food_{}_{}{}{}{}'.format(
+        project_keyword,
+        'rgb' if use_rgb else '',
+        'd' if use_depth else '',
+        '_dense' if use_densenet else '',
+        '_wo_{}'.format(excluded_item) if excluded_item else '')
+
+    pretrained_filename = os.path.join(
+        pretrained_dir, '{}_net.pth'.format(project_prefix))
+
+    checkpoint_filename = os.path.join(
+        project_dir, 'checkpoint/{}_ckpt.pth'.format(project_prefix))
+
+    checkpoint_best_filename = os.path.join(
+        project_dir, 'checkpoint/{}_ckpt_best.pth'.format(project_prefix))
