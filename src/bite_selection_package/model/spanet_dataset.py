@@ -75,9 +75,7 @@ class SPANetDataset(data.Dataset):
                 if food_identity != excluded_item:
                     continue
 
-            if not use_wall:
-                loc_type = 'unknown'
-            elif ann_filename.find('isolated') >= 0:
+            if ann_filename.find('isolated') >= 0:
                 loc_type = 'isolated'
             elif ann_filename.find('wall') >= 0:
                 loc_type = 'wall'
@@ -178,18 +176,25 @@ class SPANetDataset(data.Dataset):
         if self.use_depth:
             depth_img = self.transform(depth_img)
 
-        return rgb_img, depth_img, gt_vector, self.loc_types[idx]
+        if self.loc_types[idx] == 'wall':
+            onehot = torch.tensor([0., 1.])
+        else:
+            onehot = torch.tensor([1., 0.]) # Isolated = default
+
+        return rgb_img, depth_img, gt_vector, onehot
 
     def collate_fn(self, batch):
         rgb_imgs = [x[0] for x in batch]
         depth_imgs = [x[1] for x in batch]
         vectors = [x[2] for x in batch]
+        loc_type = [x[3] for x in batch]
 
         rgb_imgs = torch.stack(rgb_imgs) if rgb_imgs[0] is not None else None
         depth_imgs = torch.stack(depth_imgs) if depth_imgs[0] is not None else None
         vectors = torch.stack(vectors)
+        loc_type = torch.stack(loc_type)
 
-        return (rgb_imgs, depth_imgs, vectors)
+        return (rgb_imgs, depth_imgs, vectors, loc_type)
 
     def __len__(self):
         return self.num_samples

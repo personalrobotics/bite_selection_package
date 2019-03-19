@@ -46,7 +46,7 @@ project_prefix = 'food_{}_{}{}{}{}'.format(
     project_keyword,
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
-    'w' if use_wall else '',
+    '_wall' if use_wall else '',
     '_dense' if use_densenet else '',
     '_wo_{}'.format(excluded_item) if excluded_item else '')
 
@@ -85,6 +85,7 @@ def set_project_prefix():
         project_keyword,
         'rgb' if use_rgb else '',
         'd' if use_depth else '',
+        '_wall' if use_wall else '',
         '_dense' if use_densenet else '',
         '_wo_{}'.format(excluded_item) if excluded_item else '')
 

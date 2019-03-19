@@ -145,14 +145,16 @@ def train_spanet():
             rgb_imgs = batch_items[0]
             depth_imgs = batch_items[1]
             gt_vectors = batch_items[2]
+            loc_type = batch_items[3]
 
             if config.use_cuda:
                 rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
                 depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
+                loc_type = loc_type.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs, loc_type)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -178,14 +180,16 @@ def train_spanet():
             rgb_imgs = batch_items[0]
             depth_imgs = batch_items[1]
             gt_vectors = batch_items[2]
+            loc_type = batch_items[3]
 
             if config.use_cuda:
                 rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
                 depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
+                loc_type = loc_type.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs, loc_type)
 
             loss = criterion(pred_vectors, gt_vectors)
 

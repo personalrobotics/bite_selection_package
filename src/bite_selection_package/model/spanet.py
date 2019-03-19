@@ -237,7 +237,7 @@ class SPANet(nn.Module):
 
         self.final = nn.Linear(n_features, final_vector_size)
 
-    def forward(self, rgb, depth, loc_type='isolated'):
+    def forward(self, rgb, depth, loc_type=None):
         out_rgb, out_depth = None, None
         if self.use_rgb:
             out_rgb = self.conv_init_rgb(rgb)
@@ -259,16 +259,13 @@ class SPANet(nn.Module):
         out = out.view(-1, 9 * 9 * 256)
 
         # Add Wall Detector
-        if loc_type == 'wall':
-            onehot = torch.tensor([[0., 1.]]).repeat(out.size()[0], 1)
-        else:
-            onehot = torch.tensor([[1., 0.]]).repeat(out.size()[0], 1) # Isolated = default
-
-        if out.is_cuda:
-            onehot = onehot.cuda()
+        if loc_type is None:
+            loc_type = torch.tensor([[1., 0.]]).repeat(out.size()[0], 1) # Isolated = default
+            if out.is_cuda:
+                loc_type = loc_type.cuda()
 
         if self.use_wall:
-            out = torch.cat((out, onehot), dim=1)
+            out = torch.cat((out, loc_type), dim=1)
 
         out = self.linear_layers(out)
         out = self.final(out)
