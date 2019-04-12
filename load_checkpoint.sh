@@ -4,6 +4,9 @@ echo "load spnet checkpoints from mthrbrn"
 if [ ! -d "./checkpoint" ]; then
   mkdir ./checkpoint
 fi
+scp -r prl@mthrbrn.personalrobotics.cs.washington.edu:/mnt/hard_data/Checkpoints/bite_selection_package/checkpoint/spnet_ckpt.pth ./checkpoint/
+
+echo "load spanet checkpoints from mthrbrn"
 scp -r prl@mthrbrn.personalrobotics.cs.washington.edu:/mnt/hard_data/Checkpoints/bite_selection_package/checkpoint/spanet_ckpt.pth ./checkpoint/
 
 echo "load label_map definition from mthrbrn"
