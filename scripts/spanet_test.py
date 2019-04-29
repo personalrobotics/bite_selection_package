@@ -235,6 +235,7 @@ def test_spanet():
             rgb = rgb.cuda() if rgb is not None else None
             depth = depth.cuda() if depth is not None else None
             gt_vector = gt_vector.cuda()
+            loc_type = loc_type.cuda()
 
         pred_vector, feature_map = spanet(rgb, depth, loc_type)
         loss = criterion(pred_vector, gt_vector)

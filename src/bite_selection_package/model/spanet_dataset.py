@@ -62,7 +62,8 @@ class SPANetDataset(data.Dataset):
         self.success_rate_maps = {
             'unknown': map_configs['success_rates'],
             'isolated': map_configs['success_rates_isolated'],
-            'wall': map_configs['success_rates_wall']}
+            'wall': map_configs['success_rates_wall'],
+            'lettuce': map_configs['success_rates_lettuce'],}
 
         for ann_filename in ann_filenames:
             sidx = 1 if ann_filename.startswith('sample') else 2
@@ -79,8 +80,14 @@ class SPANetDataset(data.Dataset):
                 loc_type = 'isolated'
             elif ann_filename.find('wall') >= 0:
                 loc_type = 'wall'
+            elif ann_filename.find('lettuce') >= 0:
+                loc_type = 'lettuce'
             else:
                 loc_type = 'unknown'
+
+            # Skip food items w/o data
+            if food_identity not in self.success_rate_maps[loc_type]:
+                continue
 
             ann_filepath = os.path.join(self.ann_dir, ann_filename)
 
@@ -177,9 +184,11 @@ class SPANetDataset(data.Dataset):
             depth_img = self.transform(depth_img)
 
         if self.loc_types[idx] == 'wall':
-            onehot = torch.tensor([0., 1.])
+            onehot = torch.tensor([0., 1., 0.])
+        if self.loc_types[idx] == 'lettuce':
+            onehot = torch.tensor([0., 0., 1.])
         else:
-            onehot = torch.tensor([1., 0.]) # Isolated = default
+            onehot = torch.tensor([1., 0., 0.]) # Isolated = default
 
         return rgb_img, depth_img, gt_vector, onehot
 

@@ -4,7 +4,7 @@ import os
 
 
 use_cuda = True
-gpu_id = '1'
+gpu_id = '2'
 
 use_rgb = True
 use_depth = False  # not use_rgb
@@ -25,7 +25,7 @@ project_dir = os.path.split(os.getcwd())[0]
 items = [None,
          'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
          'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
-         'honeydew', 'kiwi', 'melon', 'strawberry']
+         'honeydew', 'kiwi', 'strawberry', 'lettuce', 'spinach', 'kale']
 excluded_item_idx = 0
 excluded_item = items[excluded_item_idx]
 
@@ -40,7 +40,7 @@ test_batch_size = 4
 
 ###############################################################################
 
-project_keyword = 'spanet'
+project_keyword = 'spanet_all'
 
 project_prefix = 'food_{}_{}{}{}{}'.format(
     project_keyword,

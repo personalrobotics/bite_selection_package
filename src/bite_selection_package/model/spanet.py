@@ -222,7 +222,7 @@ class SPANet(nn.Module):
         n_features = 2048
 
         if self.use_wall:
-            n_flattened = 9 * 9 * 256 + 2
+            n_flattened = 9 * 9 * 256 + 3
         else:
             n_flattened = 9 * 9 * 256
 
