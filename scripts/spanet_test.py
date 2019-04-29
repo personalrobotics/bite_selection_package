@@ -121,19 +121,17 @@ def test_spanet():
     trainset_len = 0
 
     acc_midpoint_err = list()
-    acc_action_top1 = 0
-    acc_action_valid = 0
+    acc_action_best = 0.
+    acc_action_spanet = 0.
     acc_action_random = 0.
-    invalid_actions = 0
     acc_action_dist = list()
     acc_rotation_err = list()
 
     # calculate test accuracies
     def calc_accuracies(pred_vector, gt_vector):
         nonlocal acc_midpoint_err
-        nonlocal acc_action_top1, acc_action_valid, acc_action_dist, acc_action_random
+        nonlocal acc_action_best, acc_action_spanet, acc_action_dist, acc_action_random
         nonlocal acc_rotation_err
-        nonlocal invalid_actions
 
         pv = pred_vector.cpu().detach()[0]
         pv_p1, pv_p2, pv_sr = pv[:2], pv[2:4], pv[4:]
@@ -146,23 +144,14 @@ def test_spanet():
         this_midpoint_err = ((pv_midpoint - gv_midpoint) ** 2).sum().sqrt().item()
         acc_midpoint_err.append(this_midpoint_err)
 
-        if pv_sr.argmax() == gv_sr.argmax():
-            acc_action_top1 += 1
+        acc_action_best += gv_sr.max()
+        acc_action_spanet += gv_sr[pv_sr.argmax()]
 
-        if gv_sr.max() >= 0.4:
-            if pv_sr.max() > max(gv_sr.max() - 0.2, 0.4):
-                acc_action_valid += 1
-
-            ind_random = 0.
-
-            for ind_pv_sr in pv_sr:
-                if ind_pv_sr > max(gv_sr.max() - 0.2, 0.4):
-                    ind_random += 1.
-
-            ind_random /= 6. # Total actions
-            acc_action_random += ind_random
-        else:
-            invalid_actions += 1
+        ind_random = 0.
+        for ind_pv_sr in gv_sr:
+            ind_random += ind_pv_sr
+        ind_random /= 6. # Total actions
+        acc_action_random += ind_random
 
     if config.excluded_item:
         trainset_len = trainset.num_samples
@@ -174,6 +163,7 @@ def test_spanet():
             rgb = torch.stack([rgb]) if rgb is not None else None
             depth = torch.stack([depth]) if depth is not None else None
             gt_vector = torch.stack([gt_vector])
+            loc_type = torch.stack([loc_type])
             if config.use_cuda:
                 rgb = rgb.cuda() if rgb is not None else None
                 depth = depth.cuda() if depth is not None else None
@@ -231,10 +221,12 @@ def test_spanet():
         rgb = torch.stack([rgb]) if rgb is not None else None
         depth = torch.stack([depth]) if depth is not None else None
         gt_vector = torch.stack([gt_vector])
+        loc_type = torch.stack([loc_type])
         if config.use_cuda:
             rgb = rgb.cuda() if rgb is not None else None
             depth = depth.cuda() if depth is not None else None
             gt_vector = gt_vector.cuda()
+            loc_type = loc_type.cuda()
 
         pred_vector, feature_map = spanet(rgb, depth, loc_type)
         loss = criterion(pred_vector, gt_vector)
@@ -286,12 +278,12 @@ def test_spanet():
     print(checkpoint_path)
     print('Average loss: {0:6.3f}'.format(
         test_loss / total_test_samples))
-    print('Accuracy - Action Top 1: {0:6.3f}'.format(
-        acc_action_top1 / total_test_samples))
-    print('Accuracy - Action valid: {0:6.3f}'.format(
-        acc_action_valid / (total_test_samples - invalid_actions)))
-    print('Accuracy - Action valid (random): {0:6.3f}'.format(
-        acc_action_random / (total_test_samples - invalid_actions)))
+    print('Success Rate - Best Action: {0:6.3f}'.format(
+        acc_action_best / total_test_samples))
+    print('Success Rate - SPANet: {0:6.3f}'.format(
+        acc_action_spanet / total_test_samples))
+    print('Success Rate - Random: {0:6.3f}'.format(
+        acc_action_random / total_test_samples))
     print('Accuracy - Midpoint error: {0:6.3f}, (std: {2:6.3f}, max: {1:6.3f})'.format(
         np.mean(acc_midpoint_err),
         np.std(acc_midpoint_err),
@@ -302,7 +294,7 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
-    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
+    ap.add_argument('-e', '--exc_id', default=0,
                     type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
