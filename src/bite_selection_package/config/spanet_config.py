@@ -4,7 +4,7 @@ import os
 
 
 use_cuda = True
-gpu_id = '2'
+gpu_id = '1'
 
 use_rgb = True
 use_depth = False  # not use_rgb
@@ -26,7 +26,7 @@ items = [None,
          'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
          'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
          'honeydew', 'kiwi', 'strawberry', 'lettuce', 'spinach', 'kale']
-excluded_item_idx = 0
+excluded_item_idx = 10
 excluded_item = items[excluded_item_idx]
 
 
@@ -42,7 +42,7 @@ test_batch_size = 4
 
 project_keyword = 'spanet_all'
 
-project_prefix = 'food_{}_{}{}{}{}'.format(
+project_prefix = 'food_{}_{}{}{}{}{}'.format(
     project_keyword,
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
@@ -81,7 +81,7 @@ def set_project_prefix():
     global project_prefix, pretrained_filename
     global checkpoint_filename, checkpoint_best_filename
 
-    project_prefix = 'food_{}_{}{}{}{}'.format(
+    project_prefix = 'food_{}_{}{}{}{}{}'.format(
         project_keyword,
         'rgb' if use_rgb else '',
         'd' if use_depth else '',

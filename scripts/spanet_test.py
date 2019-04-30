@@ -273,7 +273,7 @@ def test_spanet():
         feat_save_path = os.path.join(
             sample_feature_dir, 'sample_{0:04d}.npy'.format(
                 trainset_len + idx))
-        np.save(feat_save_path, feature_map)
+        np.save(feat_save_path, feature_map.cpu())
 
     print(checkpoint_path)
     print('Average loss: {0:6.3f}'.format(

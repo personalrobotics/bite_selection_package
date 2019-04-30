@@ -131,7 +131,7 @@ def train_spanet():
     print('training set: {}'.format(trainloader.dataset.num_samples))
     print('test set: {}'.format(testloader.dataset.num_samples))
 
-    for epoch in range(start_epoch, start_epoch + 400):
+    for epoch in range(start_epoch, 400):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
         spanet.train()
