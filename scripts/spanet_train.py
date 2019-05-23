@@ -82,7 +82,11 @@ def train_spanet():
         train=True,
         exp_mode=exp_mode,
         excluded_item=config.excluded_item,
-        transform=transform)
+        transform=transform,
+        use_rgb=config.use_rgb,
+        use_depth=config.use_depth,
+        use_wall = config.use_wall,
+        dataset_percent = config.dataset_percent)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
@@ -98,7 +102,10 @@ def train_spanet():
         train=False,
         exp_mode=exp_mode,
         excluded_item=config.excluded_item,
-        transform=transform)
+        transform=transform,
+        use_rgb=config.use_rgb,
+        use_depth=config.use_depth,
+        use_wall = config.use_wall)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
         shuffle=True, num_workers=8,
@@ -107,7 +114,7 @@ def train_spanet():
     if config.use_densenet:
         spanet = DenseSPANet()
     else:
-        spanet = SPANet(use_wall=config.use_wall)
+        spanet = SPANet(use_rgb=config.use_rgb, use_depth=config.use_depth, use_wall=config.use_wall)
 
     best_loss = float('inf')
     start_epoch = 0
@@ -228,8 +235,6 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
-    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
-                    type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
     if args.gpu_id == '-1':
@@ -238,7 +243,6 @@ if __name__ == '__main__':
         config.use_cuda = True
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
 
-    config.excluded_item = config.items[args.exc_id]
     config.set_project_prefix()
 
     train_spanet()

@@ -4,7 +4,7 @@ import os
 
 
 use_cuda = True
-gpu_id = '1'
+gpu_id = '3'
 
 use_rgb = True
 use_depth = False  # not use_rgb
@@ -26,7 +26,7 @@ items = [None,
          'apple', 'banana', 'bell_pepper', 'broccoli', 'cantaloupe',
          'carrot', 'cauliflower', 'celery', 'cherry_tomato', 'grape',
          'honeydew', 'kiwi', 'strawberry', 'lettuce', 'spinach', 'kale']
-excluded_item_idx = 10
+excluded_item_idx = 0
 excluded_item = items[excluded_item_idx]
 
 
@@ -38,16 +38,19 @@ final_vector_size = 10
 train_batch_size = 33
 test_batch_size = 4
 
+dataset_percent = None
+
 ###############################################################################
 
 project_keyword = 'spanet_all'
 
-project_prefix = 'food_{}_{}{}{}{}{}'.format(
+project_prefix = 'food_{}_{}{}{}{}{}{}'.format(
     project_keyword,
     'rgb' if use_rgb else '',
     'd' if use_depth else '',
     '_wall' if use_wall else '',
     '_dense' if use_densenet else '',
+    '_{}ds'.format(str(dataset_percent)) if (dataset_percent is not None) else '',
     '_wo_{}'.format(excluded_item) if excluded_item else '')
 
 dataset_dir = os.path.join(
@@ -81,13 +84,14 @@ def set_project_prefix():
     global project_prefix, pretrained_filename
     global checkpoint_filename, checkpoint_best_filename
 
-    project_prefix = 'food_{}_{}{}{}{}{}'.format(
-        project_keyword,
-        'rgb' if use_rgb else '',
-        'd' if use_depth else '',
-        '_wall' if use_wall else '',
-        '_dense' if use_densenet else '',
-        '_wo_{}'.format(excluded_item) if excluded_item else '')
+    project_prefix = 'food_{}_{}{}{}{}{}{}'.format(
+    project_keyword,
+    'rgb' if use_rgb else '',
+    'd' if use_depth else '',
+    '_wall' if use_wall else '',
+    '_dense' if use_densenet else '',
+    '_{}ds'.format(str(dataset_percent)) if (dataset_percent is not None) else '',
+    '_wo_{}'.format(excluded_item) if excluded_item else '')
 
     pretrained_filename = os.path.join(
         pretrained_dir, '{}_net.pth'.format(project_prefix))

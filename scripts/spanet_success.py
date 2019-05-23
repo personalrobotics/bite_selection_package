@@ -73,8 +73,8 @@ def test_spanet():
         img_res=config.img_res,
         list_filepath=train_list_filepath,
         train=False,
-        exp_mode=exp_mode,
-        excluded_item=config.excluded_item,
+        exp_mode='normal',
+        excluded_item=None,
         transform=transform,
         use_rgb=config.use_rgb,
         use_depth=config.use_depth,
@@ -88,8 +88,8 @@ def test_spanet():
         img_res=config.img_res,
         list_filepath=test_list_filepath,
         train=False,
-        exp_mode=exp_mode,
-        excluded_item=config.excluded_item,
+        exp_mode='normal',
+        excluded_item=None,
         transform=transform,
         use_rgb=config.use_rgb,
         use_depth=config.use_depth,
@@ -150,18 +150,16 @@ def test_spanet():
         this_midpoint_err = ((pv_midpoint - gv_midpoint) ** 2).sum().sqrt().item()
         acc_midpoint_err.append(this_midpoint_err)
 
-        acc_action_best += gv_sr.max()
-        acc_action_spanet += gv_sr[pv_sr.argmax()]
+        acc_action_best += 1.0
+        if gv_sr[pv_sr.argmax()] == gv_sr[gv_sr.argmax()]:
+            acc_action_spanet += 1.0
+        else:
+            print("Bad Action Percent: " + str(pv_sr.argmax()))
 
-        ind_random = 0.
-        for ind_pv_sr in gv_sr:
-            ind_random += ind_pv_sr
-        ind_random /= 6. # Total actions
-        acc_action_random += ind_random
+        acc_action_random += 1.0/6.0
 
-    
-    if config.excluded_item:
-    #if False:
+    #if config.excluded_item:
+    if False:
         trainset_len = trainset.num_samples
         total_test_samples += trainset_len
 

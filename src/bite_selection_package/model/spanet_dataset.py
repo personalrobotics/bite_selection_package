@@ -21,7 +21,10 @@ class SPANetDataset(data.Dataset):
                  exp_mode='exclude',  # 'exclude', 'test', others
                  excluded_item=None,
                  transform=None,
-                 use_rgb=True, use_depth=False, use_wall=True):
+                 use_rgb=True, use_depth=False, use_wall=True,
+                 dataset_percent=None):
+        if dataset_percent is None:
+            dataset_percent = 1.0
         if ann_filenames is None:
             assert list_filepath, 'invalid list_filepath'
             with open(list_filepath, 'r') as f_list:
@@ -70,11 +73,14 @@ class SPANetDataset(data.Dataset):
             food_identity = '_'.join(
                 ann_filename.split('.')[0].split('+')[-1].split('_')[sidx:-1])
             if exp_mode == 'exclude':
-                if food_identity == excluded_item:
+                if food_identity in excluded_item:
                     continue
             elif exp_mode == 'test':
-                if food_identity != excluded_item:
+                if food_identity not in excluded_item:
                     continue
+
+            if random.random() > dataset_percent:
+                continue
 
             if ann_filename.find('isolated') >= 0:
                 loc_type = 'isolated'
@@ -84,6 +90,7 @@ class SPANetDataset(data.Dataset):
                 loc_type = 'lettuce'
             else:
                 loc_type = 'unknown'
+                continue
 
             # Skip food items w/o data
             if food_identity not in self.success_rate_maps[loc_type]:
@@ -98,7 +105,7 @@ class SPANetDataset(data.Dataset):
 
             depth_filepath = os.path.join(self.depth_dir, img_filename)
             if self.use_depth and not os.path.exists(depth_filepath):
-                continue
+                pass
 
             with open(ann_filepath, 'r') as f_ann:
                 values = list(map(float, f_ann.read().strip().split()))
@@ -142,11 +149,20 @@ class SPANetDataset(data.Dataset):
     def __getitem__(self, idx):
         depth_img, rgb_img = None, None
         if self.use_depth:
+            """
             depth_filepath = self.depth_filepaths[idx]
             depth_img = Image.open(depth_filepath)
             if depth_img.mode != 'F':
                 depth_img = depth_img.convert('F')
             depth_img = self.resize_img(depth_img, 'F')
+            """
+            gray_filepath = self.img_filepaths[idx]
+            gray_img = Image.open(gray_filepath)
+            if gray_img.mode != 'RGB':
+                gray_img = rgb_img.convert('RGB')
+
+            gray_img = gray_img.convert('L')
+            depth_img = self.resize_img(gray_img, 'L')
         if self.use_rgb:
             rgb_filepath = self.img_filepaths[idx]
             rgb_img = Image.open(rgb_filepath)
