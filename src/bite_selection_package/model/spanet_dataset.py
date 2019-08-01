@@ -6,12 +6,25 @@ import os
 import json
 import random
 import numpy as np
+import csv
 
 import torch
 import torch.utils.data as data
 import torchvision.transforms as transforms
 
 from PIL import Image, ImageEnhance, ImageFilter
+
+def get_action_idx(filename):
+    ret = 0
+    if "tilted_angled" in filename:
+        ret = 4
+    elif "tilted_vertical" in filename:
+        ret = 2
+
+    if "angle-90" in filename:
+        ret += 1
+
+    return ret
 
 
 class SPANetDataset(data.Dataset):
@@ -22,7 +35,8 @@ class SPANetDataset(data.Dataset):
                  excluded_item=None,
                  transform=None,
                  use_rgb=True, use_depth=False, use_wall=True,
-                 dataset_percent=None):
+                 dataset_percent=None,
+                 dr_csv=None):
         if dataset_percent is None:
             dataset_percent = 1.0
         if ann_filenames is None:
@@ -30,6 +44,14 @@ class SPANetDataset(data.Dataset):
             with open(list_filepath, 'r') as f_list:
                 ann_filenames = list(map(str.strip, f_list.readlines()))
         assert ann_filenames and len(ann_filenames) > 0, 'invalid annotations'
+
+        if dr_csv is not None:
+            l_dict = {}
+            with open(dr_csv) as csvfile:
+                reader = csv.reader(csvfile)
+                for row in reader:
+                    l_dict[row[0]] = float(row[1])
+
 
         print('{}: {}, {}'.format(
             'train' if train else 'test', exp_mode, excluded_item))
@@ -84,13 +106,16 @@ class SPANetDataset(data.Dataset):
 
             if ann_filename.find('isolated') >= 0:
                 loc_type = 'isolated'
+                #continue
             elif ann_filename.find('wall') >= 0:
                 loc_type = 'wall'
+                #continue
             elif ann_filename.find('lettuce') >= 0:
                 loc_type = 'lettuce'
+                #continue
             else:
                 loc_type = 'unknown'
-                continue
+                #continue
 
             # Skip food items w/o data
             if food_identity not in self.success_rate_maps[loc_type]:
@@ -125,6 +150,21 @@ class SPANetDataset(data.Dataset):
                 self.success_rate_maps[loc_type][food_identity])
             success_rate[success_rate <= 0.0] = 0.01
             success_rate[success_rate >= 1.0] = 0.99
+
+            if dr_csv is not None:
+                # Make estimate doubly-robust
+                # Get Action index
+                action_idx = get_action_idx(ann_filename)
+                # Get Success
+                key = "+".join(ann_filename.split("+", 2)[:2])
+                if key not in l_dict:
+                        print("Warning, not in dict: " + key)
+                        continue
+                v_obs = 1 - l_dict[key]
+
+                # Calculate DR vector, note expected loss = (1-gv)
+                success_rate[action_idx] += (6.0 * (v_obs - success_rate[action_idx]))
+
 
             self.img_filepaths.append(img_filepath)
             self.depth_filepaths.append(depth_filepath)
