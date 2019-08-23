@@ -115,3 +115,4 @@ samples/
 data/
 data
 logs/
+src/bite_selection_package/config/spanet_config.py
