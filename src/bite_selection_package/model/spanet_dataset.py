@@ -67,6 +67,7 @@ class SPANetDataset(data.Dataset):
         self.img_res = img_res
 
         self.img_filepaths = list()
+        self.ann_filenames = list()
         self.depth_filepaths = list()
         self.success_rates = list()
         self.loc_types = list()
@@ -167,6 +168,7 @@ class SPANetDataset(data.Dataset):
 
 
             self.img_filepaths.append(img_filepath)
+            self.ann_filenames.append(ann_filename)
             self.depth_filepaths.append(depth_filepath)
             self.success_rates.append(success_rate)
             self.end_points.append((p1, p2))
