@@ -86,7 +86,8 @@ def train_spanet():
         use_rgb=config.use_rgb,
         use_depth=config.use_depth,
         use_wall = config.use_wall,
-        dataset_percent = config.dataset_percent)
+        dataset_percent = config.dataset_percent,
+        dr_csv = config.dr_csv)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
@@ -105,7 +106,8 @@ def train_spanet():
         transform=transform,
         use_rgb=config.use_rgb,
         use_depth=config.use_depth,
-        use_wall = config.use_wall)
+        use_wall = config.use_wall,
+        dr_csv = config.dr_csv)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
         shuffle=True, num_workers=8,

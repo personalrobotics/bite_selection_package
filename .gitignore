@@ -109,6 +109,7 @@ venv.bak/
 # local_configs
 config/
 checkpoint/
+checkpoint
 processed/
 samples/
 data/

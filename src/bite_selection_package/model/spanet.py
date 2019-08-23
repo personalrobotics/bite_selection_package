@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 
+from bite_selection_package.config import spanet_config as config
+
 
 class _DenseLayer(nn.Sequential):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
@@ -220,6 +222,9 @@ class SPANet(nn.Module):
         )
 
         n_features = 2048
+        n_features_final = 2048
+        if config.n_features is not None:
+            n_features_final = config.n_features
 
         if self.use_wall:
             n_flattened = 9 * 9 * 256 + 3
@@ -230,12 +235,12 @@ class SPANet(nn.Module):
             nn.Linear(n_flattened, n_features),
             nn.BatchNorm1d(n_features),
             nn.ReLU(),
-            nn.Linear(n_features, n_features),
-            nn.BatchNorm1d(n_features),
+            nn.Linear(n_features, n_features_final),
+            nn.BatchNorm1d(n_features_final),
             nn.ReLU(),
         )
 
-        self.final = nn.Linear(n_features, final_vector_size)
+        self.final = nn.Linear(n_features_final, final_vector_size)
 
     def forward(self, rgb, depth, loc_type=None):
         out_rgb, out_depth = None, None
