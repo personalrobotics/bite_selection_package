@@ -259,8 +259,6 @@ class SPANet(nn.Module):
         for _ in range(3):
             out = self.conv_layers_bot(out) + out
 
-        feat_map = out.clone().detach()
-
         out = out.view(-1, 9 * 9 * 256)
 
         # Add Wall Detector
@@ -273,10 +271,12 @@ class SPANet(nn.Module):
             out = torch.cat((out, loc_type), dim=1)
 
         out = self.linear_layers(out)
+        features = out.clone().detach()
+
         out = self.final(out)
 
         out = out.sigmoid()
-        return out, feat_map
+        return out, features
 
     def freeze_bn(self):
         '''Freeze BatchNorm layers.'''
