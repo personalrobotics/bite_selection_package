@@ -3,19 +3,20 @@
 import os
 
 use_cuda = True
-gpu_id = '2'
+gpu_id = '3'
 
 use_rgb = True
 use_depth = False  # not use_rgb
 use_wall = True
 
-n_features = None
+n_features = 512
 assert use_rgb or use_depth, 'invalid configuration'
 
 use_densenet = False
 
 # Set to None to not use doubly-robust estimates
 dr_csv = "consolidated_successes.csv"
+# dr_csv = None
 
 # Pretrained block configs:
 # densenet121 (6, 12, 24, 16)
@@ -34,6 +35,7 @@ excluded_item_idx = 0
 excluded_item = items[excluded_item_idx]
 #excluded_item = 'celery_carrot_kale_lettuce_bell_pepper_apple_cantaloupe_lettuce'
 #excluded_item = 'banana_honeydew_grape_spinach_cauliflower_strawberry_broccoli_kiwi'
+excluded_item = 'banana'
 #excluded_item = 'banana_honeydew_grape_spinach'
 #excluded_item = 'cauliflower_strawberry_broccoli_kiwi'
 
