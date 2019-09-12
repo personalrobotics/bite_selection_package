@@ -9,7 +9,7 @@ use_rgb = True
 use_depth = False  # not use_rgb
 use_wall = True
 
-n_features = 512
+n_features = None
 assert use_rgb or use_depth, 'invalid configuration'
 
 use_densenet = False
