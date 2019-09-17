@@ -9,6 +9,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
 
+from bite_selection_package.config import spanet_config as config
+
 
 class _DenseLayer(nn.Sequential):
     def __init__(self, num_input_features, growth_rate, bn_size, drop_rate):
@@ -165,11 +167,12 @@ class DenseSPANet(nn.Module):
 
 class SPANet(nn.Module):
     def __init__(self, final_vector_size=10,
-                 use_rgb=True, use_depth=False):
+                 use_rgb=True, use_depth=False, use_wall=True):
         super(SPANet, self).__init__()
 
         self.use_rgb = use_rgb
         self.use_depth = use_depth
+        self.use_wall = use_wall
 
         self.conv_init_rgb = nn.Sequential(
             nn.Conv2d(3, 16, 7, padding=3),
@@ -219,19 +222,27 @@ class SPANet(nn.Module):
         )
 
         n_features = 2048
+        n_features_final = 2048
+        if config.n_features is not None:
+            n_features_final = config.n_features
+
+        if self.use_wall:
+            n_flattened = 9 * 9 * 256 + 3
+        else:
+            n_flattened = 9 * 9 * 256
 
         self.linear_layers = nn.Sequential(
-            nn.Linear(9 * 9 * 256, n_features),
+            nn.Linear(n_flattened, n_features),
             nn.BatchNorm1d(n_features),
             nn.ReLU(),
-            nn.Linear(n_features, n_features),
-            nn.BatchNorm1d(n_features),
+            nn.Linear(n_features, n_features_final),
+            nn.BatchNorm1d(n_features_final),
             nn.ReLU(),
         )
 
-        self.final = nn.Linear(n_features, final_vector_size)
+        self.final = nn.Linear(n_features_final, final_vector_size)
 
-    def forward(self, rgb, depth):
+    def forward(self, rgb, depth, loc_type=None):
         out_rgb, out_depth = None, None
         if self.use_rgb:
             out_rgb = self.conv_init_rgb(rgb)
@@ -248,14 +259,24 @@ class SPANet(nn.Module):
         for _ in range(3):
             out = self.conv_layers_bot(out) + out
 
-        feat_map = out.clone().detach()
-
         out = out.view(-1, 9 * 9 * 256)
+
+        # Add Wall Detector
+        if loc_type is None:
+            loc_type = torch.tensor([[1., 0.]]).repeat(out.size()[0], 1) # Isolated = default
+            if out.is_cuda:
+                loc_type = loc_type.cuda()
+
+        if self.use_wall:
+            out = torch.cat((out, loc_type), dim=1)
+
         out = self.linear_layers(out)
+        features = out.clone().detach()
+
         out = self.final(out)
 
         out = out.sigmoid()
-        return out, feat_map
+        return out, features
 
     def freeze_bn(self):
         '''Freeze BatchNorm layers.'''

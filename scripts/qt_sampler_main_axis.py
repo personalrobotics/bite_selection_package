@@ -18,7 +18,7 @@ from bite_selection_package.config import spanet_config as config
 
 
 class PyQtSamplerMainAxis(QMainWindow):
-    def __init__(self, for_test=False):
+    def __init__(self, keyword="all", for_test=False):
         super(PyQtSamplerMainAxis, self).__init__()
         self.setMouseTracking(True)
 
@@ -26,7 +26,7 @@ class PyQtSamplerMainAxis(QMainWindow):
             self.base_dir = os.path.join(
                 '../samples', 'food_spanet_rgb')
         else:
-            self.base_dir = '../data/skewering_positions_all'
+            self.base_dir = "../data/skewering_positions_%s" % (keyword)
 
         self.img_dir = os.path.join(self.base_dir, 'cropped_images')
         self.img_filename_list = list()
@@ -470,5 +470,8 @@ class OverlayLabel(QLabel):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = PyQtSamplerMainAxis()
+    if len(sys.argv) > 1:
+    	ex = PyQtSamplerMainAxis(sys.argv[1])
+    else:
+    	ex = PyQtSamplerMainAxis()
     sys.exit(app.exec_())

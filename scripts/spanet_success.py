@@ -60,7 +60,8 @@ def test_spanet():
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
 
-    config.excluded_item = 'kiwi'
+
+    config.excluded_item = "broccoli"
 
     exp_mode = 'normal'
     if config.excluded_item:
@@ -135,16 +136,21 @@ def test_spanet():
     acc_action_dist = list()
     acc_rotation_err = list()
 
+    pv_sr_list = list()
+
     # calculate test accuracies
     def calc_accuracies(pred_vector, gt_vector):
         nonlocal acc_midpoint_err
         nonlocal acc_action_best, acc_action_spanet, acc_action_dist, acc_action_random
         nonlocal acc_rotation_err
+        nonlocal pv_sr_list
 
         pv = pred_vector.cpu().detach()[0]
         pv_p1, pv_p2, pv_sr = pv[:2], pv[2:4], pv[4:]
         gv = gt_vector.cpu().detach()[0]
         gv_p1, gv_p2, gv_sr = gv[:2], gv[2:4], gv[4:]
+
+        pv_sr_list.append(pv_sr.numpy().reshape((1, 6)))
 
         pv_midpoint = (pv_p1 + pv_p2) * 0.5
         gv_midpoint = (gv_p1 + gv_p2) * 0.5
@@ -152,16 +158,15 @@ def test_spanet():
         this_midpoint_err = ((pv_midpoint - gv_midpoint) ** 2).sum().sqrt().item()
         acc_midpoint_err.append(this_midpoint_err)
 
-        acc_action_best += gv_sr.max()
-        acc_action_spanet += gv_sr[pv_sr.argmax()]
+        acc_action_best += 1.0
+        if gv_sr[pv_sr.argmax()] == gv_sr[gv_sr.argmax()]:
+            acc_action_spanet += 1.0
+        else:
+            pass
+            #print("Bad Action Percent: " + str(pv_sr.argmax()))
 
-        ind_random = 0.
-        for ind_pv_sr in gv_sr:
-            ind_random += ind_pv_sr
-        ind_random /= 6. # Total actions
-        acc_action_random += ind_random
+        acc_action_random += 1.0/6.0
 
-    
     if config.excluded_item:
     #if False:
         trainset_len = trainset.num_samples
@@ -299,6 +304,11 @@ def test_spanet():
         np.std(acc_midpoint_err),
         np.max(acc_midpoint_err)))
 
+    pv_sr_list_2d = np.array(pv_sr_list).reshape((len(pv_sr_list), 6))
+
+    mean = np.mean(pv_sr_list_2d, axis=0)
+    print('Mean ESR Per Action: ' + str(mean))
+    print('STE: ' + str(np.sqrt(np.multiply(mean, 1.0 - mean) / float(total_test_samples))))
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
