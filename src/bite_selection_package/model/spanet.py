@@ -166,7 +166,7 @@ class DenseSPANet(nn.Module):
 
 
 class SPANet(nn.Module):
-    def __init__(self, final_vector_size=10,
+    def __init__(self, final_vector_size=11,
                  use_rgb=True, use_depth=False, use_wall=True):
         super(SPANet, self).__init__()
 

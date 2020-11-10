@@ -44,16 +44,16 @@ def draw_scores(draw, img_size, margin, pred):
             'resource/Roboto-Regular.ttf'), 20)
     lr_margin = 5
     tb_margin = 3
-    cell_offset = (img_size[0] - lr_margin * 2) / 7.0
+    cell_offset = (img_size[0] - lr_margin * 2) / (len(pred) + 1)
     vertical_offset = (margin - tb_margin * 2) / 3.0
 
     title_top = img_size[1] + tb_margin
     pred_top = img_size[1] + vertical_offset
     gt_top = img_size[1] + vertical_offset * 2
 
-    titles = ['', 'v0', 'v90', 'tv0', 'tv90', 'ta0', 'ta90']
+    titles = ['', 'v0', 'v90', 'tv0', 'tv90', 'ta0', 'ta90', 'scoop']
     pred_strs = ['pred'] + list(map(str, np.around(pred,2)))
-    for idx in range(7):
+    for idx in range(len(titles)):
         col_x = lr_margin + cell_offset * idx
         draw.text(
             (col_x, title_top),

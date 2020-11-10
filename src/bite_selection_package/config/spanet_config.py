@@ -42,7 +42,7 @@ excluded_item = 'banana'
 img_res = 9 * 16  # 144
 
 # [p1_x, p1_y, p2_x, p2_y, a1, a2, a3, a4, a5, a6]
-final_vector_size = 10
+final_vector_size = 11
 
 train_batch_size = 33
 test_batch_size = 4
