@@ -3,7 +3,7 @@
 import os
 
 use_cuda = True
-gpu_id = '3'
+gpu_id = '0'
 
 use_rgb = True
 use_depth = False  # not use_rgb
@@ -33,9 +33,9 @@ items = [None,
          'honeydew', 'kiwi', 'strawberry', 'lettuce', 'spinach', 'kale']
 excluded_item_idx = 0
 excluded_item = items[excluded_item_idx]
-#excluded_item = 'celery_carrot_kale_lettuce_bell_pepper_apple_cantaloupe_lettuce'
+excluded_item = 'celery_carrot_kale_lettuce_bell_pepper_apple_cantaloupe_lettuce'
 #excluded_item = 'banana_honeydew_grape_spinach_cauliflower_strawberry_broccoli_kiwi'
-excluded_item = 'banana'
+#excluded_item = 'banana'
 #excluded_item = 'banana_honeydew_grape_spinach'
 #excluded_item = 'cauliflower_strawberry_broccoli_kiwi'
 
