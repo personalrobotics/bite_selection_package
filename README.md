@@ -9,6 +9,8 @@ In order to use the neural network models, SPNet or SPANet, please clone this pr
 
 
 ## Installation
+Note that `load_checkpoint.sh` requires you to be on the UW CSE network (a VPN suffices).
+
 ```
 cd YOUR_CATKIN_WS/src
 git clone https://github.com/personalrobotics/bite_selection_package.git
@@ -89,4 +91,3 @@ We used [RetinaNet](https://github.com/personalrobotics/pytorch_retinanet) for o
 ./<spnet/spanet>_train.sh
 ```
 The training script will train `SPNet` or `SPAnet` with the cropped images and annotations in the directories specified in `src/bite_selection_package/config/<spnet/spanet>_config.py` and save its checkpoint file as `checkpoints/food_spnet_<keyword>_ckpt.pth`.
-
