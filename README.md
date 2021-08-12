@@ -9,6 +9,8 @@ In order to use the neural network models, SPNet or SPANet, please clone this pr
 
 
 ## Installation
+Note that `load_checkpoint.sh` requires you to be on the UW CSE network (a VPN suffices).
+
 ```
 cd YOUR_CATKIN_WS/src
 git clone https://github.com/personalrobotics/bite_selection_package.git
@@ -29,7 +31,7 @@ cd ./examples
 To collect images for training, please check this [image collection script](https://github.com/personalrobotics/image_collector).
 
 
-## Generating 2D bounding boxes by using labelImg
+## Generating 2D bounding boxes by using labelImg (RetinaNet)
 To build labelImg, run `setup_labelImg.sh`. **Note**: Labeling tools in this project only support python3 with PyQt5. Please use caution before running this script if you are using python2 + pyqt4 on your system.
 ```
 ./setup_labelImg.sh
@@ -51,7 +53,7 @@ You can also use other annotation tools. Here are some suggestions:
 * http://www.cs.toronto.edu/polyrnn/
 
 
-## Generating 2D bounding boxes in Unreal Engine
+### Generating 2D bounding boxes in Unreal Engine
 * https://github.com/personalrobotics/unrealcv
 * https://github.com/personalrobotics/UnrealCV_ROS
 
@@ -64,12 +66,19 @@ cd ./scripts
 ```
 This script will generate cropped images from images and annotations in `data/bounding_boxes_<keyword>` and save them in `data/skewering_positions_<keyword>`.
 
+### SPNet
 To generate mask annotations for SPNet, use `PyQtSampler`:
 ```
 cd ./scripts
 ./qt_sampler.py
 ```
 
+### SPANet
+To generate main axis annotations for SPANet, use this separate `PyQtSampler`:
+```
+cd ./scripts
+./qt_sampler_main_axis.py <keyword>
+```
 
 ## RetinaNet: Object Detection Network
 We used [RetinaNet](https://github.com/personalrobotics/pytorch_retinanet) for object detection. After you make a symlink of a new dataset with images and bounding boxes into `pytorch_retinanet/data/`, you can train RetinaNet with the dataset.
@@ -77,9 +86,8 @@ We used [RetinaNet](https://github.com/personalrobotics/pytorch_retinanet) for o
 
 ## SPNet: CNNs for Estimating Skewering Positions
 
-### Training SPNet
+### Training SPNet/SPANet
 ```
-./spnet_train.sh
+./<spnet/spanet>_train.sh
 ```
-The training script will train `SPNet` with the cropped images and annotations in the directories specified in `src/bite_selection_package/config/spnet_config.py` and save its checkpoint file as `checkpoints/food_spnet_<keyword>_ckpt.pth`.
-
+The training script will train `SPNet` or `SPAnet` with the cropped images and annotations in the directories specified in `src/bite_selection_package/config/<spnet/spanet>_config.py` and save its checkpoint file as `checkpoints/food_spnet_<keyword>_ckpt.pth`.

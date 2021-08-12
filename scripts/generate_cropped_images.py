@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 from __future__ import print_function
 from __future__ import division
@@ -32,12 +32,45 @@ class SPSampler(object):
         self.depth_dir = os.path.join(self.base_dir, 'cropped_depth')
 
         self.label_map_path = os.path.join(
-            bbox_base_dir, 'food_{}_label_map.pbtxt'.format(keyword))
+            self.bbox_base_dir, 'food_{}_label_map.pbtxt'.format(keyword))
 
         self.cur_img_name = None
         self.is_clicked = False
 
         self.check_dirs()
+
+        self.interm_map = {
+        'apple': 'apple',
+        'apricot': None,
+        'banana': 'banana',
+        'bell_pepper': 'bell_pepper',
+        'blackberry': None,
+        'broccoli': 'broccoli',
+        'cantaloupe': 'cantaloupe',
+        'carrot': 'carrot',
+        'celery': 'celery',
+        'cherry_tomato': 'cherry_tomato',
+        'egg': None,
+        'grape_purple': 'grape',
+        'grape_green': 'grape',
+        'grape': 'grape',
+        'melon': 'melon',
+        'strawberry': 'strawberry',
+        'red_grapes': 'grape',
+        'grapes': 'grape',
+        'cherry_tomatoes': 'cherry_tomato',
+        'cauliflower': 'cauliflower',
+        'honeydew': 'honeydew',
+        'kiwi': 'kiwi',
+        'cantalope': 'cantaloupe',
+        'carrots': 'carrot',
+        'celeries': 'celery',
+        'apples': 'apple',
+        'lettuce': 'lettuce',
+        'spinach': 'spinach',
+        'kale': 'kale'
+        }
+
 
     def check_dirs(self):
         assert os.path.exists(self.bbox_ann_dir), \
@@ -109,7 +142,8 @@ class SPSampler(object):
             for node in root:
                 if node.tag == 'object':
                     obj_name = node.find('name').text
-                    obj_name = self.interm_map[obj_name]
+                    if obj_name in self.interm_map:
+                        obj_name = self.interm_map[obj_name]
                     if obj_name not in label_dict:
                         continue
                     if node.find('bndbox') is None:

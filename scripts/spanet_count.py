@@ -11,6 +11,7 @@ import math
 import numpy as np
 import argparse
 
+import json
 import torch
 import torch.optim as optim
 import torchvision.transforms as transforms
@@ -20,6 +21,11 @@ from bite_selection_package.model.spanet_dataset import SPANetDataset
 from bite_selection_package.model.spanet_loss import SPANetLoss
 from bite_selection_package.config import spanet_config as config
 
+
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
 
 def arr2str(vec, format_str='.3f'):
     points = ' '.join(['{{0:{}}}'.format(format_str).format(x) for x in vec[:4]])
@@ -59,8 +65,6 @@ def test_spanet():
     transform = transforms.Compose([
         transforms.ToTensor()])
     # transforms.Normalize((0.562, 0.370, 0.271), (0.332, 0.302, 0.281))])
-
-    config.excluded_item = 'kiwi'
 
     exp_mode = 'normal'
     if config.excluded_item:
@@ -128,40 +132,41 @@ def test_spanet():
     total_test_samples = testset.num_samples
     trainset_len = 0
 
-    acc_midpoint_err = list()
-    acc_action_best = 0.
-    acc_action_spanet = 0.
-    acc_action_random = 0.
-    acc_action_dist = list()
-    acc_rotation_err = list()
+    with open("identity_map.json", 'r') as f_srm:
+            srm_str = f_srm.read().strip()
+            f_srm.close()
+    assert srm_str, 'cannot load success rate map'
+    map_configs = json.loads(srm_str)
+    success_rate_maps = {
+        'unknown': map_configs['success_rates'],
+        'isolated': map_configs['success_rates_isolated'],
+        'wall': map_configs['success_rates_wall'],
+        'lettuce': map_configs['success_rates_lettuce'],}
+
+    pv_counts = [0] * 16
 
     # calculate test accuracies
-    def calc_accuracies(pred_vector, gt_vector):
-        nonlocal acc_midpoint_err
-        nonlocal acc_action_best, acc_action_spanet, acc_action_dist, acc_action_random
-        nonlocal acc_rotation_err
-
+    def calc_accuracies(pred_vector, gt_vector, loc_type):
+        nonlocal pv_counts
+        nonlocal success_rate_maps
         pv = pred_vector.cpu().detach()[0]
-        pv_p1, pv_p2, pv_sr = pv[:2], pv[2:4], pv[4:]
-        gv = gt_vector.cpu().detach()[0]
-        gv_p1, gv_p2, gv_sr = gv[:2], gv[2:4], gv[4:]
+        pv_sr = softmax(pv[4:].numpy().reshape((1, 6)))
 
-        pv_midpoint = (pv_p1 + pv_p2) * 0.5
-        gv_midpoint = (gv_p1 + gv_p2) * 0.5
+        min_dist = 99999.
+        min_i = 0
+        for k, v in success_rate_maps[loc_type].items():
+            if k == "banana" or k == "kiwi":
+                continue
+            compr = softmax(np.array(v).reshape((1, 6)))
+            dist = np.sum(np.square(pv_sr - compr))
+            i = config.items.index(k) - 1
+            if dist < min_dist:
+                min_i = i
+                min_dist = dist
 
-        this_midpoint_err = ((pv_midpoint - gv_midpoint) ** 2).sum().sqrt().item()
-        acc_midpoint_err.append(this_midpoint_err)
+        pv_counts[min_i] += 1
 
-        acc_action_best += gv_sr.max()
-        acc_action_spanet += gv_sr[pv_sr.argmax()]
 
-        ind_random = 0.
-        for ind_pv_sr in gv_sr:
-            ind_random += ind_pv_sr
-        ind_random /= 6. # Total actions
-        acc_action_random += ind_random
-
-    
     if config.excluded_item:
     #if False:
         trainset_len = trainset.num_samples
@@ -170,6 +175,13 @@ def test_spanet():
         # over training set
         for idx in range(trainset.num_samples):
             rgb, depth, gt_vector, loc_type = trainset[idx]
+
+            loc_type_str = "isolated"
+            if loc_type[1] > 0:
+                loc_type_str = "wall"
+            elif loc_type[2] > 0:
+                loc_type_str = "lettuce"
+
             rgb = torch.stack([rgb]) if rgb is not None else None
             depth = torch.stack([depth]) if depth is not None else None
             gt_vector = torch.stack([gt_vector])
@@ -186,7 +198,7 @@ def test_spanet():
 
             feature_map = feature_map.cpu().data.numpy()
 
-            calc_accuracies(pred_vector, gt_vector)
+            calc_accuracies(pred_vector, gt_vector, loc_type_str)
 
             pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
             gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
@@ -228,6 +240,13 @@ def test_spanet():
     # over test set
     for idx in range(testset.num_samples):
         rgb, depth, gt_vector, loc_type = testset[idx]
+
+        loc_type_str = "isolated"
+        if loc_type[1] > 0:
+            loc_type_str = "wall"
+        elif loc_type[2] > 0:
+            loc_type_str = "lettuce"
+
         rgb = torch.stack([rgb]) if rgb is not None else None
         depth = torch.stack([depth]) if depth is not None else None
         gt_vector = torch.stack([gt_vector])
@@ -242,7 +261,9 @@ def test_spanet():
         loss = criterion(pred_vector, gt_vector)
         test_loss += loss.data
 
-        calc_accuracies(pred_vector, gt_vector)
+
+
+        calc_accuracies(pred_vector, gt_vector, loc_type_str)
 
         pred_vector_str = arr2str(pred_vector.cpu().data.numpy()[0])
         gt_vector_str = arr2str(gt_vector.cpu().data.numpy()[0])
@@ -286,19 +307,10 @@ def test_spanet():
         np.save(feat_save_path, feature_map.cpu())
 
     print(checkpoint_path)
-    print('Average loss: {0:6.3f}'.format(
-        test_loss / total_test_samples))
-    print('Success Rate - Best Action: {0:6.3f}'.format(
-        acc_action_best / total_test_samples))
-    print('Success Rate - SPANet: {0:6.3f}'.format(
-        acc_action_spanet / total_test_samples))
-    print('Success Rate - Random: {0:6.3f}'.format(
-        acc_action_random / total_test_samples))
-    print('Accuracy - Midpoint error: {0:6.3f}, (std: {2:6.3f}, max: {1:6.3f})'.format(
-        np.mean(acc_midpoint_err),
-        np.std(acc_midpoint_err),
-        np.max(acc_midpoint_err)))
-
+    print("Count Vector:")
+    del pv_counts[-5]
+    del pv_counts[1]
+    print(pv_counts)
 
 if __name__ == '__main__':
     ap = argparse.ArgumentParser()
@@ -315,6 +327,6 @@ if __name__ == '__main__':
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
 
     config.excluded_item = config.items[args.exc_id]
-    #config.set_project_prefix()
+    config.set_project_prefix()
 
     test_spanet()

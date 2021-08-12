@@ -82,7 +82,12 @@ def train_spanet():
         train=True,
         exp_mode=exp_mode,
         excluded_item=config.excluded_item,
-        transform=transform)
+        transform=transform,
+        use_rgb=config.use_rgb,
+        use_depth=config.use_depth,
+        use_wall = config.use_wall,
+        dataset_percent = config.dataset_percent,
+        dr_csv = config.dr_csv)
     trainloader = torch.utils.data.DataLoader(
         trainset, batch_size=config.train_batch_size,
         shuffle=True, num_workers=8,
@@ -98,7 +103,11 @@ def train_spanet():
         train=False,
         exp_mode=exp_mode,
         excluded_item=config.excluded_item,
-        transform=transform)
+        transform=transform,
+        use_rgb=config.use_rgb,
+        use_depth=config.use_depth,
+        use_wall = config.use_wall,
+        dr_csv = config.dr_csv)
     testloader = torch.utils.data.DataLoader(
         testset, batch_size=config.test_batch_size,
         shuffle=True, num_workers=8,
@@ -107,7 +116,7 @@ def train_spanet():
     if config.use_densenet:
         spanet = DenseSPANet()
     else:
-        spanet = SPANet()
+        spanet = SPANet(use_rgb=config.use_rgb, use_depth=config.use_depth, use_wall=config.use_wall)
 
     best_loss = float('inf')
     start_epoch = 0
@@ -131,7 +140,7 @@ def train_spanet():
     print('training set: {}'.format(trainloader.dataset.num_samples))
     print('test set: {}'.format(testloader.dataset.num_samples))
 
-    for epoch in range(start_epoch, start_epoch + 400):
+    for epoch in range(start_epoch, 400):
         # training
         print('\nEpoch: {} | {}'.format(epoch, config.project_prefix))
         spanet.train()
@@ -145,14 +154,16 @@ def train_spanet():
             rgb_imgs = batch_items[0]
             depth_imgs = batch_items[1]
             gt_vectors = batch_items[2]
+            loc_type = batch_items[3]
 
             if config.use_cuda:
                 rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
                 depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
+                loc_type = loc_type.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs, loc_type)
 
             loss = criterion(pred_vectors, gt_vectors)
             loss.backward()
@@ -178,14 +189,16 @@ def train_spanet():
             rgb_imgs = batch_items[0]
             depth_imgs = batch_items[1]
             gt_vectors = batch_items[2]
+            loc_type = batch_items[3]
 
             if config.use_cuda:
                 rgb_imgs = rgb_imgs.cuda() if rgb_imgs is not None else None
                 depth_imgs = depth_imgs.cuda() if depth_imgs is not None else None
                 gt_vectors = gt_vectors.cuda()
+                loc_type = loc_type.cuda()
 
             optimizer.zero_grad()
-            pred_vectors, _ = spanet(rgb_imgs, depth_imgs)
+            pred_vectors, _ = spanet(rgb_imgs, depth_imgs, loc_type)
 
             loss = criterion(pred_vectors, gt_vectors)
 
@@ -224,8 +237,6 @@ if __name__ == '__main__':
     ap = argparse.ArgumentParser()
     ap.add_argument('-g', '--gpu_id', default=config.gpu_id,
                     help="target gpu index to run this model")
-    ap.add_argument('-e', '--exc_id', default=config.excluded_item_idx,
-                    type=int, help="idx of an item to exclude")
     args = ap.parse_args()
 
     if args.gpu_id == '-1':
@@ -234,7 +245,6 @@ if __name__ == '__main__':
         config.use_cuda = True
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_id
 
-    config.excluded_item = config.items[args.exc_id]
     config.set_project_prefix()
 
     train_spanet()

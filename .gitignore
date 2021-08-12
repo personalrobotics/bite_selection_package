@@ -108,8 +108,12 @@ venv.bak/
 
 # local_configs
 config/
+checkpoint
 checkpoint/
+checkpoint
 processed/
 samples/
 data/
+data
 logs/
+src/bite_selection_package/config/spanet_config.py
