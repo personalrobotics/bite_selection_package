@@ -263,7 +263,7 @@ class SPANet(nn.Module):
 
         # Add Wall Detector
         if loc_type is None:
-            loc_type = torch.tensor([[1., 0.]]).repeat(out.size()[0], 1) # Isolated = default
+            loc_type = torch.tensor([[1., 0., 0.]]).repeat(out.size()[0], 1) # Isolated = default
             if out.is_cuda:
                 loc_type = loc_type.cuda()
 
